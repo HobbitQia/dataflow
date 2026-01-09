@@ -7,6 +7,7 @@ set(LIBS
         MLIRNeuraTransforms
         MLIRConversion
         MLIRNeura
+        MLIREgg
         MLIRTransforms
         MLIROptLib
         MLIRPass

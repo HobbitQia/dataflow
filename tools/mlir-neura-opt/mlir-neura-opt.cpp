@@ -14,6 +14,8 @@
 #include "llvm/Support/CommandLine.h"
 
 #include "Conversion/ConversionPasses.h"
+#include "EggDialect/EggDialect.h"
+#include "EggDialect/EggPasses.h"
 #include "NeuraDialect/Architecture/ArchitectureSpec.h"
 #include "NeuraDialect/NeuraDialect.h"
 #include "NeuraDialect/NeuraPasses.h"
@@ -60,6 +62,7 @@ int main(int argc, char **argv) {
   // Registers MLIR dialects.
   mlir::DialectRegistry registry;
   registry.insert<mlir::neura::NeuraDialect>();
+  registry.insert<mlir::egg::EggDialect>();
   registry.insert<mlir::func::FuncDialect>();
   registry.insert<mlir::arith::ArithDialect>();
   registry.insert<mlir::affine::AffineDialect>();
@@ -73,6 +76,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::linalg::LinalgDialect>();
 
   mlir::neura::registerPasses();
+  mlir::egg::registerPasses();
   mlir::registerPasses();
   mlir::registerViewOpGraphPass();
 

@@ -32,6 +32,9 @@ include(HandleLLVMOptions)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 
+# Add third-party dependencies
+add_subdirectory(third-party)
+
 add_subdirectory(include)
 add_subdirectory(lib)
 add_subdirectory(tools)

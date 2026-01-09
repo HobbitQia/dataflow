@@ -2,3 +2,6 @@
 	path = test/benchmark/CGRA-Bench
 	url = https://github.com/tancheng/CGRA-Bench.git
 	ignore = all
+[submodule "third-party/egg"]
+	path = third-party/egg
+	url = https://github.com/HobbitQia/egg.git

@@ -1,3 +1,4 @@
 add_subdirectory(NeuraDialect)
 add_subdirectory(TaskflowDialect)
+add_subdirectory(EggDialect)
 add_subdirectory(Conversion)
