@@ -59,6 +59,16 @@ llvm::StringRef NeuraToSExpr::getOperatorName(Operation *op) {
   if (opName == "load_indexed") return "load_indexed";
   if (opName == "store_indexed") return "store_indexed";
   
+  // Control/Dataflow operations
+  if (opName == "ctrl_mov") return "ctrl_mov";
+  if (opName == "data_mov") return "data_mov";
+  if (opName == "grant_predicate") return "grant_pred";
+  if (opName == "grant_once") return "grant_once";
+  if (opName == "phi_start") return "phi_start";
+  if (opName == "reserve") return "reserve";
+  if (opName == "return_value") return "return_value";
+  if (opName == "yield") return "yield";
+  
   // Type conversion
   if (opName == "cast") return "cast";
   if (opName == "sext") return "sext";
@@ -97,14 +107,16 @@ bool NeuraToSExpr::isBinaryOp(Operation *op) {
          opName == "fdiv" || opName == "fmax" || opName == "fmin" ||
          opName == "and" || opName == "or" || opName == "shl" ||
          opName == "icmp" || opName == "fcmp" ||
-         opName == "vadd" || opName == "vfadd" || opName == "vmul" || opName == "vfmul";
+         opName == "vadd" || opName == "vfadd" || opName == "vmul" || opName == "vfmul" ||
+         opName == "gep" || opName == "phi_start" || opName == "grant_predicate" ||
+         opName == "ctrl_mov" || opName == "store";
 }
 
 bool NeuraToSExpr::isUnaryOp(Operation *op) {
   llvm::StringRef opName = op->getName().stripDialect();
   return opName == "fneg" || opName == "not" || opName == "sext" || opName == "zext" ||
          opName == "cast" || opName == "load" || opName == "data_mov" ||
-         opName == "vector.reduce.add";
+         opName == "vector.reduce.add" || opName == "return_value";
 }
 
 bool NeuraToSExpr::isTernaryOp(Operation *op) {
@@ -165,6 +177,42 @@ std::string NeuraToSExpr::convert(Operation *op) {
       valueToVar[op->getResult(0)] = result;
     }
     return ss.str();
+  }
+  
+  // Handle grant_once operation (constant with predicate)
+  if (op->getName().stripDialect() == "grant_once") {
+    ss << "(grant_once";
+    if (auto constVal = op->getAttr("constant_value")) {
+      if (auto intAttr = mlir::dyn_cast<IntegerAttr>(constVal)) {
+        ss << " " << intAttr.getInt();
+      } else if (auto strAttr = mlir::dyn_cast<StringAttr>(constVal)) {
+        ss << " " << strAttr.getValue().str();
+      } else {
+        ss << " c" << varCounter++;
+      }
+    }
+    ss << ")";
+    
+    if (op->getNumResults() > 0) {
+      std::string result = ss.str();
+      valueToVar[op->getResult(0)] = result;
+    }
+    return ss.str();
+  }
+  
+  // Handle reserve operation (no operands)
+  if (op->getName().stripDialect() == "reserve") {
+    ss << "(reserve r" << varCounter++ << ")";
+    if (op->getNumResults() > 0) {
+      std::string result = ss.str();
+      valueToVar[op->getResult(0)] = result;
+    }
+    return ss.str();
+  }
+  
+  // Handle yield operation (no result, terminator)
+  if (op->getName().stripDialect() == "yield") {
+    return "(yield)";
   }
   
   // Build S-expression

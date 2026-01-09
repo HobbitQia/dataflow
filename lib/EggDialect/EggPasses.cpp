@@ -3,6 +3,7 @@
 #include "EggDialect/EggOps.h"
 #include "EggDialect/EggSaturation.h"
 #include "EggDialect/NeuraToSExpr.h"
+#include "EggDialect/RewriteRules.h"
 #include "NeuraDialect/NeuraDialect.h"
 #include "NeuraDialect/NeuraOps.h"
 
@@ -28,72 +29,61 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
   void runOnOperation() override {
     ModuleOp module = getOperation();
     
-    // Example: Define some rewrite rules for optimization
-    // These can be customized based on the Neura dialect operations
-    std::vector<RewriteRule> rules = {
-      // Arithmetic simplifications
-      RewriteRule("add-0", "(+ ?x 0)", "?x"),
-      RewriteRule("mul-1", "(* ?x 1)", "?x"),
-      RewriteRule("mul-0", "(* ?x 0)", "0"),
-      
-      // Commutativity (bidirectional)
-      RewriteRule("commute-add", "(+ ?a ?b)", "(+ ?b ?a)", true),
-      RewriteRule("commute-mul", "(* ?a ?b)", "(* ?b ?a)", true),
-      
-      // Associativity
-      RewriteRule("assoc-add", "(+ ?a (+ ?b ?c))", "(+ (+ ?a ?b) ?c)", true),
-      RewriteRule("assoc-mul", "(* ?a (* ?b ?c))", "(* (* ?a ?b) ?c)", true),
-      
-      // Distributivity
-      RewriteRule("distribute", "(* ?a (+ ?b ?c))", "(+ (* ?a ?b) (* ?a ?c))", true),
-      
-      // Floating-point rules
-      RewriteRule("fadd-0", "(fadd ?x 0.0)", "?x"),
-      RewriteRule("fmul-1", "(fmul ?x 1.0)", "?x"),
-      RewriteRule("fmul-0", "(fmul ?x 0.0)", "0.0"),
-      RewriteRule("commute-fadd", "(fadd ?a ?b)", "(fadd ?b ?a)", true),
-      RewriteRule("commute-fmul", "(fmul ?a ?b)", "(fmul ?b ?a)", true),
-      
-      // Fused multiply-add optimization
-      RewriteRule("fma-intro", "(fadd (fmul ?a ?b) ?c)", "(fma ?a ?b ?c)"),
-    };
+    // Create the converter
+    NeuraToSExpr converter;
+    
+    // First pass: collect all S-expressions from the DFG
+    std::vector<std::string> allSexprs;
+    
+    module.walk([&](Operation *op) {
+      if (op->getDialect() && 
+          op->getDialect()->getNamespace() == "neura") {
+        std::string sexpr = converter.convert(op);
+        if (!sexpr.empty()) {
+          allSexprs.push_back(sexpr);
+        }
+      }
+    });
+    
+    llvm::errs() << "Collected " << allSexprs.size() << " S-expressions from DFG\n\n";
+    
+    // Extract fusion rules from the DFG patterns
+    // minFrequency = 2 means pattern must appear at least twice
+    auto patterns = RewriteRuleGenerator::extractPatterns(allSexprs, 2);
+    
+    llvm::errs() << "Extracted " << patterns.size() << " patterns with frequency >= 2:\n";
+    for (size_t i = 0; i < patterns.size(); ++i) {
+      llvm::errs() << "  [" << i << "] Pattern: " << patterns[i].pattern << "\n";
+      llvm::errs() << "       Frequency: " << patterns[i].frequency << "\n";
+      llvm::errs() << "       Op count: " << patterns[i].opCount << "\n";
+      llvm::errs() << "       Operators: ";
+      for (const auto& op : patterns[i].operators) {
+        llvm::errs() << op << " ";
+      }
+      llvm::errs() << "\n";
+    }
+    llvm::errs() << "\n";
+    
+    // Generate fusion rules from patterns
+    auto fusionRules = RewriteRuleGenerator::generateFusionRulesFromPatterns(patterns);
+    
+    llvm::errs() << "Generated " << fusionRules.size() << " fusion rules:\n";
+    for (size_t i = 0; i < fusionRules.size(); ++i) {
+      llvm::errs() << "  [" << i << "] " << fusionRules[i].name << ":\n";
+      llvm::errs() << "       " << fusionRules[i].lhs << "\n";
+      llvm::errs() << "    -> " << fusionRules[i].rhs << "\n";
+    }
+    llvm::errs() << "\n";
     
     EggConfig config;
     config.iterLimit = 30;
     config.nodeLimit = 10000;
     
-    // Create the converter
-    NeuraToSExpr converter;
-    
-    // Walk through the module and process Neura operations
-    module.walk([&](Operation *op) {
-      // Check if operation is from Neura dialect
-      if (op->getDialect() && 
-          op->getDialect()->getNamespace() == "neura") {
-        
-        // Convert Neura operation to S-expression format
-        std::string sexpr = converter.convert(op);
-        
-        if (!sexpr.empty()) {
-          llvm::errs() << "Neura operation: " << op->getName() << "\n";
-          llvm::errs() << "  S-expression: " << sexpr << "\n";
-          
-          // Get the value mapping for this operation
-          const auto &varMap = converter.getVarMap();
-          
-          llvm::errs() << "  Variable mappings:\n";
-          for (const auto &entry : varMap) {
-            llvm::errs() << "    " << entry.getKey() << " -> Value\n";
-          }
-          
-          // Run equality saturation (optional, can be enabled later)
-          // EggResult result = runEggSaturation(sexpr, rules, config);
-          // if (result.success) {
-          //   llvm::errs() << "  Optimized: " << result.bestExpr << "\n";
-          // }
-        }
-      }
-    });
+    // Second pass: print all S-expressions (for debugging)
+    llvm::errs() << "All S-expressions:\n";
+    for (size_t i = 0; i < allSexprs.size(); ++i) {
+      llvm::errs() << "  [" << i << "] " << allSexprs[i] << "\n";
+    }
   }
 };
 
