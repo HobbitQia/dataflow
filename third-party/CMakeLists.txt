@@ -36,11 +36,12 @@ if(CARGO)
     )
     add_dependencies(egg_bridge egg_bridge_build)
     
-    # Export include directory
-    set(EGG_BRIDGE_INCLUDE_DIR ${EGG_BRIDGE_DIR}/include PARENT_SCOPE)
-    set(EGG_BRIDGE_FOUND TRUE PARENT_SCOPE)
+    # Export include directory - use CACHE to make it available globally
+    set(EGG_BRIDGE_INCLUDE_DIR ${EGG_BRIDGE_DIR}/include CACHE PATH "egg-bridge include directory" FORCE)
+    set(EGG_BRIDGE_FOUND TRUE CACHE BOOL "egg-bridge found" FORCE)
+    message(STATUS "egg-bridge found: ${EGG_BRIDGE_LIB}")
     
 else()
     message(WARNING "cargo not found, egg-bridge will not be built")
-    set(EGG_BRIDGE_FOUND FALSE PARENT_SCOPE)
+    set(EGG_BRIDGE_FOUND FALSE CACHE BOOL "egg-bridge found" FORCE)
 endif()

@@ -6,6 +6,7 @@ add_mlir_dialect_library(MLIREgg
         EggSaturation.cpp
         NeuraToSExpr.cpp
         RewriteRules.cpp
+        SExprToNeura.cpp
 
         ADDITIONAL_HEADER_DIRS
         ${PROJECT_SOURCE_DIR}/include/EggDialect
@@ -23,6 +24,8 @@ add_mlir_dialect_library(MLIREgg
         )
 
 # Link egg-bridge if available
+message(STATUS "EGG_BRIDGE_FOUND = ${EGG_BRIDGE_FOUND}")
+message(STATUS "EGG_BRIDGE_INCLUDE_DIR = ${EGG_BRIDGE_INCLUDE_DIR}")
 if(EGG_BRIDGE_FOUND)
     target_include_directories(MLIREgg PRIVATE ${EGG_BRIDGE_INCLUDE_DIR})
     target_link_libraries(MLIREgg PRIVATE egg_bridge)
@@ -31,4 +34,7 @@ if(EGG_BRIDGE_FOUND)
         target_link_libraries(MLIREgg PRIVATE dl pthread)
     endif()
     target_compile_definitions(MLIREgg PRIVATE EGG_BRIDGE_AVAILABLE)
+    # Also add to the object library
+    target_compile_definitions(obj.MLIREgg PRIVATE EGG_BRIDGE_AVAILABLE)
+    message(STATUS "EGG_BRIDGE_AVAILABLE defined for MLIREgg")
 endif()

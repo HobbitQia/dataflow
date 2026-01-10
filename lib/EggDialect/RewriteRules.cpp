@@ -428,6 +428,22 @@ static void extractOperators(const std::string& sexpr, std::vector<std::string>&
   }
 }
 
+/// Helper: Extract operators from a normalized pattern (excluding variable placeholders)
+/// Only extracts operators that are actually preserved in the fusion pattern,
+/// not operations that appear in variable positions (like 'reserve')
+static void extractPatternOperators(const std::string& pattern, std::vector<std::string>& ops) {
+  std::string op = getOperator(pattern);
+  if (!op.empty() && op != "?" && op[0] != '?') {
+    // This is a real operator, not a variable placeholder
+    ops.push_back(op);
+    auto args = getArguments(pattern);
+    for (const auto& arg : args) {
+      extractPatternOperators(arg, ops);
+    }
+  }
+  // If op is empty or starts with '?', it's a variable - don't include it
+}
+
 std::string RewriteRuleGenerator::normalizePattern(const std::string& sexpr) {
   // Replace all leaf values (atoms that aren't operators) with variables
   // This creates a pattern that can match any concrete values
@@ -476,7 +492,10 @@ void RewriteRuleGenerator::extractSubPatterns(
     if (patternInfo.frequency == 0) {
       patternInfo.pattern = normalized;
       patternInfo.opCount = opCount;
-      extractOperators(sexpr, patternInfo.operators);
+      // Extract operators from the normalized pattern, not the original sexpr
+      // This ensures we only get operators that are actually fused,
+      // excluding operations that appear in variable positions (like 'reserve')
+      extractPatternOperators(normalized, patternInfo.operators);
     }
     patternInfo.frequency++;
   }
@@ -558,11 +577,16 @@ std::vector<RewriteRule> RewriteRuleGenerator::generateFusionRulesFromPatterns(
     }
     lhs = newPattern;
     
-    // Generate the fused operator name
-    std::string fusedOp = generateFusedOpName(pattern);
+    // Generate the fused operator name (without 'fused_' prefix)
+    std::string fusedOpName = generateFusedOpName(pattern);
+    // Remove the leading "fused_" since we'll use (fused name ...) format
+    if (fusedOpName.substr(0, 6) == "fused_") {
+      fusedOpName = fusedOpName.substr(6);
+    }
     
-    // Generate RHS with the fused operator
-    std::string rhs = "(" + fusedOp;
+    // Generate RHS with the fused operator: (fused pattern_name ?a ?b ...)
+    // The pattern_name is a Symbol, and args are the variables
+    std::string rhs = "(fused " + fusedOpName;
     for (int i = 0; i < varCounter; ++i) {
       char varName = 'a' + (i % 26);
       rhs += " ?";
@@ -571,11 +595,11 @@ std::vector<RewriteRule> RewriteRuleGenerator::generateFusionRulesFromPatterns(
     rhs += ")";
     
     // Create the fusion rule (pattern -> fused)
-    std::string ruleName = "fuse-" + fusedOp;
+    std::string ruleName = "fuse-" + fusedOpName;
     rules.push_back(makeRule(ruleName, lhs, rhs));
     
     // Create the unfusion rule (fused -> pattern)
-    std::string unfuseRuleName = "unfuse-" + fusedOp;
+    std::string unfuseRuleName = "unfuse-" + fusedOpName;
     rules.push_back(makeRule(unfuseRuleName, rhs, lhs));
   }
   

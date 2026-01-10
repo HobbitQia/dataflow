@@ -34,6 +34,7 @@ define_language! {
         "<=" = Le([Id; 2]),
         ">" = Gt([Id; 2]),
         ">=" = Ge([Id; 2]),
+        "icmp" = Icmp([Id; 3]),  // Integer comparison with mode
 
         // Logical operations
         "and" = And([Id; 2]),
@@ -44,11 +45,36 @@ define_language! {
         "select" = Select([Id; 3]),
 
         // Memory operations (for Neura dialect)
-        "load" = Load([Id; 2]),
-        "store" = Store([Id; 3]),
+        "load" = Load(Id),
+        "store" = Store([Id; 2]),
+        "gep" = Gep([Id; 2]),
+
+        // Neura dialect specific operations
+        "grant_once" = GrantOnce(Id),
+        "reserve" = Reserve(Id),
+        "phi_start" = PhiStart([Id; 2]),
+        "phi_end" = PhiEnd([Id; 2]),
+        "grant_pred" = GrantPred([Id; 2]),
+        "ctrl_mov" = CtrlMov([Id; 2]),
+        "data_mov" = DataMov(Id),
+        "return_value" = ReturnValue(Id),
+        "yield" = Yield,
+        
+        // Floating point operations
+        "fadd" = FAdd([Id; 2]),
+        "fsub" = FSub([Id; 2]),
+        "fmul" = FMul([Id; 2]),
+        "fdiv" = FDiv([Id; 2]),
+
+        // Vector operations
+        "vadd" = VAdd([Id; 2]),
+        "vmul" = VMul([Id; 2]),
 
         // Generic function call with variable arity
         "call" = Call(Box<[Id]>),
+        
+        // Fused operations (dynamically matched)
+        "fused" = Fused(Box<[Id]>),
     }
 }
 
