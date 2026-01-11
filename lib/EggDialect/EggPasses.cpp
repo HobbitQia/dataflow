@@ -8,11 +8,20 @@
 #include "NeuraDialect/NeuraDialect.h"
 #include "NeuraDialect/NeuraOps.h"
 
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <queue>
+#include <regex>
+#include <set>
+#include <map>
 
 namespace mlir {
 namespace egg {
@@ -27,6 +36,125 @@ namespace egg {
 namespace {
 
 struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
+  
+  // Helper function to parse arguments from a fused S-expression
+  // E.g., from "(fused name arg1 arg2 ...)" extract [arg1, arg2, ...]
+  std::vector<std::string> parseFusedArgs(const std::string& expr) {
+    std::vector<std::string> args;
+    
+    // Skip "(fused name " to get to arguments
+    size_t pos = expr.find("(fused ");
+    if (pos == std::string::npos) return args;
+    
+    pos += 7;  // Skip "(fused "
+    
+    // Skip the pattern name
+    while (pos < expr.size() && expr[pos] != ' ' && expr[pos] != ')') {
+      pos++;
+    }
+    
+    // Now parse the arguments
+    while (pos < expr.size()) {
+      // Skip whitespace
+      while (pos < expr.size() && expr[pos] == ' ') pos++;
+      if (pos >= expr.size() || expr[pos] == ')') break;
+      
+      std::string arg;
+      if (expr[pos] == '(') {
+        // Nested expression - find matching close paren
+        int depth = 1;
+        arg += expr[pos++];
+        while (pos < expr.size() && depth > 0) {
+          if (expr[pos] == '(') depth++;
+          else if (expr[pos] == ')') depth--;
+          arg += expr[pos++];
+        }
+      } else if (expr[pos] == '"') {
+        // Quoted string
+        arg += expr[pos++];
+        while (pos < expr.size() && expr[pos] != '"') {
+          arg += expr[pos++];
+        }
+        if (pos < expr.size()) arg += expr[pos++];
+      } else {
+        // Simple token
+        while (pos < expr.size() && expr[pos] != ' ' && expr[pos] != ')') {
+          arg += expr[pos++];
+        }
+      }
+      
+      if (!arg.empty()) {
+        args.push_back(arg);
+      }
+    }
+    
+    return args;
+  }
+  
+  // Find the Value corresponding to an S-expression argument
+  Value findValueForArg(const std::string& arg, 
+                        const std::vector<Operation*>& neuraOps,
+                        const std::vector<std::string>& allSexprs,
+                        OpBuilder& builder, Location loc) {
+    // Check if it's a reserve reference like "(reserve r0)"
+    if (arg.find("(reserve ") == 0) {
+      // Find the matching reserve operation
+      for (size_t i = 0; i < allSexprs.size() && i < neuraOps.size(); ++i) {
+        if (allSexprs[i] == arg && neuraOps[i]) {
+          if (neuraOps[i]->getNumResults() > 0) {
+            return neuraOps[i]->getResult(0);
+          }
+        }
+      }
+    }
+    
+    // Check if it's a comparison type (eq, ne, slt, etc.) - skip these
+    if (arg == "eq" || arg == "ne" || arg == "slt" || arg == "sgt" ||
+        arg == "sle" || arg == "sge" || arg == "ult" || arg == "ugt" ||
+        arg == "ule" || arg == "uge") {
+      // This is a comparison predicate, not a Value - skip it
+      return Value();
+    }
+    
+    // Check if it's a constant integer
+    bool isInteger = !arg.empty() && 
+        std::all_of(arg.begin(), arg.end(), [](char c) { 
+          return std::isdigit(c) || c == '-'; 
+        });
+    if (isInteger) {
+      // It's an integer constant - we need to find or create a grant_once
+      int64_t val = std::stoll(arg);
+      for (size_t i = 0; i < neuraOps.size(); ++i) {
+        if (!neuraOps[i]) continue;
+        if (auto grantOnce = dyn_cast<neura::GrantOnceOp>(neuraOps[i])) {
+          if (auto constAttr = grantOnce->getAttrOfType<IntegerAttr>("constant_value")) {
+            if (constAttr.getInt() == val) {
+              return grantOnce.getResult();
+            }
+          }
+        }
+      }
+    }
+    
+    // Check if it's a quoted string like "%arg1" 
+    if (arg.size() > 2 && arg[0] == '"' && arg.back() == '"') {
+      std::string unquoted = arg.substr(1, arg.size() - 2);
+      // Find matching grant_once with this string value
+      for (size_t i = 0; i < neuraOps.size(); ++i) {
+        if (!neuraOps[i]) continue;
+        if (auto grantOnce = dyn_cast<neura::GrantOnceOp>(neuraOps[i])) {
+          if (auto constAttr = grantOnce->getAttrOfType<StringAttr>("constant_value")) {
+            if (constAttr.getValue() == unquoted) {
+              return grantOnce.getResult();
+            }
+          }
+        }
+      }
+    }
+    
+    return Value();  // Not found
+  }
+
   void runOnOperation() override {
     ModuleOp module = getOperation();
     
@@ -156,82 +284,377 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     llvm::errs() << "\nTotal: " << changedCount << "/" << allSexprs.size() 
                  << " expressions optimized\n\n";
     
-    // === IR Reconstruction ===
-    // Create SExprToNeura converter to reconstruct IR from optimized S-expressions
+    // === IR Reconstruction with Multi-Output Fused Ops ===
     llvm::errs() << "=== IR Reconstruction ===\n";
     
-    // Check for fused patterns in optimized expressions
-    llvm::errs() << "=== Fused Patterns Detected ===\n";
+    // Find the function/kernel containing these operations
+    Operation* parentOp = nullptr;
+    if (!neuraOps.empty() && neuraOps[0]) {
+      parentOp = neuraOps[0]->getParentOp();
+    }
     
-    // Look for "(fused " in optimized expressions (new format)
-    for (size_t i = 0; i < optimizedExprs.size(); ++i) {
-      const std::string& expr = optimizedExprs[i];
+    if (!parentOp) {
+      llvm::errs() << "Error: Could not find parent operation for reconstruction\n";
+      return;
+    }
+    
+    // Get the parent region
+    Region* parentRegion = nullptr;
+    if (auto kernelOp = dyn_cast<neura::KernelOp>(parentOp)) {
+      parentRegion = &kernelOp.getBody();
+    } else if (auto funcOp = dyn_cast<func::FuncOp>(parentOp)) {
+      parentRegion = &funcOp.getBody();
+    }
+    
+    if (!parentRegion || parentRegion->empty()) {
+      llvm::errs() << "Error: Could not find parent region for reconstruction\n";
+      return;
+    }
+    
+    Location loc = parentOp->getLoc();
+    
+    // Build a map from operation to its index
+    std::map<Operation*, size_t> opToIndex;
+    for (size_t i = 0; i < neuraOps.size(); ++i) {
+      if (neuraOps[i]) {
+        opToIndex[neuraOps[i]] = i;
+      }
+    }
+    
+    // Identify fusion groups: find operations whose optimized expr starts with (fused ...)
+    // and collect all operations that are part of the same fusion
+    struct FusionGroup {
+      std::string patternName;
+      Operation* rootOp;                    // The root operation of this fusion
+      std::vector<Operation*> opsInGroup;   // All operations in topological order
+      SmallVector<Value> externalInputs;    // Inputs from outside the group
+      SmallVector<Value> externalOutputs;   // Results used outside the group
+      int64_t frequency;
+      size_t rootIndex;
+    };
+    
+    std::vector<FusionGroup> fusionGroups;
+    
+    // First pass: collect all potential fusion groups without filtering
+    for (size_t i = 0; i < neuraOps.size() && i < optimizedExprs.size(); ++i) {
+      if (!neuraOps[i]) continue;
       
-      // Check for (fused pattern_name ...) format
-      size_t fusedPos = expr.find("(fused ");
-      if (fusedPos != std::string::npos) {
-        // Extract pattern name - it's the first token after "fused "
-        size_t nameStart = fusedPos + 7;  // length of "(fused "
-        size_t nameEnd = expr.find_first_of(" )", nameStart);
-        if (nameEnd != std::string::npos) {
-          std::string patternName = expr.substr(nameStart, nameEnd - nameStart);
+      const std::string& optimizedExpr = optimizedExprs[i];
+      
+      // Check if this expression starts with (fused ...)
+      if (optimizedExpr.find("(fused ") == 0) {
+        // Extract the pattern name
+        size_t nameStart = 7;
+        size_t nameEnd = optimizedExpr.find_first_of(" )", nameStart);
+        std::string patternName = optimizedExpr.substr(nameStart, nameEnd - nameStart);
+        
+        FusionGroup group;
+        group.patternName = patternName;
+        group.rootOp = neuraOps[i];
+        group.rootIndex = i;
+        group.frequency = 1;
+        
+        if (fusedPatternMap.count(patternName)) {
+          group.frequency = fusedPatternMap[patternName].frequency;
+        }
+        
+        // Collect all operations that are part of this fusion
+        // by tracing back through operands
+        std::set<Operation*> opsInFusion;
+        std::queue<Operation*> worklist;
+        worklist.push(neuraOps[i]);
+        
+        while (!worklist.empty()) {
+          Operation* op = worklist.front();
+          worklist.pop();
           
-          llvm::errs() << "Found fused pattern in expr[" << i << "]: " << patternName << "\n";
-          llvm::errs() << "  Expression: " << expr << "\n";
+          if (opsInFusion.count(op)) continue;
           
-          // Look up pattern info if available
-          if (fusedPatternMap.count(patternName)) {
-            const auto& info = fusedPatternMap[patternName];
-            llvm::errs() << "  Original pattern: " << info.originalPattern << "\n";
-            llvm::errs() << "  Frequency: " << info.frequency << "\n";
-          }
+          // Only include neura ops that are not leaf operations
+          if (!op->getDialect() || op->getDialect()->getNamespace() != "neura") 
+            continue;
           
-          // Create the fused_op for this pattern
-          if (i < neuraOps.size() && neuraOps[i]) {
-            Operation* originalOp = neuraOps[i];
-            OpBuilder builder(originalOp);
-            Location loc = originalOp->getLoc();
-            
-            // Create SExprToNeura converter
-            SExprToNeura sexprToNeura(builder, loc);
-            
-            // Set variable mapping from the original converter
-            sexprToNeura.setVarMap(converter.getVarMap());
-            
-            // Register fused patterns
-            for (const auto& [name, info] : fusedPatternMap) {
-              sexprToNeura.registerFusedPattern(name.str(), info);
+          llvm::StringRef opName = op->getName().stripDialect();
+          
+          // Skip leaf operations (grant_once, reserve) - they stay outside fusion
+          if (opName == "grant_once" || opName == "reserve") continue;
+          
+          // Skip side-effect operations  
+          if (opName == "store" || opName == "ctrl_mov" || opName == "yield" ||
+              opName == "return_value" || opName == "grant_predicate") continue;
+          
+          opsInFusion.insert(op);
+          
+          // Trace operands
+          for (Value operand : op->getOperands()) {
+            if (Operation* defOp = operand.getDefiningOp()) {
+              if (!opsInFusion.count(defOp)) {
+                worklist.push(defOp);
+              }
             }
-            
-            llvm::errs() << "  Creating neura.fused_op with pattern_name=\"" 
-                         << patternName << "\"\n\n";
-            
-            // Note: Full reconstruction would require:
-            // 1. Parsing S-expression arguments
-            // 2. Resolving variable bindings
-            // 3. Building the operation
-            // For now, we just demonstrate detection
+          }
+        }
+        
+        // Sort operations in topological order
+        std::vector<Operation*> sortedOps;
+        std::set<Operation*> visited;
+        
+        std::function<void(Operation*)> topoSort = [&](Operation* op) {
+          if (visited.count(op) || !opsInFusion.count(op)) return;
+          visited.insert(op);
+          
+          for (Value operand : op->getOperands()) {
+            if (Operation* defOp = operand.getDefiningOp()) {
+              if (opsInFusion.count(defOp)) {
+                topoSort(defOp);
+              }
+            }
+          }
+          sortedOps.push_back(op);
+        };
+        
+        for (Operation* op : opsInFusion) {
+          topoSort(op);
+        }
+        
+        group.opsInGroup = sortedOps;
+        
+        // Identify external inputs (values defined outside the fusion)
+        llvm::SetVector<Value> inputSet;
+        for (Operation* op : sortedOps) {
+          for (Value operand : op->getOperands()) {
+            Operation* defOp = operand.getDefiningOp();
+            if (!defOp || !opsInFusion.count(defOp)) {
+              inputSet.insert(operand);
+            }
+          }
+        }
+        group.externalInputs.assign(inputSet.begin(), inputSet.end());
+        
+        // Identify external outputs (results used outside the fusion)
+        llvm::SetVector<Value> outputSet;
+        for (Operation* op : sortedOps) {
+          for (Value result : op->getResults()) {
+            for (Operation* user : result.getUsers()) {
+              if (!opsInFusion.count(user)) {
+                outputSet.insert(result);
+                break;
+              }
+            }
+          }
+        }
+        group.externalOutputs.assign(outputSet.begin(), outputSet.end());
+        
+        fusionGroups.push_back(group);
+      }
+    }
+    
+    // Second pass: filter out fusion groups that are subsets of larger groups
+    // A group A is a subset of group B if all ops in A are also in B
+    std::vector<bool> keepGroup(fusionGroups.size(), true);
+    for (size_t i = 0; i < fusionGroups.size(); ++i) {
+      if (!keepGroup[i]) continue;
+      
+      std::set<Operation*> opsSetI(fusionGroups[i].opsInGroup.begin(), 
+                                    fusionGroups[i].opsInGroup.end());
+      
+      for (size_t j = 0; j < fusionGroups.size(); ++j) {
+        if (i == j || !keepGroup[j]) continue;
+        
+        std::set<Operation*> opsSetJ(fusionGroups[j].opsInGroup.begin(),
+                                      fusionGroups[j].opsInGroup.end());
+        
+        // Check if group j is a proper subset of group i
+        if (opsSetJ.size() < opsSetI.size()) {
+          bool isSubset = true;
+          for (Operation* op : opsSetJ) {
+            if (!opsSetI.count(op)) {
+              isSubset = false;
+              break;
+            }
+          }
+          if (isSubset) {
+            // Group j is subset of group i, skip group j
+            keepGroup[j] = false;
           }
         }
       }
     }
     
-    // Also check old format (fused_name ...) for backward compatibility  
-    for (const auto& expr : optimizedExprs) {
-      for (const auto& [fusedName, info] : fusedPatternMap) {
-        std::string fusedNameStr = fusedName.str();
-        // Skip if we already detected with new format
-        if (expr.find("(fused " + fusedNameStr) != std::string::npos) continue;
+    // Build filtered list of fusion groups
+    std::vector<FusionGroup> filteredGroups;
+    for (size_t i = 0; i < fusionGroups.size(); ++i) {
+      if (keepGroup[i]) {
+        filteredGroups.push_back(fusionGroups[i]);
+      }
+    }
+    fusionGroups = std::move(filteredGroups);
+    
+    llvm::errs() << "Found " << fusionGroups.size() << " fusion groups (after filtering)\n";
+    
+    // Collect all operations that are part of any fusion group
+    std::set<Operation*> allFusedOps;
+    for (const auto& group : fusionGroups) {
+      for (Operation* op : group.opsInGroup) {
+        allFusedOps.insert(op);
+      }
+    }
+    
+    // Create fused_op for each fusion group
+    for (auto& group : fusionGroups) {
+      if (group.opsInGroup.empty()) continue;
+      
+      // Re-collect external inputs based on current IR state
+      // (previous fused_ops may have changed operand values)
+      std::set<Operation*> opsInFusion(group.opsInGroup.begin(), group.opsInGroup.end());
+      llvm::SetVector<Value> inputSet;
+      for (Operation* op : group.opsInGroup) {
+        for (Value operand : op->getOperands()) {
+          Operation* defOp = operand.getDefiningOp();
+          if (!defOp || !opsInFusion.count(defOp)) {
+            inputSet.insert(operand);
+          }
+        }
+      }
+      group.externalInputs.assign(inputSet.begin(), inputSet.end());
+      
+      // Re-collect external outputs
+      llvm::SetVector<Value> outputSet;
+      for (Operation* op : group.opsInGroup) {
+        for (Value result : op->getResults()) {
+          for (Operation* user : result.getUsers()) {
+            if (!opsInFusion.count(user)) {
+              outputSet.insert(result);
+              break;
+            }
+          }
+        }
+      }
+      group.externalOutputs.assign(outputSet.begin(), outputSet.end());
+      
+      llvm::errs() << "Creating fused_op for pattern: " << group.patternName << "\n";
+      llvm::errs() << "  Ops in group: " << group.opsInGroup.size() << "\n";
+      llvm::errs() << "  External inputs: " << group.externalInputs.size() << "\n";
+      llvm::errs() << "  External outputs: " << group.externalOutputs.size() << "\n";
+      
+      // Find the insertion point: should be after ALL external inputs are defined
+      // This ensures dominance is satisfied
+      // Use the last operation in the opsInGroup as a reference block
+      Block* block = group.opsInGroup.front()->getBlock();
+      Operation* insertPoint = nullptr;
+      
+      // Find the latest position among: operations in group and defining ops of inputs
+      for (Operation* op : group.opsInGroup) {
+        if (op->getBlock() == block) {
+          if (!insertPoint || insertPoint->isBeforeInBlock(op)) {
+            insertPoint = op;
+          }
+        }
+      }
+      for (Value input : group.externalInputs) {
+        if (Operation* defOp = input.getDefiningOp()) {
+          if (defOp->getBlock() == block) {
+            if (!insertPoint || insertPoint->isBeforeInBlock(defOp)) {
+              insertPoint = defOp;
+            }
+          }
+        }
+      }
+      
+      if (!insertPoint) {
+        insertPoint = group.opsInGroup.front();
+      }
+      
+      // Insert AFTER the latest defining operation
+      OpBuilder builder(insertPoint->getBlock(), std::next(Block::iterator(insertPoint)));
+      
+      // Collect output types
+      SmallVector<Type> outputTypes;
+      for (Value output : group.externalOutputs) {
+        outputTypes.push_back(output.getType());
+      }
+      
+      // Create the fused_op with multiple outputs
+      auto fusedOp = builder.create<neura::FusedOp>(
+          loc,
+          TypeRange(outputTypes),
+          group.externalInputs,
+          builder.getI64IntegerAttr(group.rootIndex),
+          builder.getStringAttr(group.patternName),
+          builder.getI64IntegerAttr(group.frequency));
+      
+      // Create the body region with block arguments for inputs
+      Block* body = builder.createBlock(&fusedOp.getBody());
+      for (Value input : group.externalInputs) {
+        body->addArgument(input.getType(), loc);
+      }
+      
+      // Build mapping from external inputs to block arguments
+      IRMapping mapping;
+      for (size_t j = 0; j < group.externalInputs.size(); ++j) {
+        mapping.map(group.externalInputs[j], body->getArgument(j));
+      }
+      
+      // Clone operations into the body region in topological order
+      builder.setInsertionPointToEnd(body);
+      for (Operation* op : group.opsInGroup) {
+        Operation* clonedOp = builder.clone(*op, mapping);
+        // Map results of original op to results of cloned op
+        for (size_t j = 0; j < op->getNumResults(); ++j) {
+          mapping.map(op->getResult(j), clonedOp->getResult(j));
+        }
+      }
+      
+      // Add yield with all external outputs (mapped to cloned values)
+      SmallVector<Value> yieldValues;
+      for (Value output : group.externalOutputs) {
+        yieldValues.push_back(mapping.lookup(output));
+      }
+      builder.create<neura::YieldOp>(loc, yieldValues);
+      
+      // Replace uses of external outputs with fused_op results
+      // Important: Replace ALL uses outside this specific fusion group
+      std::set<Operation*> opsInThisGroup(group.opsInGroup.begin(), group.opsInGroup.end());
+      for (size_t j = 0; j < group.externalOutputs.size(); ++j) {
+        Value originalOutput = group.externalOutputs[j];
+        Value fusedResult = fusedOp.getResult(j);
         
-        if (expr.find("(" + fusedNameStr) != std::string::npos) {
-          llvm::errs() << "Found fused pattern (old format): " << fusedNameStr << "\n";
-          llvm::errs() << "  Original pattern: " << info.originalPattern << "\n";
-          llvm::errs() << "  Frequency: " << info.frequency << "\n";
-          llvm::errs() << "  Would create: neura.fused_op with pattern_name=\"" 
-                       << fusedNameStr << "\"\n\n";
+        // Replace uses outside THIS fusion group - including uses in other fusion groups
+        originalOutput.replaceUsesWithIf(fusedResult, [&](OpOperand& use) {
+          Operation* user = use.getOwner();
+          // Skip uses inside THIS fusion group (they were handled by cloning)
+          if (opsInThisGroup.count(user)) return false;
+          // Skip the yield we just created
+          if (llvm::isa<neura::YieldOp>(user) && user->getParentOp() == fusedOp) return false;
+          // Replace all other uses
+          return true;
+        });
+      }
+    }
+    
+    // Erase all original operations (after all fused_ops are created)
+    // Only erase operations that have NO remaining uses
+    for (auto& group : fusionGroups) {
+      // Process in reverse topological order
+      for (auto it = group.opsInGroup.rbegin(); it != group.opsInGroup.rend(); ++it) {
+        Operation* op = *it;
+        
+        // Check if all results are now unused
+        bool canErase = true;
+        for (Value result : op->getResults()) {
+          if (!result.use_empty()) {
+            canErase = false;
+            break;
+          }
+        }
+        
+        if (canErase) {
+          op->erase();
         }
       }
     }
+    
+    llvm::errs() << "IR reconstruction complete.\n\n";
   }
 };
 
