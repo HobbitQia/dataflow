@@ -26,8 +26,16 @@
 namespace mlir {
 namespace egg {
 
+#define GEN_PASS_DECL_PROCESSNEURA
 #define GEN_PASS_DEF_PROCESSNEURA
 #include "EggDialect/EggPasses.h.inc"
+
+//===----------------------------------------------------------------------===//
+// Area Map for cycle-aware extraction
+//===----------------------------------------------------------------------===//
+
+// Global area map loaded from YAML file
+static AreaMap g_opAreaMap;
 
 //===----------------------------------------------------------------------===//
 // ProcessNeura Pass
@@ -36,6 +44,7 @@ namespace egg {
 namespace {
 
 struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
+  using impl::ProcessNeuraBase<ProcessNeuraPass>::ProcessNeuraBase;
   
   // Helper function to parse arguments from a fused S-expression
   // E.g., from "(fused name arg1 arg2 ...)" extract [arg1, arg2, ...]
@@ -158,6 +167,25 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
   void runOnOperation() override {
     ModuleOp module = getOperation();
     
+    // Load area specification from YAML file if provided
+    AreaMap areaMap;
+    bool useCycleAwareExtraction = false;
+    if (!areaSpecFile.empty()) {
+      llvm::errs() << "=== Loading Area Specification ===\n";
+      llvm::errs() << "Area spec file: " << areaSpecFile << "\n";
+      
+      if (parseAreaSpecFile(areaSpecFile, areaMap)) {
+        useCycleAwareExtraction = true;
+        llvm::errs() << "Loaded " << areaMap.size() << " area specifications:\n";
+        for (const auto& entry : areaMap) {
+          llvm::errs() << "  " << entry.first << ": " << entry.second << "\n";
+        }
+        llvm::errs() << "\n";
+      } else {
+        llvm::errs() << "Warning: Failed to parse area spec file, using default extraction\n\n";
+      }
+    }
+    
     // Create the converter
     NeuraToSExpr converter;
     
@@ -246,7 +274,11 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     }
     
     // Run equality saturation on each expression
-    llvm::errs() << "=== Running Equality Saturation ===\n\n";
+    llvm::errs() << "=== Running Equality Saturation ===\n";
+    if (useCycleAwareExtraction) {
+      llvm::errs() << "(Using cycle-aware extraction with area optimization)\n";
+    }
+    llvm::errs() << "\n";
     
     std::vector<std::string> optimizedExprs;
     for (size_t i = 0; i < allSexprs.size(); ++i) {
@@ -254,18 +286,37 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       
       llvm::errs() << "[" << i << "] Input:  " << expr << "\n";
       
-      // Run egg saturation
-      SaturationResult result = runSaturation(expr, allRules, config);
-      
-      if (result.isSuccess()) {
-        llvm::errs() << "    Output: " << result.resultExpr << "\n";
-        llvm::errs() << "    (iterations=" << result.iterations 
-                     << ", egraph_size=" << result.egraphSize 
-                     << ", saturated=" << (result.saturated ? "yes" : "no") << ")\n";
-        optimizedExprs.push_back(result.resultExpr);
+      if (useCycleAwareExtraction) {
+        // Run cycle-aware saturation with area optimization
+        CycleAwareSaturationResult result = runCycleAwareSaturation(expr, allRules, areaMap, config);
+        
+        if (result.isSuccess()) {
+          llvm::errs() << "    Output: " << result.resultExpr << "\n";
+          llvm::errs() << "    (iterations=" << result.iterations 
+                       << ", egraph_size=" << result.egraphSize 
+                       << ", saturated=" << (result.saturated ? "yes" : "no") << ")\n";
+          llvm::errs() << "    (cycle_nodes=" << result.cycleNodeCount
+                       << ", off_cycle_area=" << result.offCycleArea
+                       << ", ast_size=" << result.astSize << ")\n";
+          optimizedExprs.push_back(result.resultExpr);
+        } else {
+          llvm::errs() << "    Error: " << result.errorMsg << "\n";
+          optimizedExprs.push_back(expr);  // Keep original on error
+        }
       } else {
-        llvm::errs() << "    Error: " << result.errorMsg << "\n";
-        optimizedExprs.push_back(expr);  // Keep original on error
+        // Run standard saturation
+        SaturationResult result = runSaturation(expr, allRules, config);
+        
+        if (result.isSuccess()) {
+          llvm::errs() << "    Output: " << result.resultExpr << "\n";
+          llvm::errs() << "    (iterations=" << result.iterations 
+                       << ", egraph_size=" << result.egraphSize 
+                       << ", saturated=" << (result.saturated ? "yes" : "no") << ")\n";
+          optimizedExprs.push_back(result.resultExpr);
+        } else {
+          llvm::errs() << "    Error: " << result.errorMsg << "\n";
+          optimizedExprs.push_back(expr);  // Keep original on error
+        }
       }
     }
     
@@ -492,6 +543,27 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     
     llvm::errs() << "Found " << fusionGroups.size() << " fusion groups (after filtering)\n";
     
+    // Sort fusion groups by the position of their first operation in the block
+    // This ensures we process groups in program order to maintain SSA dominance
+    std::sort(fusionGroups.begin(), fusionGroups.end(), 
+      [](const FusionGroup& a, const FusionGroup& b) {
+        if (a.opsInGroup.empty() || b.opsInGroup.empty()) return false;
+        Block* blockA = a.opsInGroup.front()->getBlock();
+        Block* blockB = b.opsInGroup.front()->getBlock();
+        if (blockA != blockB) return blockA < blockB;  // Different blocks, arbitrary order
+        
+        // Find the earliest operation in each group
+        Operation* earliestA = a.opsInGroup.front();
+        Operation* earliestB = b.opsInGroup.front();
+        for (Operation* op : a.opsInGroup) {
+          if (op->isBeforeInBlock(earliestA)) earliestA = op;
+        }
+        for (Operation* op : b.opsInGroup) {
+          if (op->isBeforeInBlock(earliestB)) earliestB = op;
+        }
+        return earliestA->isBeforeInBlock(earliestB);
+      });
+    
     // Collect all operations that are part of any fusion group
     std::set<Operation*> allFusedOps;
     for (const auto& group : fusionGroups) {
@@ -532,25 +604,42 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       }
       group.externalOutputs.assign(outputSet.begin(), outputSet.end());
       
+      // If this group has no ops or no outputs, skip it
+      if (group.opsInGroup.empty() || group.externalOutputs.empty()) {
+        continue;
+      }
+      
       llvm::errs() << "Creating fused_op for pattern: " << group.patternName << "\n";
       llvm::errs() << "  Ops in group: " << group.opsInGroup.size() << "\n";
       llvm::errs() << "  External inputs: " << group.externalInputs.size() << "\n";
       llvm::errs() << "  External outputs: " << group.externalOutputs.size() << "\n";
       
-      // Find the insertion point: should be after ALL external inputs are defined
-      // This ensures dominance is satisfied
-      // Use the last operation in the opsInGroup as a reference block
+      // Find the insertion point with correct dominance:
+      // 1. Must be AFTER all external inputs are defined
+      // 2. Must be BEFORE all external output users (outside the fusion group)
+      // 
+      // Strategy: Find the earliest user of any external output outside the group,
+      // then find the latest defining op of inputs that is before that user.
       Block* block = group.opsInGroup.front()->getBlock();
-      Operation* insertPoint = nullptr;
       
-      // Find the latest position among: operations in group and defining ops of inputs
-      for (Operation* op : group.opsInGroup) {
-        if (op->getBlock() == block) {
-          if (!insertPoint || insertPoint->isBeforeInBlock(op)) {
-            insertPoint = op;
+      // First, find the earliest user of external outputs outside the group
+      std::set<Operation*> opsInThisGroup(group.opsInGroup.begin(), group.opsInGroup.end());
+      Operation* earliestUser = nullptr;
+      for (Value output : group.externalOutputs) {
+        for (Operation* user : output.getUsers()) {
+          if (opsInThisGroup.count(user)) continue;  // Skip users inside the group
+          if (user->getBlock() != block) continue;   // Skip users in different blocks
+          if (!earliestUser || user->isBeforeInBlock(earliestUser)) {
+            earliestUser = user;
           }
         }
       }
+      
+      // Find the insertion point: should be after all inputs are defined,
+      // but before the earliest external user
+      Operation* insertPoint = nullptr;
+      
+      // Find the latest position among defining ops of EXTERNAL inputs
       for (Value input : group.externalInputs) {
         if (Operation* defOp = input.getDefiningOp()) {
           if (defOp->getBlock() == block) {
@@ -561,11 +650,28 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
         }
       }
       
-      if (!insertPoint) {
-        insertPoint = group.opsInGroup.front();
+      // If we have an earliest user, we need to insert before it
+      // But still after all input definitions
+      if (earliestUser && insertPoint) {
+        // Verify that insertPoint is before earliestUser
+        if (!insertPoint->isBeforeInBlock(earliestUser)) {
+          // This shouldn't happen in well-formed IR, but let's handle it
+          llvm::errs() << "  Warning: Input definition after external user\n";
+        }
       }
       
-      // Insert AFTER the latest defining operation
+      // If no insert point found (e.g., all inputs are block arguments), 
+      // use the earliest op in the group and insert before it
+      if (!insertPoint) {
+        insertPoint = group.opsInGroup.front();
+        for (Operation* op : group.opsInGroup) {
+          if (op->isBeforeInBlock(insertPoint)) {
+            insertPoint = op;
+          }
+        }
+      }
+      
+      // Insert AFTER insertPoint (which is the latest input definition)
       OpBuilder builder(insertPoint->getBlock(), std::next(Block::iterator(insertPoint)));
       
       // Collect output types
@@ -614,7 +720,7 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       
       // Replace uses of external outputs with fused_op results
       // Important: Replace ALL uses outside this specific fusion group
-      std::set<Operation*> opsInThisGroup(group.opsInGroup.begin(), group.opsInGroup.end());
+      // Note: opsInThisGroup was already defined above
       for (size_t j = 0; j < group.externalOutputs.size(); ++j) {
         Value originalOutput = group.externalOutputs[j];
         Value fusedResult = fusedOp.getResult(j);
