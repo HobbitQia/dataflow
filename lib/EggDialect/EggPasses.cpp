@@ -196,6 +196,9 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     module.walk([&](Operation *op) {
       if (op->getDialect() && 
           op->getDialect()->getNamespace() == "neura") {
+            if (!op->use_empty()) {
+              return;  // Skip ops that have uses (not DFG outputs)
+            }
         std::string sexpr = converter.convert(op);
         if (!sexpr.empty()) {
           allSexprs.push_back(sexpr);
@@ -205,7 +208,11 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     });
     
     llvm::errs() << "=== Egg Equality Saturation Pass ===\n";
-    llvm::errs() << "Collected " << allSexprs.size() << " S-expressions from DFG\n\n";
+    llvm::errs() << "Collected " << allSexprs.size() << " S-expressions from DFG:\n";
+    for (size_t i = 0; i < allSexprs.size(); ++i) {
+      llvm::errs() << "  [" << i << "] " << allSexprs[i] << "\n";
+    }
+    llvm::errs() << "\n";
     
     // Extract fusion rules from the DFG patterns
     // minFrequency = 2 means pattern must appear at least twice
@@ -392,12 +399,16 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       
       const std::string& optimizedExpr = optimizedExprs[i];
       
-      // Check if this expression starts with (fused ...)
-      if (optimizedExpr.find("(fused ") == 0) {
-        // Extract the pattern name
-        size_t nameStart = 7;
+      // Check if this expression contains (fused ...) anywhere
+      // The fused pattern may appear as a subexpression, not just at the root
+      size_t fusedPos = optimizedExpr.find("(fused ");
+      if (fusedPos != std::string::npos) {
+        // Extract the pattern name (relative to fusedPos)
+        size_t nameStart = fusedPos + 7;  // Skip "(fused "
         size_t nameEnd = optimizedExpr.find_first_of(" )", nameStart);
         std::string patternName = optimizedExpr.substr(nameStart, nameEnd - nameStart);
+        
+        llvm::errs() << "  [" << i << "] Found fused pattern: " << patternName << "\n";
         
         FusionGroup group;
         group.patternName = patternName;
@@ -409,11 +420,18 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
           group.frequency = fusedPatternMap[patternName].frequency;
         }
         
-        // Collect all operations that are part of this fusion
-        // by tracing back through operands
+        // NEW LOGIC: The fused pattern is a subexpression of the current op.
+        // We need to trace back from the operands of the current op (not the op itself)
+        // to find the operations that should be fused.
         std::set<Operation*> opsInFusion;
         std::queue<Operation*> worklist;
-        worklist.push(neuraOps[i]);
+        
+        // Start from the operands of the current operation
+        for (Value operand : neuraOps[i]->getOperands()) {
+          if (Operation* defOp = operand.getDefiningOp()) {
+            worklist.push(defOp);
+          }
+        }
         
         while (!worklist.empty()) {
           Operation* op = worklist.front();
@@ -421,7 +439,7 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
           
           if (opsInFusion.count(op)) continue;
           
-          // Only include neura ops that are not leaf operations
+          // Only include neura ops
           if (!op->getDialect() || op->getDialect()->getNamespace() != "neura") 
             continue;
           
@@ -430,10 +448,7 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
           // Skip leaf operations (grant_once, reserve) - they stay outside fusion
           if (opName == "grant_once" || opName == "reserve") continue;
           
-          // Skip side-effect operations  
-          if (opName == "store" || opName == "ctrl_mov" || opName == "yield" ||
-              opName == "return_value" || opName == "grant_predicate") continue;
-          
+          // Include this operation in the fusion
           opsInFusion.insert(op);
           
           // Trace operands
@@ -469,6 +484,8 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
         }
         
         group.opsInGroup = sortedOps;
+        
+        llvm::errs() << "    -> opsInGroup size: " << sortedOps.size() << "\n";
         
         // Identify external inputs (values defined outside the fusion)
         llvm::SetVector<Value> inputSet;

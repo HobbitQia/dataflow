@@ -85,6 +85,9 @@ define_language! {
         // Memory allocation
         "alloca" = Alloca(Id),     // Stack allocation
         
+        // Constant (for symbolic constants)
+        "const" = Const(Id),       // Symbolic constant
+        
         // Function return
         "return" = Return(Id),     // Return from function
 
@@ -629,6 +632,7 @@ fn get_node_op_name(node: &SimpleExprLang) -> &'static str {
         SimpleExprLang::Trunc(_) => "trunc",
         SimpleExprLang::Bitcast(_) => "bitcast",
         SimpleExprLang::Alloca(_) => "alloca",
+        SimpleExprLang::Const(_) => "const",
         SimpleExprLang::Return(_) => "return",
         SimpleExprLang::GrantOnceNullary => "grant_once_nullary",
         SimpleExprLang::Call(_) => "call",
