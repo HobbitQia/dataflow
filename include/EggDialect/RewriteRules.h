@@ -104,6 +104,14 @@ public:
   /// Check if an operator is associative
   static bool isAssociative(const std::string& op);
   
+  /// Check if an operator should be excluded from fusion patterns
+  static bool isExcludedFromFusion(const std::string& op);
+  
+  /// Normalize a pattern by replacing concrete values with variables
+  /// @param sexpr The S-expression to normalize
+  /// @return Normalized pattern with variables
+  static std::string normalizePattern(const std::string& sexpr);
+  
   //===--------------------------------------------------------------------===//
   // DFG Pattern Extraction for Fusion Rules
   //===--------------------------------------------------------------------===//
@@ -140,20 +148,12 @@ private:
   /// Remove duplicate rules
   static void deduplicateRules(std::vector<RewriteRule>& rules);
   
-  /// Check if an operator should be excluded from fusion patterns
-  static bool isExcludedFromFusion(const std::string& op);
-  
   /// Extract sub-patterns from an S-expression
   /// @param sexpr The S-expression to extract patterns from
   /// @param patterns Output map of pattern -> frequency
   static void extractSubPatterns(
       const std::string& sexpr,
       std::map<std::string, DFGPattern>& patterns);
-  
-  /// Normalize a pattern by replacing concrete values with variables
-  /// @param sexpr The S-expression to normalize
-  /// @return Normalized pattern with variables
-  static std::string normalizePattern(const std::string& sexpr);
   
   /// Generate a fused operator name from a pattern
   static std::string generateFusedOpName(const DFGPattern& pattern);

@@ -470,41 +470,60 @@ std::string RewriteRuleGenerator::normalizePattern(const std::string& sexpr) {
   return result;
 }
 
-void RewriteRuleGenerator::extractSubPatterns(
+/// Helper: Extract non-overlapping patterns from a single S-expression.
+/// Uses bottom-up traversal: if a pattern P is already matched in a subtree,
+/// we don't count another instance of P at the current node (they would overlap).
+/// This ensures we only count disjoint instances of the same pattern.
+static void extractNonOverlappingSubPatterns(
     const std::string& sexpr,
-    std::map<std::string, DFGPattern>& patterns) {
+    std::map<std::string, DFGPattern>& patterns,
+    std::set<std::string>& patternsMatchedInSubtree) {
   
   std::string op = getOperator(sexpr);
-  if (op.empty() || isExcludedFromFusion(op)) {
+  if (op.empty() || RewriteRuleGenerator::isExcludedFromFusion(op)) {
     return;
   }
   
-  // Count operators in this expression
-  size_t opCount = countOperators(sexpr);
-  
-  // Only consider patterns with at least 2 operations
-  if (opCount >= 2) {
-    // Normalize the pattern
-    std::string normalized = normalizePattern(sexpr);
-    
-    // Update pattern map
-    auto& patternInfo = patterns[normalized];
-    if (patternInfo.frequency == 0) {
-      patternInfo.pattern = normalized;
-      patternInfo.opCount = opCount;
-      // Extract operators from the normalized pattern, not the original sexpr
-      // This ensures we only get operators that are actually fused,
-      // excluding operations that appear in variable positions (like 'reserve')
-      extractPatternOperators(normalized, patternInfo.operators);
-    }
-    patternInfo.frequency++;
-  }
-  
-  // Recursively extract from children
+  // First, recursively process children and collect patterns matched in subtrees
   auto args = getArguments(sexpr);
+  std::set<std::string> allChildPatterns;
   for (const auto& arg : args) {
-    extractSubPatterns(arg, patterns);
+    std::set<std::string> childPatterns;
+    extractNonOverlappingSubPatterns(arg, patterns, childPatterns);
+    allChildPatterns.insert(childPatterns.begin(), childPatterns.end());
   }
+  
+  // Check if current node forms a pattern
+  size_t opCount = countOperators(sexpr);
+  if (opCount >= 2) {
+    std::string normalized = RewriteRuleGenerator::normalizePattern(sexpr);
+    
+    // Only count this pattern if it wasn't already counted in a child subtree
+    // (i.e., no overlapping instance of the same pattern exists below)
+    if (allChildPatterns.find(normalized) == allChildPatterns.end()) {
+      auto& patternInfo = patterns[normalized];
+      if (patternInfo.frequency == 0) {
+        patternInfo.pattern = normalized;
+        patternInfo.opCount = opCount;
+        // Extract operators from the normalized pattern
+        extractPatternOperators(normalized, patternInfo.operators);
+      }
+      patternInfo.frequency++;
+      // Mark this pattern as matched at this level
+      patternsMatchedInSubtree.insert(normalized);
+    }
+  }
+  
+  // Propagate child patterns to parent (so parent knows what's already matched below)
+  patternsMatchedInSubtree.insert(allChildPatterns.begin(), allChildPatterns.end());
+}
+
+void RewriteRuleGenerator::extractSubPatterns(
+    const std::string& sexpr,
+    std::map<std::string, DFGPattern>& patterns) {
+  // This function is now a wrapper that calls the non-overlapping version
+  std::set<std::string> matched;
+  extractNonOverlappingSubPatterns(sexpr, patterns, matched);
 }
 
 std::vector<DFGPattern> RewriteRuleGenerator::extractPatterns(
@@ -513,9 +532,10 @@ std::vector<DFGPattern> RewriteRuleGenerator::extractPatterns(
   
   std::map<std::string, DFGPattern> patternMap;
   
-  // Extract patterns from all S-expressions
+  // Extract non-overlapping patterns from all S-expressions
   for (const auto& sexpr : sexprs) {
-    extractSubPatterns(sexpr, patternMap);
+    std::set<std::string> matched;
+    extractNonOverlappingSubPatterns(sexpr, patternMap, matched);
   }
   
   // Filter by frequency and collect results
