@@ -15,21 +15,21 @@ namespace egg {
 //===----------------------------------------------------------------------===//
 
 // Commutative operators (integer only)
-static const std::set<std::string> commutativeOps = {
+static const std::set<std::string> commutative_ops = {
   "+", "*",
   "and", "or",
   "vadd", "vmul"
 };
 
 // Associative operators (integer only)
-static const std::set<std::string> associativeOps = {
+static const std::set<std::string> associative_ops = {
   "+", "*",
   "and", "or",
   "vadd", "vmul"
 };
 
 // Operators excluded from fusion patterns
-static const std::set<std::string> excludedFromFusion = {
+static const std::set<std::string> excluded_from_fusion = {
   "ctrl_mov",  // ctrl_mov should not be part of fusion patterns
   "reserve"    // reserve should not be part of fusion patterns
 };
@@ -39,15 +39,15 @@ static const std::set<std::string> excludedFromFusion = {
 //===----------------------------------------------------------------------===//
 
 bool RewriteRuleGenerator::isCommutative(const std::string& op) {
-  return commutativeOps.count(op) > 0;
+  return commutative_ops.count(op) > 0;
 }
 
 bool RewriteRuleGenerator::isAssociative(const std::string& op) {
-  return associativeOps.count(op) > 0;
+  return associative_ops.count(op) > 0;
 }
 
 bool RewriteRuleGenerator::isExcludedFromFusion(const std::string& op) {
-  return excludedFromFusion.count(op) > 0;
+  return excluded_from_fusion.count(op) > 0;
 }
 
 std::vector<RewriteRule> RewriteRuleGenerator::generateAllRules() {
@@ -70,8 +70,8 @@ std::vector<RewriteRule> RewriteRuleGenerator::generateRules(const RuleGenConfig
   // Use extractFusionRules() with the actual S-expressions from the DFG
   
   if (config.includeDataflow) {
-    auto dataflowRules = getDataflowRules();
-    rules.insert(rules.end(), dataflowRules.begin(), dataflowRules.end());
+    auto dataflow_rules = getDataflowRules();
+    rules.insert(rules.end(), dataflow_rules.begin(), dataflow_rules.end());
   }
   
   deduplicateRules(rules);
@@ -265,17 +265,17 @@ std::vector<RewriteRule> RewriteRuleGenerator::getDataflowRules() {
 //===----------------------------------------------------------------------===//
 
 void RewriteRuleGenerator::addIntArithRules(std::vector<RewriteRule>& rules) {
-  auto identityRules = getAlgebraicIdentityRules();
-  rules.insert(rules.end(), identityRules.begin(), identityRules.end());
-  
-  auto commuteRules = getCommutativityRules();
-  rules.insert(rules.end(), commuteRules.begin(), commuteRules.end());
-  
-  auto assocRules = getAssociativityRules();
-  rules.insert(rules.end(), assocRules.begin(), assocRules.end());
-  
-  auto distribRules = getDistributivityRules();
-  rules.insert(rules.end(), distribRules.begin(), distribRules.end());
+  auto identity_rules = getAlgebraicIdentityRules();
+  rules.insert(rules.end(), identity_rules.begin(), identity_rules.end());
+
+  auto commute_rules = getCommutativityRules();
+  rules.insert(rules.end(), commute_rules.begin(), commute_rules.end());
+
+  auto assoc_rules = getAssociativityRules();
+  rules.insert(rules.end(), assoc_rules.begin(), assoc_rules.end());
+
+  auto distrib_rules = getDistributivityRules();
+  rules.insert(rules.end(), distrib_rules.begin(), distrib_rules.end());
 }
 
 //===----------------------------------------------------------------------===//
@@ -530,17 +530,17 @@ std::vector<DFGPattern> RewriteRuleGenerator::extractPatterns(
     const std::vector<std::string>& sexprs,
     size_t minFrequency) {
   
-  std::map<std::string, DFGPattern> patternMap;
+  std::map<std::string, DFGPattern> pattern_map;
   
   // Extract non-overlapping patterns from all S-expressions
   for (const auto& sexpr : sexprs) {
     std::set<std::string> matched;
-    extractNonOverlappingSubPatterns(sexpr, patternMap, matched);
+    extractNonOverlappingSubPatterns(sexpr, pattern_map, matched);
   }
   
   // Filter by frequency and collect results
   std::vector<DFGPattern> result;
-  for (auto& [key, pattern] : patternMap) {
+  for (auto& [key, pattern] : pattern_map) {
     if (pattern.frequency >= minFrequency) {
       result.push_back(std::move(pattern));
     }
@@ -575,52 +575,45 @@ std::vector<RewriteRule> RewriteRuleGenerator::generateFusionRulesFromPatterns(
     const std::vector<DFGPattern>& patterns) {
   
   std::vector<RewriteRule> rules;
-  int varCounter = 0;
+  int var_counter = 0;
   
   for (const auto& pattern : patterns) {
     // Create a new pattern with proper variable names
     std::string lhs = pattern.pattern;
     
-    // Replace all ?_ placeholders with unique variable names
-    varCounter = 0;
-    std::string newPattern;
+    var_counter = 0;
+    std::string new_pattern;
     for (size_t i = 0; i < lhs.size(); ++i) {
       if (i + 1 < lhs.size() && lhs[i] == '?' && lhs[i+1] == '_') {
-        char varName = 'a' + (varCounter % 26);
-        newPattern += "?";
-        newPattern += varName;
-        varCounter++;
-        i++;  // Skip the '_'
+        char var_name = 'a' + (var_counter % 26);
+        new_pattern += "?";
+        new_pattern += var_name;
+        var_counter++;
+        i++;
       } else {
-        newPattern += lhs[i];
+        new_pattern += lhs[i];
       }
     }
-    lhs = newPattern;
-    
-    // Generate the fused operator name (without 'fused_' prefix)
-    std::string fusedOpName = generateFusedOpName(pattern);
-    // Remove the leading "fused_" since we'll use (fused name ...) format
-    if (fusedOpName.substr(0, 6) == "fused_") {
-      fusedOpName = fusedOpName.substr(6);
+    lhs = new_pattern;
+
+    std::string fused_op_name = generateFusedOpName(pattern);
+    if (fused_op_name.substr(0, 6) == "fused_") {
+      fused_op_name = fused_op_name.substr(6);
     }
-    
-    // Generate RHS with the fused operator: (fused pattern_name ?a ?b ...)
-    // The pattern_name is a Symbol, and args are the variables
-    std::string rhs = "(fused " + fusedOpName;
-    for (int i = 0; i < varCounter; ++i) {
-      char varName = 'a' + (i % 26);
+
+    std::string rhs = "(fused " + fused_op_name;
+    for (int i = 0; i < var_counter; ++i) {
+      char var_name = 'a' + (i % 26);
       rhs += " ?";
-      rhs += varName;
+      rhs += var_name;
     }
     rhs += ")";
-    
-    // Create the fusion rule (pattern -> fused)
-    std::string ruleName = "fuse-" + fusedOpName;
-    rules.push_back(makeRule(ruleName, lhs, rhs));
-    
-    // Create the unfusion rule (fused -> pattern)
-    std::string unfuseRuleName = "unfuse-" + fusedOpName;
-    rules.push_back(makeRule(unfuseRuleName, rhs, lhs));
+
+    std::string rule_name = "fuse-" + fused_op_name;
+    rules.push_back(makeRule(rule_name, lhs, rhs));
+
+    std::string unfuse_rule_name = "unfuse-" + fused_op_name;
+    rules.push_back(makeRule(unfuse_rule_name, rhs, lhs));
   }
   
   return rules;

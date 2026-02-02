@@ -16,113 +16,99 @@ std::string NeuraToSExpr::getOrCreateVar(Value value) {
     return it->second;
   }
   
-  std::string varName = "v" + std::to_string(varCounter++);
-  valueToVar[value] = varName;
-  varToValue[varName] = value;
-  return varName;
+  std::string var_name = "v" + std::to_string(varCounter++);
+  valueToVar[value] = var_name;
+  varToValue[var_name] = value;
+  return var_name;
 }
 
 llvm::StringRef NeuraToSExpr::getOperatorName(Operation *op) {
-  llvm::StringRef opName = op->getName().stripDialect();
+  llvm::StringRef op_name = op->getName().stripDialect();
   
   // Map Neura operations to S-expression operators
   // Arithmetic operations
-  if (opName == "add") return "+";
-  if (opName == "sub") return "-";
-  if (opName == "mul") return "*";
-  if (opName == "div") return "/";
-  if (opName == "rem") return "%";
+  if (op_name == "add") return "+";
+  if (op_name == "sub") return "-";
+  if (op_name == "mul") return "*";
+  if (op_name == "div") return "/";
+  if (op_name == "rem") return "%";
   
   // Floating-point operations
-  if (opName == "fadd") return "fadd";
-  if (opName == "fsub") return "fsub";
-  if (opName == "fmul") return "fmul";
-  if (opName == "fdiv") return "fdiv";
-  if (opName == "fneg") return "fneg";
-  if (opName == "fmax") return "fmax";
-  if (opName == "fmin") return "fmin";
+  if (op_name == "fadd") return "fadd";
+  if (op_name == "fsub") return "fsub";
+  if (op_name == "fmul") return "fmul";
+  if (op_name == "fdiv") return "fdiv";
+  if (op_name == "fneg") return "fneg";
+  if (op_name == "fmax") return "fmax";
+  if (op_name == "fmin") return "fmin";
   
   // Bitwise operations
-  if (opName == "and") return "and";
-  if (opName == "or") return "or";
-  if (opName == "not") return "not";
-  if (opName == "shl") return "shl";
-  
-  // Comparison operations
-  if (opName == "icmp") return "icmp";
-  if (opName == "fcmp") return "fcmp";
-  
-  // Memory operations
-  if (opName == "load") return "load";
-  if (opName == "store") return "store";
-  if (opName == "gep") return "gep";
-  if (opName == "load_indexed") return "load_indexed";
-  if (opName == "store_indexed") return "store_indexed";
+  if (op_name == "and") return "and";
+  if (op_name == "or") return "or";
+  if (op_name == "not") return "not";
+  if (op_name == "shl") return "shl";
+  if (op_name == "icmp") return "icmp";
+  if (op_name == "fcmp") return "fcmp";
+  if (op_name == "load") return "load";
+  if (op_name == "store") return "store";
+  if (op_name == "gep") return "gep";
+  if (op_name == "load_indexed") return "load_indexed";
+  if (op_name == "store_indexed") return "store_indexed";
   
   // Control/Dataflow operations
-  if (opName == "ctrl_mov") return "ctrl_mov";
-  if (opName == "data_mov") return "data_mov";
-  if (opName == "grant_predicate") return "grant_pred";
-  if (opName == "grant_once") return "grant_once";
-  if (opName == "phi_start") return "phi_start";
-  if (opName == "reserve") return "reserve";
-  if (opName == "return_value") return "return_value";
-  if (opName == "yield") return "yield";
+  if (op_name == "ctrl_mov") return "ctrl_mov";
+  if (op_name == "data_mov") return "data_mov";
+  if (op_name == "grant_predicate") return "grant_pred";
+  if (op_name == "grant_once") return "grant_once";
+  if (op_name == "phi_start") return "phi_start";
+  if (op_name == "reserve") return "reserve";
+  if (op_name == "return_value") return "return_value";
+  if (op_name == "yield") return "yield";
   
   // Type conversion
-  if (opName == "cast") return "cast";
-  if (opName == "sext") return "sext";
-  if (opName == "zext") return "zext";
-  
-  // Control flow
-  if (opName == "sel") return "select";
-  if (opName == "phi") return "phi";
+  if (op_name == "cast") return "cast";
+  if (op_name == "sext") return "sext";
+  if (op_name == "zext") return "zext";
+  if (op_name == "sel") return "select";
+  if (op_name == "phi") return "phi";
   
   // Vector operations
-  if (opName == "vadd") return "vadd";
-  if (opName == "vfadd") return "vfadd";
-  if (opName == "vmul") return "vmul";
-  if (opName == "vfmul") return "vfmul";
-  if (opName == "vector.reduce.add") return "vreduce_add";
-  
-  // Fused operations
-  if (opName == "fadd_fadd") return "fadd_fadd";
-  if (opName == "fmul_fadd") return "fmul_fadd";
-  if (opName == "mul_add") return "mul_add";
-  
-  // Data movement
-  if (opName == "data_mov") return "data_mov";
-  
-  // Constant
-  if (opName == "constant") return "const";
-  
-  // Default: use the original name
-  return opName;
+  if (op_name == "vadd") return "vadd";
+  if (op_name == "vfadd") return "vfadd";
+  if (op_name == "vmul") return "vmul";
+  if (op_name == "vfmul") return "vfmul";
+  if (op_name == "vector.reduce.add") return "vreduce_add";
+  if (op_name == "fadd_fadd") return "fadd_fadd";
+  if (op_name == "fmul_fadd") return "fmul_fadd";
+  if (op_name == "mul_add") return "mul_add";
+  if (op_name == "data_mov") return "data_mov";
+  if (op_name == "constant") return "const";
+  return op_name;
 }
 
 bool NeuraToSExpr::isBinaryOp(Operation *op) {
-  llvm::StringRef opName = op->getName().stripDialect();
-  return opName == "add" || opName == "sub" || opName == "mul" || opName == "div" ||
-         opName == "rem" || opName == "fadd" || opName == "fsub" || opName == "fmul" ||
-         opName == "fdiv" || opName == "fmax" || opName == "fmin" ||
-         opName == "and" || opName == "or" || opName == "shl" ||
-         opName == "icmp" || opName == "fcmp" ||
-         opName == "vadd" || opName == "vfadd" || opName == "vmul" || opName == "vfmul" ||
-         opName == "gep" || opName == "phi_start" || opName == "grant_predicate" ||
-         opName == "ctrl_mov" || opName == "store";
+  llvm::StringRef op_name = op->getName().stripDialect();
+  return op_name == "add" || op_name == "sub" || op_name == "mul" || op_name == "div" ||
+         op_name == "rem" || op_name == "fadd" || op_name == "fsub" || op_name == "fmul" ||
+         op_name == "fdiv" || op_name == "fmax" || op_name == "fmin" ||
+         op_name == "and" || op_name == "or" || op_name == "shl" ||
+         op_name == "icmp" || op_name == "fcmp" ||
+         op_name == "vadd" || op_name == "vfadd" || op_name == "vmul" || op_name == "vfmul" ||
+         op_name == "gep" || op_name == "phi_start" || op_name == "grant_predicate" ||
+         op_name == "ctrl_mov" || op_name == "store";
 }
 
 bool NeuraToSExpr::isUnaryOp(Operation *op) {
-  llvm::StringRef opName = op->getName().stripDialect();
-  return opName == "fneg" || opName == "not" || opName == "sext" || opName == "zext" ||
-         opName == "cast" || opName == "load" || opName == "data_mov" ||
-         opName == "vector.reduce.add" || opName == "return_value";
+  llvm::StringRef op_name = op->getName().stripDialect();
+  return op_name == "fneg" || op_name == "not" || op_name == "sext" || op_name == "zext" ||
+         op_name == "cast" || op_name == "load" || op_name == "data_mov" ||
+         op_name == "vector.reduce.add" || op_name == "return_value";
 }
 
 bool NeuraToSExpr::isTernaryOp(Operation *op) {
-  llvm::StringRef opName = op->getName().stripDialect();
-  return opName == "sel" || opName == "fadd_fadd" || opName == "fmul_fadd" || 
-         opName == "mul_add";
+  llvm::StringRef op_name = op->getName().stripDialect();
+  return op_name == "sel" || op_name == "fadd_fadd" || op_name == "fmul_fadd" ||
+         op_name == "mul_add";
 }
 
 std::string NeuraToSExpr::convertValue(Value value) {
@@ -133,10 +119,10 @@ std::string NeuraToSExpr::convertValue(Value value) {
   }
   
   // If the value is defined by an operation in the Neura dialect, convert it
-  if (Operation *defOp = value.getDefiningOp()) {
-    if (defOp->getDialect() && 
-        defOp->getDialect()->getNamespace() == "neura") {
-      return convert(defOp);
+  if (Operation *def_op = value.getDefiningOp()) {
+    if (def_op->getDialect() && 
+        def_op->getDialect()->getNamespace() == "neura") {
+      return convert(def_op);
     }
   }
   
@@ -154,15 +140,15 @@ std::string NeuraToSExpr::convert(Operation *op) {
   }
   
   std::stringstream ss;
-  llvm::StringRef opName = getOperatorName(op);
+  llvm::StringRef op_name = getOperatorName(op);
   
   // Handle constant operation specially
   if (op->getName().stripDialect() == "constant") {
     if (auto attr = op->getAttr("value")) {
-      if (auto intAttr = mlir::dyn_cast<IntegerAttr>(attr)) {
-        ss << intAttr.getInt();
-      } else if (auto floatAttr = mlir::dyn_cast<FloatAttr>(attr)) {
-        ss << floatAttr.getValueAsDouble();
+      if (auto int_attr = mlir::dyn_cast<IntegerAttr>(attr)) {
+        ss << int_attr.getInt();
+      } else if (auto float_attr = mlir::dyn_cast<FloatAttr>(attr)) {
+        ss << float_attr.getValueAsDouble();
       } else {
         // For other attributes, create a symbolic constant
         ss << "(const c" << varCounter++ << ")";
@@ -182,11 +168,11 @@ std::string NeuraToSExpr::convert(Operation *op) {
   // Handle grant_once operation (constant with predicate)
   if (op->getName().stripDialect() == "grant_once") {
     ss << "(grant_once";
-    if (auto constVal = op->getAttr("constant_value")) {
-      if (auto intAttr = mlir::dyn_cast<IntegerAttr>(constVal)) {
-        ss << " " << intAttr.getInt();
-      } else if (auto strAttr = mlir::dyn_cast<StringAttr>(constVal)) {
-        ss << " " << strAttr.getValue().str();
+    if (auto const_val = op->getAttr("constant_value")) {
+      if (auto int_attr = mlir::dyn_cast<IntegerAttr>(const_val)) {
+        ss << " " << int_attr.getInt();
+      } else if (auto str_attr = mlir::dyn_cast<StringAttr>(const_val)) {
+        ss << " " << str_attr.getValue().str();
       } else {
         ss << " c" << varCounter++;
       }
@@ -215,8 +201,7 @@ std::string NeuraToSExpr::convert(Operation *op) {
     return "(yield)";
   }
   
-  // Build S-expression
-  ss << "(" << opName.str();
+  ss << "(" << op_name.str();
   
   // Handle different operation types
   if (isBinaryOp(op)) {
@@ -244,8 +229,8 @@ std::string NeuraToSExpr::convert(Operation *op) {
   // Add comparison type for icmp/fcmp
   if (op->getName().stripDialect() == "icmp" || 
       op->getName().stripDialect() == "fcmp") {
-    if (auto cmpTypeAttr = op->getAttrOfType<StringAttr>("cmpType")) {
-      ss << " " << cmpTypeAttr.getValue().str();
+    if (auto cmp_type_attr = op->getAttrOfType<StringAttr>("cmpType")) {
+      ss << " " << cmp_type_attr.getValue().str();
     }
   }
   

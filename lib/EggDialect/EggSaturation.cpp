@@ -1,4 +1,4 @@
-// EggSaturation.cpp - C++ wrapper implementation for egg equality saturation
+// EggSaturation.cpp - Implements the C++ wrapper for egg equality saturation.
 #include "EggDialect/EggSaturation.h"
 
 #include <sstream>
@@ -17,26 +17,25 @@ extern "C" {
 #include "egg_bridge.h"
 }
 
-// Thread-local storage for the area map used by the callback
-static thread_local const mlir::egg::AreaMap* g_areaMap = nullptr;
+static thread_local const mlir::egg::AreaMap* g_area_map = nullptr;
 
-// C callback function for area lookup
-extern "C" uint32_t areaCallback(const char* opName) {
-  if (!g_areaMap || !opName) {
-    return 0;  // Default area for unknown ops
+extern "C" uint32_t areaCallback(const char* op_name) {
+  if (!g_area_map || !op_name) {
+    return 0;
   }
-  std::string name(opName);
-  auto it = g_areaMap->find(name);
-  if (it != g_areaMap->end()) {
+  std::string name(op_name);
+  auto it = g_area_map->find(name);
+  if (it != g_area_map->end()) {
     return it->second;
   }
-  return 0;  // Default area for ops not in the map
+  return 0;
 }
 #endif
 
 namespace mlir {
 namespace egg {
 
+// Converts rewrite rules to the string format expected by egg-bridge.
 std::string rulesToString(const std::vector<RewriteRule>& rules) {
   std::ostringstream oss;
   for (const auto& rule : rules) {
@@ -51,49 +50,7 @@ std::string rulesToString(const std::vector<RewriteRule>& rules) {
   return oss.str();
 }
 
-SaturationResult runSaturation(
-    const std::string& expr,
-    const std::vector<RewriteRule>& rules,
-    const EggConfig& config) {
-  
-  SaturationResult result;
-  
-#ifdef EGG_BRIDGE_AVAILABLE
-  // Convert rules to string format
-  std::string rulesStr = rulesToString(rules);
-  
-  // Convert config
-  struct ::EggConfig configC;
-  configC.iter_limit = config.iterLimit;
-  configC.node_limit = config.nodeLimit;
-  configC.time_limit_secs = config.timeLimitSecs;
-  
-  // Call the Rust library
-  struct ::EggResult eggResult = egg_run_saturation(
-      expr.c_str(), 
-      rulesStr.c_str(), 
-      configC);
-  
-  // Convert result
-  if (eggResult.result_expr != nullptr) {
-    result.resultExpr = std::string(eggResult.result_expr);
-  }
-  if (eggResult.error_msg != nullptr) {
-    result.errorMsg = std::string(eggResult.error_msg);
-  }
-  result.iterations = eggResult.iterations;
-  result.egraphSize = eggResult.egraph_size;
-  result.saturated = eggResult.saturated;
-  
-  // Free the C strings
-  egg_result_free(eggResult);
-#else
-  result.errorMsg = "egg-bridge not available (Rust library not built)";
-#endif
-  
-  return result;
-}
-
+// Runs cycle-aware equality saturation with two-phase extraction.
 CycleAwareSaturationResult runCycleAwareSaturation(
     const std::string& expr,
     const std::vector<RewriteRule>& rules,
@@ -103,44 +60,34 @@ CycleAwareSaturationResult runCycleAwareSaturation(
   CycleAwareSaturationResult result;
   
 #ifdef EGG_BRIDGE_AVAILABLE
-  // Convert rules to string format
-  std::string rulesStr = rulesToString(rules);
-  
-  // Convert config
-  struct ::EggConfig configC;
-  configC.iter_limit = config.iterLimit;
-  configC.node_limit = config.nodeLimit;
-  configC.time_limit_secs = config.timeLimitSecs;
-  
-  // Set the thread-local area map for the callback
-  g_areaMap = &areaMap;
-  
-  // Call the Rust library with area callback
-  struct ::EggCycleResult eggResult = egg_run_saturation_cycle_aware_with_area(
-      expr.c_str(), 
-      rulesStr.c_str(), 
-      configC,
+  std::string rules_str = rulesToString(rules);
+  struct ::EggConfig config_c;
+  config_c.iter_limit = config.iterLimit;
+  config_c.node_limit = config.nodeLimit;
+  config_c.time_limit_secs = config.timeLimitSecs;
+
+  g_area_map = &areaMap;
+  struct ::EggCycleResult egg_result = egg_run_saturation_cycle_aware_with_area(
+      expr.c_str(),
+      rules_str.c_str(),
+      config_c,
       areaCallback);
-  
-  // Clear the thread-local pointer
-  g_areaMap = nullptr;
-  
-  // Convert result
-  if (eggResult.result_expr != nullptr) {
-    result.resultExpr = std::string(eggResult.result_expr);
+
+  g_area_map = nullptr;
+  if (egg_result.result_expr != nullptr) {
+    result.resultExpr = std::string(egg_result.result_expr);
   }
-  if (eggResult.error_msg != nullptr) {
-    result.errorMsg = std::string(eggResult.error_msg);
+  if (egg_result.error_msg != nullptr) {
+    result.errorMsg = std::string(egg_result.error_msg);
   }
-  result.iterations = eggResult.iterations;
-  result.egraphSize = eggResult.egraph_size;
-  result.saturated = eggResult.saturated;
-  result.cycleNodeCount = eggResult.cycle_node_count;
-  result.offCycleArea = eggResult.off_cycle_area;
-  result.astSize = eggResult.ast_size;
-  
-  // Free the C strings
-  egg_cycle_result_free(eggResult);
+  result.iterations = egg_result.iterations;
+  result.egraphSize = egg_result.egraph_size;
+  result.saturated = egg_result.saturated;
+  result.cycleNodeCount = egg_result.cycle_node_count;
+  result.offCycleArea = egg_result.off_cycle_area;
+  result.astSize = egg_result.ast_size;
+
+  egg_cycle_result_free(egg_result);
 #else
   result.errorMsg = "egg-bridge not available (Rust library not built)";
 #endif
@@ -148,8 +95,8 @@ CycleAwareSaturationResult runCycleAwareSaturation(
   return result;
 }
 
+// Parses area specification from a YAML file.
 bool parseAreaSpecFile(const std::string& filename, AreaMap& areaMap) {
-  // Read the file
   auto bufferOrErr = llvm::MemoryBuffer::getFile(filename);
   if (!bufferOrErr) {
     llvm::errs() << "Error: Could not open area spec file: " << filename << "\n";
@@ -174,42 +121,41 @@ bool parseAreaSpecFile(const std::string& filename, AreaMap& areaMap) {
       return false;
     }
     
-    for (auto &keyValue : *mapping) {
-      // Get the key (operation name)
-      auto *keyNode = llvm::dyn_cast<llvm::yaml::ScalarNode>(keyValue.getKey());
-      if (!keyNode) {
+    for (auto &key_value : *mapping) {
+      auto *key_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getKey());
+      if (!key_node) {
         llvm::errs() << "Warning: Skipping non-scalar key in " << filename << "\n";
         continue;
       }
-      
-      llvm::SmallString<64> keyStr;
-      std::string opName = keyNode->getValue(keyStr).str();
-      
-      // Get the value (area cost)
-      auto *valueNode = llvm::dyn_cast<llvm::yaml::ScalarNode>(keyValue.getValue());
-      if (!valueNode) {
-        llvm::errs() << "Warning: Skipping non-scalar value for " << opName 
+
+      llvm::SmallString<64> key_str;
+      std::string op_name = key_node->getValue(key_str).str();
+
+      auto *value_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getValue());
+      if (!value_node) {
+        llvm::errs() << "Warning: Skipping non-scalar value for " << op_name
                      << " in " << filename << "\n";
         continue;
       }
-      
-      llvm::SmallString<64> valueStr;
-      llvm::StringRef valueRef = valueNode->getValue(valueStr);
-      
-      long long areaValue = 0;
-      if (valueRef.getAsInteger(10, areaValue)) {
-        llvm::errs() << "Warning: Invalid area value for " << opName 
+
+      llvm::SmallString<64> value_str;
+      llvm::StringRef value_ref = value_node->getValue(value_str);
+
+      long long area_value = 0;
+      if (value_ref.getAsInteger(10, area_value)) {
+        llvm::errs() << "Warning: Invalid area value for " << op_name
                      << " in " << filename << "\n";
         continue;
       }
-      
-      areaMap[opName] = static_cast<uint32_t>(areaValue);
+
+      areaMap[op_name] = static_cast<uint32_t>(area_value);
     }
   }
   
   return true;
 }
 
+// Returns the version of the egg-bridge library.
 std::string getVersion() {
 #ifdef EGG_BRIDGE_AVAILABLE
   const char* version = egg_version();

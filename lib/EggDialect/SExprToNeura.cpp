@@ -146,10 +146,9 @@ Value SExprToNeura::convert(SExprNode* node) {
       return Value();
     }
     
-    // Get pattern name (first argument)
-    std::string patternName;
+    std::string pattern_name;
     if (args[0]->isAtom()) {
-      patternName = args[0]->atom;
+      pattern_name = args[0]->atom;
     } else {
       llvm::errs() << "Fused pattern name must be an atom\n";
       return Value();
@@ -164,7 +163,7 @@ Value SExprToNeura::convert(SExprNode* node) {
       }
     }
     
-    return createFusedOp(patternName, operands, node);
+    return createFusedOp(pattern_name, operands, node);
   }
   
   // Regular operation: recursively convert arguments
@@ -188,13 +187,13 @@ Value SExprToNeura::getValueFromVar(const std::string& varName) {
   }
   
   // Try without leading characters like '?'
-  std::string cleanName = varName;
-  if (!cleanName.empty() && cleanName[0] == '?') {
-    cleanName = cleanName.substr(1);
+  std::string clean_name = varName;
+  if (!clean_name.empty() && clean_name[0] == '?') {
+    clean_name = clean_name.substr(1);
   }
-  
-  if (varToValue.count(cleanName)) {
-    return varToValue[cleanName];
+
+  if (varToValue.count(clean_name)) {
+    return varToValue[clean_name];
   }
   
   llvm::errs() << "Warning: Unknown variable: " << varName << "\n";
@@ -203,37 +202,35 @@ Value SExprToNeura::getValueFromVar(const std::string& varName) {
 
 Value SExprToNeura::parseConstant(const std::string& str) {
   // Remove quotes if present
-  std::string cleanStr = str;
-  if (cleanStr.size() >= 2 && cleanStr.front() == '"' && cleanStr.back() == '"') {
-    cleanStr = cleanStr.substr(1, cleanStr.size() - 2);
+  std::string clean_str = str;
+  if (clean_str.size() >= 2 && clean_str.front() == '"' && clean_str.back() == '"') {
+    clean_str = clean_str.substr(1, clean_str.size() - 2);
   }
-  
-  // Check if it's a valid integer
-  bool isInteger = true;
-  size_t startIdx = 0;
-  if (!cleanStr.empty() && (cleanStr[0] == '-' || cleanStr[0] == '+')) {
-    startIdx = 1;
+
+  bool is_integer = true;
+  size_t start_idx = 0;
+  if (!clean_str.empty() && (clean_str[0] == '-' || clean_str[0] == '+')) {
+    start_idx = 1;
   }
-  for (size_t i = startIdx; i < cleanStr.size() && isInteger; ++i) {
-    if (!std::isdigit(cleanStr[i])) {
-      isInteger = false;
+  for (size_t i = start_idx; i < clean_str.size() && is_integer; ++i) {
+    if (!std::isdigit(clean_str[i])) {
+      is_integer = false;
     }
   }
-  
-  if (isInteger && !cleanStr.empty() && startIdx < cleanStr.size()) {
+
+  if (is_integer && !clean_str.empty() && start_idx < clean_str.size()) {
     // Parse as integer using strtoll which doesn't throw
     char* endPtr;
-    int64_t intVal = std::strtoll(cleanStr.c_str(), &endPtr, 10);
-    
-    if (*endPtr == '\0') {  // Successfully parsed entire string
-      auto intType = builder.getI64Type();
-      auto predType = builder.getI1Type();
-      auto resultType = neura::PredicatedValue::get(builder.getContext(), intType, predType);
-      
-      // Create a constant op
-      auto constOp = builder.create<neura::ConstantOp>(
-          loc, resultType, builder.getI64IntegerAttr(intVal));
-      return constOp.getResult();
+    int64_t int_val = std::strtoll(clean_str.c_str(), &endPtr, 10);
+
+    if (*endPtr == '\0') {
+      auto int_type = builder.getI64Type();
+      auto pred_type = builder.getI1Type();
+      auto result_type = neura::PredicatedValue::get(builder.getContext(), int_type, pred_type);
+
+      auto const_op = builder.create<neura::ConstantOp>(
+          loc, result_type, builder.getI64IntegerAttr(int_val));
+      return const_op.getResult();
     }
   }
   
@@ -243,49 +240,46 @@ Value SExprToNeura::parseConstant(const std::string& str) {
 }
 
 Value SExprToNeura::createNeuraOp(const std::string& op, ArrayRef<Value> operands) {
-  // Determine result type - use first operand's type if available, otherwise default
-  Type resultType;
+  Type result_type;
   if (!operands.empty() && operands[0]) {
-    resultType = operands[0].getType();
+    result_type = operands[0].getType();
   } else {
-    auto i64Type = builder.getI64Type();
-    resultType = neura::PredicatedValue::get(builder.getContext(), i64Type, builder.getI1Type());
+    auto i64_type = builder.getI64Type();
+    result_type = neura::PredicatedValue::get(builder.getContext(), i64_type, builder.getI1Type());
   }
-  
-  // Create the appropriate neura operation based on operator name
   if (op == "+" || op == "add") {
     if (operands.size() >= 2) {
-      return builder.create<neura::AddOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::AddOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "-" || op == "sub") {
     if (operands.size() >= 2) {
-      return builder.create<neura::SubOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::SubOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "*" || op == "mul") {
     if (operands.size() >= 2) {
-      return builder.create<neura::MulOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::MulOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "/" || op == "div") {
     if (operands.size() >= 2) {
-      return builder.create<neura::DivOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::DivOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "phi_start") {
     if (operands.size() >= 2) {
-      return builder.create<neura::PhiStartOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::PhiStartOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "grant_once") {
     if (operands.size() >= 1) {
-      return builder.create<neura::GrantOnceOp>(loc, resultType, operands[0]).getResult();
+      return builder.create<neura::GrantOnceOp>(loc, result_type, operands[0]).getResult();
     }
   } else if (op == "grant_pred") {
     if (operands.size() >= 2) {
-      return builder.create<neura::GrantPredicateOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::GrantPredicateOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "reserve") {
-    return builder.create<neura::ReserveOp>(loc, resultType).getResult();
+    return builder.create<neura::ReserveOp>(loc, result_type).getResult();
   } else if (op == "load") {
     if (operands.size() >= 1) {
-      return builder.create<neura::LoadOp>(loc, resultType, operands[0]).getResult();
+      return builder.create<neura::LoadOp>(loc, result_type, operands[0]).getResult();
     }
   } else if (op == "store") {
     if (operands.size() >= 2) {
@@ -295,32 +289,30 @@ Value SExprToNeura::createNeuraOp(const std::string& op, ArrayRef<Value> operand
   } else if (op == "gep") {
     if (operands.size() >= 2) {
       SmallVector<Value> indices(operands.begin() + 1, operands.end());
-      return builder.create<neura::GEP>(loc, resultType, operands[0], indices).getResult();
+      return builder.create<neura::GEP>(loc, result_type, operands[0], indices).getResult();
     }
   } else if (op == "icmp") {
-    // icmp has comparison operands and a cmpType attribute
-    auto i1Type = builder.getI1Type();
-    auto cmpResultType = neura::PredicatedValue::get(builder.getContext(), i1Type, i1Type);
+    auto i1_type = builder.getI1Type();
+    auto cmp_result_type = neura::PredicatedValue::get(builder.getContext(), i1_type, i1_type);
     if (operands.size() >= 2) {
-      // Use "slt" (signed less than) as default comparison type
-      return builder.create<neura::ICmpOp>(loc, cmpResultType, operands[0], operands[1], 
+      return builder.create<neura::ICmpOp>(loc, cmp_result_type, operands[0], operands[1],
                                             builder.getStringAttr("slt")).getResult();
     }
   } else if (op == "not") {
     if (operands.size() >= 1) {
-      return builder.create<neura::NotOp>(loc, resultType, operands[0]).getOutput();
+      return builder.create<neura::NotOp>(loc, result_type, operands[0]).getOutput();
     }
   } else if (op == "sel" || op == "select") {
     if (operands.size() >= 3) {
-      return builder.create<neura::SelOp>(loc, resultType, operands[0], operands[1], operands[2]).getResult();
+      return builder.create<neura::SelOp>(loc, result_type, operands[0], operands[1], operands[2]).getResult();
     }
   } else if (op == "vadd") {
     if (operands.size() >= 2) {
-      return builder.create<neura::VAddOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::VAddOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   } else if (op == "vmul") {
     if (operands.size() >= 2) {
-      return builder.create<neura::VMulOp>(loc, resultType, operands[0], operands[1]).getResult();
+      return builder.create<neura::VMulOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   }
   
@@ -333,38 +325,35 @@ Value SExprToNeura::createNeuraOp(const std::string& op, ArrayRef<Value> operand
 Value SExprToNeura::createFusedOp(const std::string& fusedOpName, 
                                   ArrayRef<Value> operands,
                                   SExprNode* originalNode) {
-  // Get result type from first operand
-  Type resultType;
+  Type result_type;
   if (!operands.empty() && operands[0]) {
-    resultType = operands[0].getType();
+    result_type = operands[0].getType();
   } else {
-    auto i64Type = builder.getI64Type();
-    resultType = neura::PredicatedValue::get(builder.getContext(), i64Type, builder.getI1Type());
+    auto i64_type = builder.getI64Type();
+    result_type = neura::PredicatedValue::get(builder.getContext(), i64_type, builder.getI1Type());
   }
-  
-  // Get pattern info if available
-  int64_t patternId = patternIdCounter++;
+
+  int64_t pattern_id = patternIdCounter++;
   int64_t frequency = 1;
-  std::string patternName = fusedOpName;
-  
+  std::string pattern_name = fusedOpName;
+
   if (fusedPatterns.count(fusedOpName)) {
     const auto& info = fusedPatterns[fusedOpName];
-    patternName = info.patternName;
+    pattern_name = info.patternName;
     frequency = info.frequency;
   }
-  
-  // Create the fused_op
-  auto fusedOp = builder.create<neura::FusedOp>(
+
+  auto fused_op = builder.create<neura::FusedOp>(
       loc,
-      TypeRange{resultType},
+      TypeRange{result_type},
       operands,
-      builder.getI64IntegerAttr(patternId),
-      builder.getStringAttr(patternName),
+      builder.getI64IntegerAttr(pattern_id),
+      builder.getStringAttr(pattern_name),
       builder.getI64IntegerAttr(frequency));
   
   // Create the body region with the pattern
   // The body will contain a block argument for each input
-  Block* body = builder.createBlock(&fusedOp.getBody());
+  Block* body = builder.createBlock(&fused_op.getBody());
   
   // Add block arguments for each input
   for (auto operand : operands) {
@@ -382,7 +371,7 @@ Value SExprToNeura::createFusedOp(const std::string& fusedOpName,
     builder.create<neura::YieldOp>(loc);
   }
   
-  return fusedOp.getResult(0);
+  return fused_op.getResult(0);
 }
 
 } // namespace egg

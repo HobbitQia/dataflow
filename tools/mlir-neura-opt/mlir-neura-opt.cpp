@@ -16,6 +16,7 @@
 #include "Conversion/ConversionPasses.h"
 #include "EggDialect/EggDialect.h"
 #include "EggDialect/EggPasses.h"
+#include "EggDialect/EggSaturation.h"
 #include "NeuraDialect/Architecture/ArchitectureSpec.h"
 #include "NeuraDialect/NeuraDialect.h"
 #include "NeuraDialect/NeuraPasses.h"
@@ -23,6 +24,9 @@
 // Global variable to store architecture spec file path
 static std::string architecture_spec_file;
 static mlir::neura::TileDefaults tile_defaults;
+
+// Global variable to store area spec file path for egg passes
+static std::string area_spec_file;
 
 // Function to get the architecture spec file path
 std::string mlir::neura::getArchitectureSpecFile() {
@@ -34,9 +38,14 @@ mlir::neura::TileDefaults mlir::neura::getTileDefaults() {
   return tile_defaults;
 }
 
+// Function to get the area spec file path
+std::string mlir::egg::getAreaSpecFile() {
+  return area_spec_file;
+}
+
 int main(int argc, char **argv) {
-  // Manually scan and strip --architecture-spec from argv, keep others for
-  // MlirOptMain.
+  // Manually scan and strip --architecture-spec and --area-spec from argv,
+  // keep others for MlirOptMain.
   std::vector<char *> forwarded_args;
   forwarded_args.reserve(argc);
   forwarded_args.push_back(argv[0]);
@@ -51,6 +60,16 @@ int main(int argc, char **argv) {
     } else if (arg_ref.starts_with("--architecture-spec=")) {
       architecture_spec_file =
           arg_ref.substr(strlen("--architecture-spec=")).str();
+      continue;
+    } else if (arg_ref == "--area-spec") {
+      if (i + 1 < argc) {
+        area_spec_file = argv[i + 1];
+        ++i; // skip value
+        continue;
+      }
+    } else if (arg_ref.starts_with("--area-spec=")) {
+      area_spec_file =
+          arg_ref.substr(strlen("--area-spec=")).str();
       continue;
     }
     forwarded_args.push_back(argv[i]);
