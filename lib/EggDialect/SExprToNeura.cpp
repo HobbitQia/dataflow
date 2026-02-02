@@ -247,19 +247,19 @@ Value SExprToNeura::createNeuraOp(const std::string& op, ArrayRef<Value> operand
     auto i64_type = builder.getI64Type();
     result_type = neura::PredicatedValue::get(builder.getContext(), i64_type, builder.getI1Type());
   }
-  if (op == "+" || op == "add") {
+  if (op == "add") {
     if (operands.size() >= 2) {
       return builder.create<neura::AddOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
-  } else if (op == "-" || op == "sub") {
+  } else if (op == "sub") {
     if (operands.size() >= 2) {
       return builder.create<neura::SubOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
-  } else if (op == "*" || op == "mul") {
+  } else if (op == "mul") {
     if (operands.size() >= 2) {
       return builder.create<neura::MulOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
-  } else if (op == "/" || op == "div") {
+  } else if (op == "div") {
     if (operands.size() >= 2) {
       return builder.create<neura::DivOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
@@ -305,14 +305,6 @@ Value SExprToNeura::createNeuraOp(const std::string& op, ArrayRef<Value> operand
   } else if (op == "sel" || op == "select") {
     if (operands.size() >= 3) {
       return builder.create<neura::SelOp>(loc, result_type, operands[0], operands[1], operands[2]).getResult();
-    }
-  } else if (op == "vadd") {
-    if (operands.size() >= 2) {
-      return builder.create<neura::VAddOp>(loc, result_type, operands[0], operands[1]).getResult();
-    }
-  } else if (op == "vmul") {
-    if (operands.size() >= 2) {
-      return builder.create<neura::VMulOp>(loc, result_type, operands[0], operands[1]).getResult();
     }
   }
   

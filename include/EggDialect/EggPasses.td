@@ -28,7 +28,16 @@ def ProcessNeura : Pass<"egg-process-neura", "ModuleOp"> {
     Option<"areaSpecFile", "area-spec", "std::string", /*default=*/"\"\"",
            "Path to YAML file specifying area costs for operations. "
            "Format: op_name: area_value (one per line). "
-           "Operations not specified default to area 0.">
+           "Operations not specified default to area 0.">,
+    Option<"minPatternFrequency", "min-pattern-frequency", "size_t", /*default=*/"2",
+           "Minimum frequency for a pattern to be considered for fusion. "
+           "Patterns appearing fewer times than this threshold are ignored.">,
+    Option<"maxPatternArea", "max-pattern-area", "size_t", /*default=*/"50000",
+           "Maximum area for a pattern to be considered for fusion. "
+           "Patterns with area exceeding this threshold are ignored.">,
+    Option<"maxPatternOps", "max-pattern-ops", "size_t", /*default=*/"20",
+           "Maximum number of operations for a pattern to be considered for fusion. "
+           "Patterns with more operations than this threshold are ignored.">
   ];
 }
 

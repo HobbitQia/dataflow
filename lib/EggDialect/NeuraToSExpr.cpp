@@ -27,62 +27,9 @@ llvm::StringRef NeuraToSExpr::getOperatorName(Operation *op) {
   
   // Map Neura operations to S-expression operators
   // Arithmetic operations
-  if (op_name == "add") return "+";
-  if (op_name == "sub") return "-";
-  if (op_name == "mul") return "*";
-  if (op_name == "div") return "/";
-  if (op_name == "rem") return "%";
-  
-  // Floating-point operations
-  if (op_name == "fadd") return "fadd";
-  if (op_name == "fsub") return "fsub";
-  if (op_name == "fmul") return "fmul";
-  if (op_name == "fdiv") return "fdiv";
-  if (op_name == "fneg") return "fneg";
-  if (op_name == "fmax") return "fmax";
-  if (op_name == "fmin") return "fmin";
-  
-  // Bitwise operations
-  if (op_name == "and") return "and";
-  if (op_name == "or") return "or";
-  if (op_name == "not") return "not";
-  if (op_name == "shl") return "shl";
-  if (op_name == "icmp") return "icmp";
-  if (op_name == "fcmp") return "fcmp";
-  if (op_name == "load") return "load";
-  if (op_name == "store") return "store";
-  if (op_name == "gep") return "gep";
-  if (op_name == "load_indexed") return "load_indexed";
-  if (op_name == "store_indexed") return "store_indexed";
-  
-  // Control/Dataflow operations
-  if (op_name == "ctrl_mov") return "ctrl_mov";
-  if (op_name == "data_mov") return "data_mov";
-  if (op_name == "grant_predicate") return "grant_pred";
-  if (op_name == "grant_once") return "grant_once";
-  if (op_name == "phi_start") return "phi_start";
-  if (op_name == "reserve") return "reserve";
-  if (op_name == "return_value") return "return_value";
-  if (op_name == "yield") return "yield";
-  
-  // Type conversion
-  if (op_name == "cast") return "cast";
-  if (op_name == "sext") return "sext";
-  if (op_name == "zext") return "zext";
-  if (op_name == "sel") return "select";
-  if (op_name == "phi") return "phi";
-  
-  // Vector operations
-  if (op_name == "vadd") return "vadd";
-  if (op_name == "vfadd") return "vfadd";
-  if (op_name == "vmul") return "vmul";
-  if (op_name == "vfmul") return "vfmul";
-  if (op_name == "vector.reduce.add") return "vreduce_add";
-  if (op_name == "fadd_fadd") return "fadd_fadd";
-  if (op_name == "fmul_fadd") return "fmul_fadd";
-  if (op_name == "mul_add") return "mul_add";
-  if (op_name == "data_mov") return "data_mov";
   if (op_name == "constant") return "const";
+  // Control flow operations - use abbreviated names for egg compatibility
+  if (op_name == "grant_predicate") return "grant_pred";
   return op_name;
 }
 
@@ -93,16 +40,15 @@ bool NeuraToSExpr::isBinaryOp(Operation *op) {
          op_name == "fdiv" || op_name == "fmax" || op_name == "fmin" ||
          op_name == "and" || op_name == "or" || op_name == "shl" ||
          op_name == "icmp" || op_name == "fcmp" ||
-         op_name == "vadd" || op_name == "vfadd" || op_name == "vmul" || op_name == "vfmul" ||
          op_name == "gep" || op_name == "phi_start" || op_name == "grant_predicate" ||
-         op_name == "ctrl_mov" || op_name == "store";
+         op_name == "grant_pred" || op_name == "ctrl_mov" || op_name == "store";
 }
 
 bool NeuraToSExpr::isUnaryOp(Operation *op) {
   llvm::StringRef op_name = op->getName().stripDialect();
   return op_name == "fneg" || op_name == "not" || op_name == "sext" || op_name == "zext" ||
          op_name == "cast" || op_name == "load" || op_name == "data_mov" ||
-         op_name == "vector.reduce.add" || op_name == "return_value";
+         op_name == "return_value";
 }
 
 bool NeuraToSExpr::isTernaryOp(Operation *op) {

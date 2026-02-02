@@ -19,6 +19,7 @@ extern "C" {
 
 static thread_local const mlir::egg::AreaMap* g_area_map = nullptr;
 
+// Returns the area for a given operation name via the global area map.
 extern "C" uint32_t areaCallback(const char* op_name) {
   if (!g_area_map || !op_name) {
     return 0;
@@ -35,7 +36,7 @@ extern "C" uint32_t areaCallback(const char* op_name) {
 namespace mlir {
 namespace egg {
 
-// Converts rewrite rules to the string format expected by egg-bridge.
+// Returns the string representation of rewrite rules in egg-bridge format.
 std::string rulesToString(const std::vector<RewriteRule>& rules) {
   std::ostringstream oss;
   for (const auto& rule : rules) {
@@ -50,7 +51,7 @@ std::string rulesToString(const std::vector<RewriteRule>& rules) {
   return oss.str();
 }
 
-// Runs cycle-aware equality saturation with two-phase extraction.
+// Executes cycle-aware equality saturation with two-phase extraction.
 CycleAwareSaturationResult runCycleAwareSaturation(
     const std::string& expr,
     const std::vector<RewriteRule>& rules,
@@ -95,7 +96,7 @@ CycleAwareSaturationResult runCycleAwareSaturation(
   return result;
 }
 
-// Parses area specification from a YAML file.
+// Parses an area specification from a YAML file and populates the areaMap.
 bool parseAreaSpecFile(const std::string& filename, AreaMap& areaMap) {
   auto bufferOrErr = llvm::MemoryBuffer::getFile(filename);
   if (!bufferOrErr) {
