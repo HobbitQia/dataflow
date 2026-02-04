@@ -11,14 +11,14 @@ using namespace mlir;
 using namespace mlir::egg;
 
 std::string NeuraToSExpr::getOrCreateVar(Value value) {
-  auto it = valueToVar.find(value);
-  if (it != valueToVar.end()) {
+  auto it = value_to_var.find(value);
+  if (it != value_to_var.end()) {
     return it->second;
   }
   
-  std::string var_name = "v" + std::to_string(varCounter++);
-  valueToVar[value] = var_name;
-  varToValue[var_name] = value;
+  std::string var_name = "v" + std::to_string(var_counter++);
+  value_to_var[value] = var_name;
+  var_to_value[var_name] = value;
   return var_name;
 }
 
@@ -59,8 +59,8 @@ bool NeuraToSExpr::isTernaryOp(Operation *op) {
 
 std::string NeuraToSExpr::convertValue(Value value) {
   // Check if we already have a name for this value
-  auto it = valueToVar.find(value);
-  if (it != valueToVar.end()) {
+  auto it = value_to_var.find(value);
+  if (it != value_to_var.end()) {
     return it->second;
   }
   
@@ -79,8 +79,8 @@ std::string NeuraToSExpr::convertValue(Value value) {
 std::string NeuraToSExpr::convert(Operation *op) {
   // Check if we already converted this operation's result
   if (op->getNumResults() > 0) {
-    auto it = valueToVar.find(op->getResult(0));
-    if (it != valueToVar.end()) {
+    auto it = value_to_var.find(op->getResult(0));
+    if (it != value_to_var.end()) {
       return it->second;
     }
   }
@@ -97,16 +97,16 @@ std::string NeuraToSExpr::convert(Operation *op) {
         ss << float_attr.getValueAsDouble();
       } else {
         // For other attributes, create a symbolic constant
-        ss << "(const c" << varCounter++ << ")";
+        ss << "(const c" << var_counter++ << ")";
       }
     } else {
-      ss << "(const c" << varCounter++ << ")";
+      ss << "(const c" << var_counter++ << ")";
     }
     
     // Cache the result
     if (op->getNumResults() > 0) {
       std::string result = ss.str();
-      valueToVar[op->getResult(0)] = result;
+      value_to_var[op->getResult(0)] = result;
     }
     return ss.str();
   }
@@ -120,24 +120,24 @@ std::string NeuraToSExpr::convert(Operation *op) {
       } else if (auto str_attr = mlir::dyn_cast<StringAttr>(const_val)) {
         ss << " " << str_attr.getValue().str();
       } else {
-        ss << " c" << varCounter++;
+        ss << " c" << var_counter++;
       }
     }
     ss << ")";
     
     if (op->getNumResults() > 0) {
       std::string result = ss.str();
-      valueToVar[op->getResult(0)] = result;
+      value_to_var[op->getResult(0)] = result;
     }
     return ss.str();
   }
   
   // Handle reserve operation (no operands)
   if (op->getName().stripDialect() == "reserve") {
-    ss << "(reserve r" << varCounter++ << ")";
+    ss << "(reserve r" << var_counter++ << ")";
     if (op->getNumResults() > 0) {
       std::string result = ss.str();
-      valueToVar[op->getResult(0)] = result;
+      value_to_var[op->getResult(0)] = result;
     }
     return ss.str();
   }
@@ -185,7 +185,7 @@ std::string NeuraToSExpr::convert(Operation *op) {
   // Cache the result for this operation's output value
   std::string result = ss.str();
   if (op->getNumResults() > 0) {
-    valueToVar[op->getResult(0)] = result;
+    value_to_var[op->getResult(0)] = result;
   }
   
   return result;

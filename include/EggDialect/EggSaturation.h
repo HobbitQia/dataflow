@@ -44,6 +44,13 @@ struct RewriteRule {
 };
 
 using AreaMap = std::map<std::string, uint32_t>;
+using LatencyMap = std::map<std::string, uint32_t>;
+
+// Holds both area and latency specifications.
+struct PPASpec {
+  AreaMap area_map;
+  LatencyMap latency_map;
+};
 
 // Runs cycle-aware equality saturation with two-phase extraction.
 CycleAwareSaturationResult runCycleAwareSaturation(
@@ -53,7 +60,10 @@ CycleAwareSaturationResult runCycleAwareSaturation(
     const EggConfig& config = EggConfig());
 
 // Parses area specification from a YAML file (op_name: area_value per line).
-bool parseAreaSpecFile(const std::string& filename, AreaMap& areaMap);
+bool parseAreaSpecFile(const std::string& filename, AreaMap& area_map);
+
+// Parses PPA specification from a YAML file (supports both area and latency sections).
+bool parsePPASpecFile(const std::string& filename, PPASpec& ppa_spec);
 
 // Converts rewrite rules to the string format expected by egg-bridge.
 std::string rulesToString(const std::vector<RewriteRule>& rules);

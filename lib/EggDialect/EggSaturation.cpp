@@ -55,7 +55,7 @@ std::string rulesToString(const std::vector<RewriteRule>& rules) {
 CycleAwareSaturationResult runCycleAwareSaturation(
     const std::string& expr,
     const std::vector<RewriteRule>& rules,
-    const AreaMap& areaMap,
+    const AreaMap& area_map,
     const EggConfig& config) {
   
   CycleAwareSaturationResult result;
@@ -67,7 +67,7 @@ CycleAwareSaturationResult runCycleAwareSaturation(
   config_c.node_limit = config.nodeLimit;
   config_c.time_limit_secs = config.timeLimitSecs;
 
-  g_area_map = &areaMap;
+  g_area_map = &area_map;
   struct ::EggCycleResult egg_result = egg_run_saturation_cycle_aware_with_area(
       expr.c_str(),
       rules_str.c_str(),
@@ -96,60 +96,104 @@ CycleAwareSaturationResult runCycleAwareSaturation(
   return result;
 }
 
-// Parses an area specification from a YAML file and populates the areaMap.
-bool parseAreaSpecFile(const std::string& filename, AreaMap& areaMap) {
+// Parses an area specification from a YAML file and populates the area_map.
+bool parseAreaSpecFile(const std::string& filename, AreaMap& area_map) {
+  PPASpec ppa_spec;
+  if (!parsePPASpecFile(filename, ppa_spec)) {
+    return false;
+  }
+  area_map = ppa_spec.area_map;
+  return true;
+}
+
+// Parses a mapping node and populates the target map with operation names and values.
+static bool parseMappingToMap(llvm::yaml::MappingNode* mapping, 
+                              std::map<std::string, uint32_t>& target_map,
+                              const std::string& filename,
+                              const std::string& section_name) {
+  for (auto &key_value : *mapping) {
+    auto *key_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getKey());
+    if (!key_node) {
+      llvm::errs() << "Warning: Skipping non-scalar key in " << section_name 
+                   << " section of " << filename << "\n";
+      continue;
+    }
+
+    llvm::SmallString<64> key_str;
+    std::string op_name = key_node->getValue(key_str).str();
+
+    auto *value_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getValue());
+    if (!value_node) {
+      llvm::errs() << "Warning: Skipping non-scalar value for " << op_name
+                   << " in " << section_name << " section of " << filename << "\n";
+      continue;
+    }
+
+    llvm::SmallString<64> value_str;
+    llvm::StringRef value_ref = value_node->getValue(value_str);
+
+    long long value = 0;
+    if (value_ref.getAsInteger(10, value)) {
+      llvm::errs() << "Warning: Invalid " << section_name << " value for " << op_name
+                   << " in " << filename << "\n";
+      continue;
+    }
+
+    target_map[op_name] = static_cast<uint32_t>(value);
+  }
+  return true;
+}
+
+// Parses a PPA specification from a YAML file and populates area_map and latency_map.
+bool parsePPASpecFile(const std::string& filename, PPASpec& ppa_spec) {
   auto bufferOrErr = llvm::MemoryBuffer::getFile(filename);
   if (!bufferOrErr) {
-    llvm::errs() << "Error: Could not open area spec file: " << filename << "\n";
+    llvm::errs() << "Error: Could not open PPA spec file: " << filename << "\n";
     return false;
   }
   
-  llvm::SourceMgr srcMgr;
-  srcMgr.AddNewSourceBuffer(std::move(*bufferOrErr), llvm::SMLoc());
+  llvm::SourceMgr src_mgr;
+  src_mgr.AddNewSourceBuffer(std::move(*bufferOrErr), llvm::SMLoc());
   
-  llvm::yaml::Stream yamlStream(srcMgr.getMemoryBuffer(1)->getBuffer(), srcMgr);
+  llvm::yaml::Stream yaml_stream(src_mgr.getMemoryBuffer(1)->getBuffer(), src_mgr);
   
-  for (auto &doc : yamlStream) {
+  for (auto &doc : yaml_stream) {
     auto *root = doc.getRoot();
     if (!root) {
       llvm::errs() << "Error: Empty YAML document in " << filename << "\n";
       return false;
     }
     
-    auto *mapping = llvm::dyn_cast<llvm::yaml::MappingNode>(root);
-    if (!mapping) {
+    auto *root_mapping = llvm::dyn_cast<llvm::yaml::MappingNode>(root);
+    if (!root_mapping) {
       llvm::errs() << "Error: YAML root must be a mapping in " << filename << "\n";
       return false;
     }
     
-    for (auto &key_value : *mapping) {
-      auto *key_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getKey());
-      if (!key_node) {
-        llvm::errs() << "Warning: Skipping non-scalar key in " << filename << "\n";
+    for (auto &section : *root_mapping) {
+      auto *section_key = llvm::dyn_cast<llvm::yaml::ScalarNode>(section.getKey());
+      if (!section_key) {
         continue;
       }
 
-      llvm::SmallString<64> key_str;
-      std::string op_name = key_node->getValue(key_str).str();
+      llvm::SmallString<64> section_name_str;
+      std::string section_name = section_key->getValue(section_name_str).str();
 
-      auto *value_node = llvm::dyn_cast<llvm::yaml::ScalarNode>(key_value.getValue());
-      if (!value_node) {
-        llvm::errs() << "Warning: Skipping non-scalar value for " << op_name
-                     << " in " << filename << "\n";
+      auto *section_mapping = llvm::dyn_cast<llvm::yaml::MappingNode>(section.getValue());
+      if (!section_mapping) {
+        llvm::errs() << "Warning: Section '" << section_name 
+                     << "' is not a mapping in " << filename << "\n";
         continue;
       }
 
-      llvm::SmallString<64> value_str;
-      llvm::StringRef value_ref = value_node->getValue(value_str);
-
-      long long area_value = 0;
-      if (value_ref.getAsInteger(10, area_value)) {
-        llvm::errs() << "Warning: Invalid area value for " << op_name
-                     << " in " << filename << "\n";
-        continue;
+      if (section_name == "area") {
+        parseMappingToMap(section_mapping, ppa_spec.area_map, filename, "area");
+      } else if (section_name == "latency") {
+        parseMappingToMap(section_mapping, ppa_spec.latency_map, filename, "latency");
+      } else {
+        llvm::errs() << "Warning: Unknown section '" << section_name 
+                     << "' in " << filename << "\n";
       }
-
-      areaMap[op_name] = static_cast<uint32_t>(area_value);
     }
   }
   

@@ -29,7 +29,7 @@ namespace egg {
 ///   (mul (add v0 v1) v2)
 class NeuraToSExpr {
 public:
-  NeuraToSExpr() : varCounter(0) {}
+  NeuraToSExpr() : var_counter(0) {}
   
   /// Convert an operation and its operand tree to S-expression.
   /// Returns the S-expression string representation.
@@ -42,19 +42,19 @@ public:
   
   /// Get the mapping from variable names to MLIR values.
   const llvm::DenseMap<Value, std::string>& getValueMap() const {
-    return valueToVar;
+    return value_to_var;
   }
   
   /// Get the reverse mapping from variable names to MLIR values.
   const llvm::StringMap<Value>& getVarMap() const {
-    return varToValue;
+    return var_to_value;
   }
   
   /// Clear all state for reuse.
   void reset() {
-    valueToVar.clear();
-    varToValue.clear();
-    varCounter = 0;
+    value_to_var.clear();
+    var_to_value.clear();
+    var_counter = 0;
   }
 
 private:
@@ -74,13 +74,13 @@ private:
   static bool isTernaryOp(Operation *op);
   
   /// Map from MLIR values to variable names.
-  llvm::DenseMap<Value, std::string> valueToVar;
+  llvm::DenseMap<Value, std::string> value_to_var;
   
   /// Reverse map from variable names to MLIR values.
-  llvm::StringMap<Value> varToValue;
+  llvm::StringMap<Value> var_to_value;
   
   /// Counter for generating unique variable names.
-  unsigned varCounter;
+  unsigned var_counter;
 };
 
 } // namespace egg

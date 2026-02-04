@@ -116,13 +116,13 @@ Value SExprToNeura::convert(SExprNode* node) {
     
     // Check if it's a variable
     if (atom[0] == '?' || atom[0] == 'v' || atom[0] == 'r' || 
-        atom.find("%arg") == 0 || varToValue.count(atom)) {
+        atom.find("%arg") == 0 || var_to_value.count(atom)) {
       return getValueFromVar(atom);
     }
     
     // Check cache
-    if (convertedCache.count(atom)) {
-      return convertedCache[atom];
+    if (converted_cache.count(atom)) {
+      return converted_cache[atom];
     }
     
     // Try to parse as constant
@@ -182,8 +182,8 @@ Value SExprToNeura::convert(SExprNode* node) {
 
 Value SExprToNeura::getValueFromVar(const std::string& varName) {
   // First check the direct mapping
-  if (varToValue.count(varName)) {
-    return varToValue[varName];
+  if (var_to_value.count(varName)) {
+    return var_to_value[varName];
   }
   
   // Try without leading characters like '?'
@@ -192,8 +192,8 @@ Value SExprToNeura::getValueFromVar(const std::string& varName) {
     clean_name = clean_name.substr(1);
   }
 
-  if (varToValue.count(clean_name)) {
-    return varToValue[clean_name];
+  if (var_to_value.count(clean_name)) {
+    return var_to_value[clean_name];
   }
   
   llvm::errs() << "Warning: Unknown variable: " << varName << "\n";
@@ -325,12 +325,12 @@ Value SExprToNeura::createFusedOp(const std::string& fusedOpName,
     result_type = neura::PredicatedValue::get(builder.getContext(), i64_type, builder.getI1Type());
   }
 
-  int64_t pattern_id = patternIdCounter++;
+  int64_t pattern_id = pattern_id_counter++;
   int64_t frequency = 1;
   std::string pattern_name = fusedOpName;
 
-  if (fusedPatterns.count(fusedOpName)) {
-    const auto& info = fusedPatterns[fusedOpName];
+  if (fused_patterns.count(fusedOpName)) {
+    const auto& info = fused_patterns[fusedOpName];
     pattern_name = info.patternName;
     frequency = info.frequency;
   }

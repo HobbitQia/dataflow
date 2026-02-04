@@ -40,6 +40,7 @@ struct FusionGroup {
   SmallVector<Value> externalOutputs;
   int64_t frequency;
   size_t rootIndex;
+  Operation* insertionPoint;  // Valid insertion point for the fused op.
 };
 
 struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
@@ -49,27 +50,27 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
   void runOnOperation() override {
     ModuleOp module = getOperation();
 
-    std::string area_spec_file = getAreaSpecFile();
-    if (area_spec_file.empty()) {
-      area_spec_file = areaSpecFile;
+    std::string ppa_spec_file = getAreaSpecFile();
+    if (ppa_spec_file.empty()) {
+      ppa_spec_file = areaSpecFile;
     }
 
-    if (area_spec_file.empty()) {
+    if (ppa_spec_file.empty()) {
       llvm::errs() << "Error: --area-spec is required for egg-process-neura pass.\n";
       signalPassFailure();
       return;
     }
 
-    AreaMap areaMap;
-    if (!parseAreaSpecFile(area_spec_file, areaMap)) {
-      llvm::errs() << "Error: Failed to parse area spec file: " << area_spec_file << "\n";
+    PPASpec ppa_spec;
+    if (!parsePPASpecFile(ppa_spec_file, ppa_spec)) {
+      llvm::errs() << "Error: Failed to parse PPA spec file: " << ppa_spec_file << "\n";
       signalPassFailure();
       return;
     }
     
     // Collects Neura operations and converts them to S-expressions.
     NeuraToSExpr converter;
-    std::vector<std::string> all_seprs;
+    std::vector<std::string> all_sexprs;
     std::vector<Operation*> neura_ops;
 
     module.walk([&](Operation *op) {
@@ -79,28 +80,64 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
         }
         std::string sexpr = converter.convert(op);
         if (!sexpr.empty()) {
-          all_seprs.push_back(sexpr);
+          all_sexprs.push_back(sexpr);
           neura_ops.push_back(op);
         }
       }
     });
+    
+    // Removes S-expressions that are completely contained in other expressions.
+    // This avoids duplicate pattern counting when a smaller expression is part
+    // of a larger one (e.g., "(phi_start ...)" inside "(load (phi_start ...))").
+    std::vector<bool> is_subexpr(all_sexprs.size(), false);
+    for (size_t i = 0; i < all_sexprs.size(); ++i) {
+      if (is_subexpr[i]) continue;
+      for (size_t j = 0; j < all_sexprs.size(); ++j) {
+        if (i == j || is_subexpr[j]) continue;
+        // Checks if expression j is a substring of expression i.
+        if (all_sexprs[i].size() > all_sexprs[j].size() &&
+            all_sexprs[i].find(all_sexprs[j]) != std::string::npos) {
+          is_subexpr[j] = true;
+        }
+      }
+    }
+    
+    // Filters out sub-expressions.
+    std::vector<std::string> filtered_sexprs;
+    std::vector<Operation*> filtered_ops;
+    for (size_t i = 0; i < all_sexprs.size(); ++i) {
+      if (!is_subexpr[i]) {
+        filtered_sexprs.push_back(all_sexprs[i]);
+        filtered_ops.push_back(neura_ops[i]);
+      }
+    }
+    all_sexprs = std::move(filtered_sexprs);
+    neura_ops = std::move(filtered_ops);
 
-    // Extracts patterns and generates rewrite rules.
-    auto patterns = RewriteRuleGenerator::extractPatterns(all_seprs, areaMap, minPatternFrequency, maxPatternArea, maxPatternOps);
-    auto fusionRules = RewriteRuleGenerator::generateFusionRulesFromPatterns(patterns);
+    // Extracts patterns directly from DFG to avoid duplicate counting.
+    // When DAG is converted to expression tree, shared nodes appear multiple times,
+    // which inflates the frequency count. By traversing the DFG directly, we count
+    // each unique subgraph instance exactly once.
+    // max_critical_path_latency is set to 1000ps by default.
+    // Note: We pass all neura operations (not just roots) to allow extracting
+    // patterns rooted at any operation, including intermediate ones like add, mul.
+    std::vector<Operation*> all_ops_for_pattern;
+    module.walk([&](Operation* op) {
+      if (op->getDialect() && op->getDialect()->getNamespace() == "neura") {
+        all_ops_for_pattern.push_back(op);
+      }
+    });
+    auto patterns = RewriteRuleGenerator::extractPatternsFromDFG(
+        all_ops_for_pattern, ppa_spec, minPatternFrequency, maxPatternArea, maxPatternOps, 1000);
+    auto fusion_rules = RewriteRuleGenerator::generateFusionRulesFromPatterns(patterns);
     
-    std::vector<RewriteRule> allRules;
-    allRules.insert(allRules.end(), fusionRules.begin(), fusionRules.end());
+    std::vector<RewriteRule> all_rules;
+    all_rules.insert(all_rules.end(), fusion_rules.begin(), fusion_rules.end());
     
-    // Note: Algebraic, commutativity, and associativity rules are disabled
-    // because egg's pattern syntax doesn't support numeric literals directly.
     // TODO: Enable these rules once the pattern format is compatible.
-    // auto algebraicRules = RewriteRuleGenerator::getAlgebraicIdentityRules();
-    // auto commutativityRules = RewriteRuleGenerator::getCommutativityRules();
-    // auto associativityRules = RewriteRuleGenerator::getAssociativityRules();
-    // allRules.insert(allRules.end(), algebraicRules.begin(), algebraicRules.end());
-    // allRules.insert(allRules.end(), commutativityRules.begin(), commutativityRules.end());
-    // allRules.insert(allRules.end(), associativityRules.begin(), associativityRules.end());
+    // auto algebraic_rules = RewriteRuleGenerator::getAlgebraicIdentityRules();
+    // auto commutativity_rules = RewriteRuleGenerator::getCommutativityRules();
+    // auto associativity_rules = RewriteRuleGenerator::getAssociativityRules();
 
     // Builds fused pattern info map.
     llvm::StringMap<FusedPatternInfo> fused_pattern_map;
@@ -124,159 +161,353 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
     config.nodeLimit = 10000;
     config.timeLimitSecs = 60;
     
+    llvm::errs() << "\n=== EGraph Saturation Results ===\n";
     std::vector<std::string> optimized_exprs;
-    for (size_t i = 0; i < all_seprs.size(); ++i) {
-      CycleAwareSaturationResult result = runCycleAwareSaturation(all_seprs[i], allRules, areaMap, config);
+    for (size_t i = 0; i < all_sexprs.size(); ++i) {
+      CycleAwareSaturationResult result = runCycleAwareSaturation(all_sexprs[i], all_rules, ppa_spec.area_map, config);
+      llvm::errs() << "Expression [" << i << "]:\n";
+      llvm::errs() << "  Input:  " << all_sexprs[i] << "\n";
       if (result.isSuccess()) {
+        llvm::errs() << "  Output: " << result.resultExpr << "\n";
+        llvm::errs() << "  Status: SUCCESS (iterations=" << result.iterations 
+                     << ", egraph_size=" << result.egraphSize << ")\n";
         optimized_exprs.push_back(result.resultExpr);
       } else {
-        optimized_exprs.push_back(all_seprs[i]);
+        llvm::errs() << "  Output: (unchanged)\n";
+        llvm::errs() << "  Status: FAILED (" << result.errorMsg << ")\n";
+        optimized_exprs.push_back(all_sexprs[i]);
       }
     }
+    llvm::errs() << "=================================\n\n";
 
-    // Identifies fusion groups from optimized expressions.
+    // Identifies fusion groups by pattern matching on IR.
+    // Strategy: For each extracted pattern, find all matching instances in the IR.
+    // Each instance becomes a separate FusedOp.
+    
+    // Helper lambda to normalize operation names (same as NeuraToSExpr).
+    auto normalizeOpName = [](llvm::StringRef op_name) -> std::string {
+      if (op_name == "grant_predicate") return "grant_pred";
+      if (op_name == "constant") return "const";
+      return op_name.str();
+    };
+    
+    // Helper function to check if an operation matches a pattern and collect matching ops.
+    // Returns true if the operation tree rooted at 'op' matches the pattern.
+    std::function<bool(Operation*, const std::string&, std::vector<Operation*>&)> matchPattern;
+    matchPattern = [&](Operation* op, const std::string& pattern, std::vector<Operation*>& matched_ops) -> bool {
+      if (!op || pattern.empty()) return false;
+      
+      // Parses the pattern operator.
+      if (pattern[0] != '(') {
+        // Variable placeholder - matches anything.
+        return pattern[0] == '?';
+      }
+      
+      size_t space_pos = pattern.find(' ', 1);
+      size_t close_paren = pattern.find(')', 1);
+      if (space_pos == std::string::npos || close_paren < space_pos) {
+        // No space before closing paren - leaf pattern like (const).
+        space_pos = close_paren;
+      }
+      std::string pattern_op = pattern.substr(1, space_pos - 1);
+      
+      // Checks if the operation matches.
+      if (!op->getDialect() || op->getDialect()->getNamespace() != "neura") return false;
+      std::string op_name = normalizeOpName(op->getName().stripDialect());
+      if (op_name != pattern_op) return false;
+      
+      // Adds this op to matched list.
+      matched_ops.push_back(op);
+      
+      // For leaf patterns like (const), no need to match operands.
+      if (space_pos == close_paren) {
+        return true;
+      }
+      
+      // Parses pattern arguments using a proper bracket-aware parser.
+      std::vector<std::string> pattern_args;
+      size_t pos = space_pos + 1;  // Skip the space after operator.
+      while (pos < pattern.size() - 1) {  // -1 to skip final ')'.
+        // Skips whitespace.
+        while (pos < pattern.size() - 1 && std::isspace(pattern[pos])) pos++;
+        if (pos >= pattern.size() - 1) break;
+        
+        size_t arg_start = pos;
+        if (pattern[pos] == '(') {
+          // Nested expression - finds matching closing bracket.
+          int depth = 1;
+          pos++;
+          while (pos < pattern.size() && depth > 0) {
+            if (pattern[pos] == '(') depth++;
+            else if (pattern[pos] == ')') depth--;
+            pos++;
+          }
+          pattern_args.push_back(pattern.substr(arg_start, pos - arg_start));
+        } else {
+          // Simple token - reads until space or closing bracket.
+          while (pos < pattern.size() - 1 && !std::isspace(pattern[pos]) && pattern[pos] != ')') {
+            pos++;
+          }
+          if (pos > arg_start) {
+            pattern_args.push_back(pattern.substr(arg_start, pos - arg_start));
+          }
+        }
+      }
+      
+      // Matches operands recursively.
+      size_t num_operands = op->getNumOperands();
+      for (size_t i = 0; i < pattern_args.size() && i < num_operands; ++i) {
+        if (pattern_args[i][0] == '?') {
+          // Variable placeholder - matches anything, do not recurse.
+          continue;
+        }
+        Operation* operand_op = op->getOperand(i).getDefiningOp();
+        if (!matchPattern(operand_op, pattern_args[i], matched_ops)) {
+          return false;
+        }
+      }
+      
+      return true;
+    };
+    
+    // Finds a valid insertion point for the fused operation.
+    // Reference: IterMergePatternPass::findValidInsertionPoint
+    auto findValidInsertionPoint = [](
+        const std::vector<Operation*>& ops_in_group,
+        const llvm::DenseSet<Operation*>& pattern_ops,
+        const SmallVector<Value>& valid_inputs,
+        const SmallVector<Value>& valid_outputs) -> Operation* {
+      
+      if (ops_in_group.empty()) return nullptr;
+      
+      Block* block = ops_in_group.front()->getBlock();
+      if (!block) return nullptr;
+      
+      // All operations must be in the same block.
+      for (Operation* op : ops_in_group) {
+        if (op->getBlock() != block) {
+          return nullptr;  
+        }
+      }
+      
+      // Finds the earliest position: after all input definitions.
+      Operation* earliest_point = nullptr;
+      
+      for (Value input : valid_inputs) {
+        Operation* def_op = input.getDefiningOp();
+        if (!def_op) {
+          continue;
+        }
+        
+        if (def_op->getBlock() != block) {
+          continue;
+        }
+        
+        if (!earliest_point) {
+          earliest_point = def_op;
+        } else if (!def_op->isBeforeInBlock(earliest_point)) {
+          earliest_point = def_op;
+        }
+      }
+      
+      // Finds the latest position: before all external uses of outputs.
+      Operation* latest_point = nullptr;
+      
+      for (Value output : valid_outputs) {
+        for (OpOperand& use : output.getUses()) {
+          Operation* user = use.getOwner();
+          
+          if (pattern_ops.contains(user)) {
+            continue;
+          }
+          
+          if (user->getBlock() != block) {
+            continue;
+          }
+          
+          if (!latest_point) {
+            latest_point = user;
+          } else if (user->isBeforeInBlock(latest_point)) {
+            latest_point = user;  
+          }
+        }
+      }
+      
+      // If no earliest point found from inputs, uses the earliest op in group.
+      if (!earliest_point) {
+        earliest_point = ops_in_group.front();
+        for (Operation* op : ops_in_group) {
+          if (op->isBeforeInBlock(earliest_point)) {
+            earliest_point = op;
+          }
+        }
+      }
+      
+      // Checks valid range: [earliest_point, latest_point).
+      if (latest_point) {
+        if (!earliest_point->isBeforeInBlock(latest_point) || earliest_point == latest_point) {
+          return nullptr;
+        }
+      }
+      
+      // Returns the valid insertion point (inserts after earliest_point).
+      return earliest_point;
+    };
+    
     std::vector<FusionGroup> fusion_groups;
-    for (size_t i = 0; i < neura_ops.size() && i < optimized_exprs.size(); ++i) {
-      if (!neura_ops[i]) continue;
-
-      size_t fused_pos = optimized_exprs[i].find("(fused ");
-      if (fused_pos == std::string::npos) {
-        continue;
+    std::set<Operation*> already_fused;  // Tracks operations already in a fusion group.
+    
+    // Groups patterns by their fused_name (e.g., "phi_start_grant_once").
+    std::map<std::string, std::vector<const DFGPattern*>> pattern_groups;
+    for (const auto& pattern : patterns) {
+      std::string fused_name;
+      for (size_t idx = 0; idx < pattern.operators.size(); ++idx) {
+        if (idx > 0) fused_name += "_";
+        fused_name += pattern.operators[idx];
       }
-
-      size_t name_start = fused_pos + 7;
-      size_t name_end = optimized_exprs[i].find_first_of(" )", name_start);
-      std::string pattern_name = optimized_exprs[i].substr(name_start, name_end - name_start);
-
-      FusionGroup group;
-      group.patternName = pattern_name;
-      group.rootOp = neura_ops[i];
-      group.rootIndex = i;
-      group.frequency = fused_pattern_map.count(pattern_name) ? fused_pattern_map[pattern_name].frequency : 1;
-
-      // Gets the allowed operation types from the pattern.
-      std::set<std::string> allowed_ops;
-      if (fused_pattern_map.count(pattern_name)) {
-        for (const auto& op_name : fused_pattern_map[pattern_name].operators) {
-          allowed_ops.insert(op_name);
-        }
-      }
-      
-      // Helper lambda to normalize operation names (same as NeuraToSExpr).
-      auto normalizeOpName = [](llvm::StringRef op_name) -> std::string {
-        if (op_name == "grant_predicate") return "grant_pred";
-        return op_name.str();
-      };
-
-      // Collects operations in the fusion group via BFS.
-      // BFS continues through non-matching ops to find all pattern-matching ops.
-      std::set<Operation*> ops_in_fusion;
-      std::set<Operation*> visited_in_bfs;
-      std::queue<Operation*> worklist;
-      for (Value operand : neura_ops[i]->getOperands()) {
-        if (Operation* def_op = operand.getDefiningOp()) {
-          worklist.push(def_op);
-        }
-      }
-      
-      while (!worklist.empty()) {
-        Operation* op = worklist.front();
-        worklist.pop();
-        
-        if (visited_in_bfs.count(op)) continue;
-        visited_in_bfs.insert(op);
-        
-        if (!op->getDialect() || op->getDialect()->getNamespace() != "neura") continue;
-
-        llvm::StringRef op_name = op->getName().stripDialect();
-        
-        if (op_name == "reserve") continue;
-        
-        std::string normalized_name = normalizeOpName(op_name);
-        bool is_in_pattern = allowed_ops.empty() || allowed_ops.count(normalized_name) > 0;
-        
-        if (is_in_pattern) {
-          ops_in_fusion.insert(op);
-        }
-        
-        // Continue BFS through all operands regardless of whether this op is in the pattern.
-        for (Value operand : op->getOperands()) {
-          if (Operation* def_op = operand.getDefiningOp()) {
-            if (!visited_in_bfs.count(def_op)) {
-              worklist.push(def_op);
-            }
-          }
-        }
-      }
-
-      // Sorts operations in topological order.
-      std::vector<Operation*> sorted_ops;
-      std::set<Operation*> visited;
-      std::function<void(Operation*)> topo_sort = [&](Operation* op) {
-        if (visited.count(op) || !ops_in_fusion.count(op)) return;
-        visited.insert(op);
-        for (Value operand : op->getOperands()) {
-          if (Operation* def_op = operand.getDefiningOp()) {
-            if (ops_in_fusion.count(def_op)) topo_sort(def_op);
-          }
-        }
-        sorted_ops.push_back(op);
-      };
-      for (Operation* op : ops_in_fusion) topo_sort(op);
-
-      group.opsInGroup = sorted_ops;
-
-      // Computes external inputs.
-      llvm::SetVector<Value> input_set;
-      for (Operation* op : sorted_ops) {
-        for (Value operand : op->getOperands()) {
-          if (!operand.getDefiningOp() || !ops_in_fusion.count(operand.getDefiningOp())) {
-            input_set.insert(operand);
-          }
-        }
-      }
-      group.externalInputs.assign(input_set.begin(), input_set.end());
-
-      // Computes external outputs.
-      llvm::SetVector<Value> output_set;
-      for (Operation* op : sorted_ops) {
-        for (Value result : op->getResults()) {
-          for (Operation* user : result.getUsers()) {
-            if (!ops_in_fusion.count(user)) {
-              output_set.insert(result);
-              break;
-            }
-          }
-        }
-      }
-      group.externalOutputs.assign(output_set.begin(), output_set.end());
-
-      fusion_groups.push_back(group);
+      pattern_groups[fused_name].push_back(&pattern);
     }
     
-    // Filters out subset groups.
-    std::vector<bool> keep_group(fusion_groups.size(), true);
-    for (size_t i = 0; i < fusion_groups.size(); ++i) {
-      if (!keep_group[i]) continue;
-      std::set<Operation*> ops_set_i(fusion_groups[i].opsInGroup.begin(), fusion_groups[i].opsInGroup.end());
-      for (size_t j = 0; j < fusion_groups.size(); ++j) {
-        if (i == j || !keep_group[j]) continue;
-        std::set<Operation*> ops_set_j(fusion_groups[j].opsInGroup.begin(), fusion_groups[j].opsInGroup.end());
-        if (ops_set_j.size() < ops_set_i.size()) {
-          bool is_subset = std::all_of(ops_set_j.begin(), ops_set_j.end(), 
-                                       [&](Operation* op) { return ops_set_i.count(op); });
-          if (is_subset) keep_group[j] = false;
+    // Collects all neura operations in the module (not just roots).
+    std::vector<Operation*> all_neura_ops;
+    module.walk([&](Operation* op) {
+      if (op->getDialect() && op->getDialect()->getNamespace() == "neura") {
+        all_neura_ops.push_back(op);
+      }
+    });
+    
+    // Counts instances per pattern type.
+    std::map<std::string, int> pattern_instance_count;
+    
+    // Processes pattern groups in order (larger patterns first for better fusion).
+    for (const auto& [fused_name, pattern_variants] : pattern_groups) {
+      // Tries to match starting from each operation in the IR.
+      for (Operation* op : all_neura_ops) {
+        if (!op || already_fused.count(op)) continue;
+        
+        // Tries to match any variant of this pattern.
+        for (const DFGPattern* pattern : pattern_variants) {
+          std::vector<Operation*> matched_ops;
+          if (matchPattern(op, pattern->pattern, matched_ops)) {
+            // Checks if any matched op is already fused.
+            bool has_conflict = false;
+            for (Operation* matched_op : matched_ops) {
+              if (already_fused.count(matched_op)) {
+                has_conflict = true;
+                break;
+              }
+            }
+            
+            if (has_conflict || matched_ops.empty()) {
+              continue;
+            }
+            
+            // Sorts in topological order.
+            std::set<Operation*> matched_set(matched_ops.begin(), matched_ops.end());
+            std::vector<Operation*> sorted_ops;
+            std::set<Operation*> visited;
+            std::function<void(Operation*)> topo_sort = [&](Operation* op) {
+              if (visited.count(op) || !matched_set.count(op)) return;
+              visited.insert(op);
+              for (Value operand : op->getOperands()) {
+                if (Operation* def_op = operand.getDefiningOp()) {
+                  if (matched_set.count(def_op)) topo_sort(def_op);
+                }
+              }
+              sorted_ops.push_back(op);
+            };
+            for (Operation* matched_op : matched_ops) topo_sort(matched_op);
+            
+            // Computes external inputs (reference: rewritePatternInstance).
+            llvm::SetVector<Value> input_set;
+            for (Operation* group_op : sorted_ops) {
+              for (Value operand : group_op->getOperands()) {
+                Operation* def_op = operand.getDefiningOp();
+                if (!def_op || !matched_set.count(def_op)) {
+                  input_set.insert(operand);
+                }
+              }
+            }
+            SmallVector<Value> valid_inputs = input_set.takeVector();
+            
+            // Computes external outputs.
+            llvm::SetVector<Value> output_set;
+            for (Operation* group_op : sorted_ops) {
+              for (Value result : group_op->getResults()) {
+                bool has_external_use = false;
+                for (OpOperand& use : result.getUses()) {
+                  Operation* user = use.getOwner();
+                  if (!matched_set.count(user)) {
+                    has_external_use = true;
+                    break;
+                  }
+                }
+                
+                if (has_external_use) {
+                  output_set.insert(result);
+                }
+              }
+            }
+            SmallVector<Value> valid_outputs = output_set.takeVector();
+            
+            // Skips if no external outputs and the root operation has results.
+            // For side-effect operations (like store), no outputs is acceptable.
+            Operation* root_op = sorted_ops.back();  // Root is the last in topo order.
+            bool has_side_effect = root_op->getNumResults() == 0;
+            
+            // For side-effect patterns, if there are external outputs, it means
+            // intermediate operations are used outside the pattern - skip for now.
+            if (has_side_effect && !valid_outputs.empty()) {
+              continue;
+            }
+            
+            if (valid_outputs.empty() && !has_side_effect) {
+              continue;
+            }
+            
+            // For side-effect operations without outputs, use an empty output list.
+            // The fusion will still be valid as it represents a side-effect pattern.
+            
+            // Finds valid insertion point.
+            llvm::DenseSet<Operation*> pattern_ops_set(matched_ops.begin(), matched_ops.end());
+            Operation* insertion_point = findValidInsertionPoint(
+                sorted_ops, pattern_ops_set, valid_inputs, valid_outputs);
+            
+            if (!insertion_point) {
+              continue;
+            }
+            
+            // Creates a fusion group for this instance.
+            FusionGroup group;
+            group.patternName = fused_name;
+            group.rootOp = matched_ops.back();  // Root of the pattern tree.
+            group.rootIndex = std::find(neura_ops.begin(), neura_ops.end(), op) - neura_ops.begin();
+            group.frequency = 1;  // Placeholder, will be updated later.
+            group.opsInGroup = sorted_ops;
+            group.externalInputs.assign(valid_inputs.begin(), valid_inputs.end());
+            group.externalOutputs.assign(valid_outputs.begin(), valid_outputs.end());
+            group.insertionPoint = insertion_point;  // Saves valid insertion point.
+            
+            fusion_groups.push_back(group);
+            pattern_instance_count[fused_name]++;
+            for (Operation* matched_op : matched_ops) {
+              already_fused.insert(matched_op);
+            }
+            
+            // Break after first successful match to avoid duplicate counting.
+            break;
+          }
         }
       }
     }
-
-    std::vector<FusionGroup> filtered_groups;
-    for (size_t i = 0; i < fusion_groups.size(); ++i) {
-      if (keep_group[i]) {
-        filtered_groups.push_back(fusion_groups[i]);
-      }
+  
+    // Updates frequency for all fusion groups of the same pattern type.
+    for (auto& group : fusion_groups) {
+      group.frequency = pattern_instance_count[group.patternName];
     }
-    fusion_groups = std::move(filtered_groups);
+    
+    llvm::errs() << "\n=== Creating FusedOp ===\n";
+    llvm::errs() << "Total fusion groups found: " << fusion_groups.size() << "\n";
 
     if (neura_ops.empty()) return;
     Operation* parent_op = neura_ops[0]->getParentOp();
@@ -288,84 +519,18 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       if (group.opsInGroup.empty()) {
         continue;
       }
-      if (group.externalOutputs.empty()) {
-        continue;
-      }
+      // Note: externalOutputs can be empty for side-effect patterns like store.
 
       Block* block = group.opsInGroup.front()->getBlock();
-      std::set<Operation*> ops_in_group(group.opsInGroup.begin(), group.opsInGroup.end());
       
-      // Find the last operation in the fusion group (in program order).
-      Operation* last_in_group = nullptr;
-      for (Operation& op : *block) {
-        if (ops_in_group.count(&op)) {
-          last_in_group = &op;
-        }
-      }
-      
-      if (!last_in_group) {
+      // Uses the pre-computed valid insertion point.
+      if (!group.insertionPoint) {
+        llvm::errs() << "Warning: No valid insertion point for pattern " 
+                     << group.patternName << "\n";
         continue;
       }
       
-      // Step 2: Find the earliest external user (must come after the fusion).
-      // Note: ctrl_mov operations are excluded because they represent loop feedback.
-      Operation* earliest_user = nullptr;
-      
-      for (Value output : group.externalOutputs) {
-        for (Operation* user : output.getUsers()) {
-          if (ops_in_group.count(user)) continue;
-          if (user->getBlock() != block) continue;
-          
-          // Skip ctrl_mov operations as they represent loop feedback.
-          llvm::StringRef user_name = user->getName().stripDialect();
-          if (user_name == "ctrl_mov") {
-            continue;
-          }
-          
-          if (!earliest_user || user->isBeforeInBlock(earliest_user)) {
-            earliest_user = user;
-          }
-        }
-      }
-      
-      // Step 3: Check if we can insert after last_in_group.
-      // The FusedOp must be inserted before the earliest external user.
-      Operation* insert_point = nullptr;
-      
-      if (earliest_user && earliest_user->isBeforeInBlock(last_in_group)) {
-        // The earliest external user is before the last op in the group.
-        // This can happen in循环 structures where outputs feed back.
-        // Try to find a position after earliest_user but before all ops that use the outputs.
-        
-        // Find the last operation in the fusion group that comes before earliest_user.
-        Operation* last_before_user = nullptr;
-        for (Operation& op : *block) {
-          if (!ops_in_group.count(&op)) continue;
-          if (earliest_user->isBeforeInBlock(&op)) break;
-          last_before_user = &op;
-        }
-        
-        if (last_before_user) {
-          // Check if this position is after all ops in the fusion group.
-          bool all_before = true;
-          for (Operation* fused_op : group.opsInGroup) {
-            if (last_before_user->isBeforeInBlock(fused_op)) {
-              all_before = false;
-              break;
-            }
-          }
-          
-          if (all_before) {
-            insert_point = last_before_user;
-          }
-        }
-        
-        if (!insert_point) {
-          continue;
-        }
-      } else {
-        insert_point = last_in_group;
-      }
+      Operation* insert_point = group.insertionPoint;
 
       OpBuilder builder(block, std::next(Block::iterator(insert_point)));
       SmallVector<Type> output_types;
@@ -407,16 +572,28 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       builder.create<neura::YieldOp>(loc, yield_values);
 
       // Replaces uses of original outputs with fused results.
+      // Only replaces uses that are NOT before the fused_op in the block.
       std::set<Operation*> ops_in_this_group(group.opsInGroup.begin(), group.opsInGroup.end());
       for (size_t i = 0; i < group.externalOutputs.size(); ++i) {
         group.externalOutputs[i].replaceUsesWithIf(fused_op.getResult(i), [&](OpOperand& use) {
           Operation* user = use.getOwner();
+          // Do not replace uses within the fusion group itself.
           if (ops_in_this_group.count(user)) return false;
+          // Do not replace uses in the yield operation of this fused_op.
           if (llvm::isa<neura::YieldOp>(user) && user->getParentOp() == fused_op) return false;
+          // Do not replace uses that are in a different block.
+          if (user->getBlock() != fused_op->getBlock()) return false;
+          // Do not replace uses that come before the fused_op in program order.
+          if (user->isBeforeInBlock(fused_op)) return false;
           return true;
         });
       }
+      
+      llvm::errs() << "  Created fused_op '" << group.patternName << "' with " 
+                   << group.opsInGroup.size() << " ops, " 
+                   << group.externalOutputs.size() << " outputs\n";
     }
+    llvm::errs() << "=================================\n";
     
     // Erases the original operations that have been fused.
     for (auto& group : fusion_groups) {

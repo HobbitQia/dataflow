@@ -62,17 +62,17 @@ struct FusedPatternInfo {
 class SExprToNeura {
 public:
   SExprToNeura(OpBuilder& builder, Location loc) 
-    : builder(builder), loc(loc), patternIdCounter(0) {}
+    : builder(builder), loc(loc), pattern_id_counter(0) {}
   
   /// Set the variable to value mapping (from NeuraToSExpr)
   void setVarMap(const llvm::StringMap<Value>& map) {
-    varToValue = map;
+    var_to_value = map;
   }
   
   /// Register a fused pattern for recognition
   void registerFusedPattern(const std::string& fusedOpName, 
                             const FusedPatternInfo& info) {
-    fusedPatterns[fusedOpName] = info;
+    fused_patterns[fusedOpName] = info;
   }
   
   /// Parse an S-expression string into a tree
@@ -92,7 +92,7 @@ public:
   
   /// Check if a pattern name is a known fused pattern
   bool isKnownFusedPattern(const std::string& patternName) const {
-    return fusedPatterns.count(patternName) > 0;
+    return fused_patterns.count(patternName) > 0;
   }
 
 private:
@@ -114,16 +114,16 @@ private:
   Location loc;
   
   /// Mapping from variable names to MLIR values
-  llvm::StringMap<Value> varToValue;
+  llvm::StringMap<Value> var_to_value;
   
   /// Registered fused patterns
-  llvm::StringMap<FusedPatternInfo> fusedPatterns;
+  llvm::StringMap<FusedPatternInfo> fused_patterns;
   
   /// Counter for generating unique pattern IDs
-  int64_t patternIdCounter;
+  int64_t pattern_id_counter;
   
   /// Cache for already converted nodes to avoid duplicates
-  llvm::StringMap<Value> convertedCache;
+  llvm::StringMap<Value> converted_cache;
 };
 
 } // namespace egg

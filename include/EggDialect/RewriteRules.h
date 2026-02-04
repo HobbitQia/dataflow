@@ -9,6 +9,11 @@
 #include <set>
 #include <map>
 
+// Forward declaration for MLIR Operation.
+namespace mlir {
+class Operation;
+}
+
 namespace mlir {
 namespace egg {
 
@@ -41,6 +46,7 @@ struct DFGPattern {
   size_t op_count = 0;
   std::vector<std::string> operators;
   size_t area = 0;
+  size_t critical_path_latency = 0;  // Longest path latency in picoseconds.
   
   bool operator<(const DFGPattern& other) const {
     return pattern < other.pattern;
@@ -90,8 +96,24 @@ public:
   // Normalizes a pattern by replacing concrete values with variables.
   static std::string normalizePattern(const std::string& sexpr);
   
-  // Extracts patterns from a list of S-expressions with area calculation.
-  static std::vector<DFGPattern> extractPatterns(const std::vector<std::string>& sexprs, const AreaMap& area_map, size_t min_frequency = 2, size_t max_area = 100, size_t max_ops = 20);
+  // Extracts patterns from a list of S-expressions with PPA constraints.
+  static std::vector<DFGPattern> extractPatterns(
+      const std::vector<std::string>& sexprs, 
+      const PPASpec& ppa_spec, 
+      size_t min_frequency = 2, 
+      size_t max_area = 100, 
+      size_t max_ops = 20,
+      size_t max_critical_path_latency = 1000);
+  
+  // Extracts patterns directly from DFG (MLIR Operations) with PPA constraints.
+  // This avoids duplicate counting caused by DAG-to-tree conversion.
+  static std::vector<DFGPattern> extractPatternsFromDFG(
+      const std::vector<mlir::Operation*>& ops,
+      const PPASpec& ppa_spec,
+      size_t min_frequency = 2,
+      size_t max_area = 100,
+      size_t max_ops = 20,
+      size_t max_critical_path_latency = 1000);
   
   // Generates fusion rules from extracted patterns.
   static std::vector<RewriteRule> generateFusionRulesFromPatterns(const std::vector<DFGPattern>& patterns);
