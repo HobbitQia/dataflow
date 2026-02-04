@@ -1,12 +1,21 @@
 # CMakeLists.txt for third-party dependencies
 
-# Build egg-bridge Rust library
+# Build egg-bridge Rust library (now located under egg/bridge)
 find_program(CARGO cargo)
 if(CARGO)
     message(STATUS "Found cargo: ${CARGO}")
     
-    set(EGG_BRIDGE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/egg-bridge)
-    set(EGG_BRIDGE_LIB_DIR ${EGG_BRIDGE_DIR}/target/release)
+    set(EGG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/egg)
+    set(EGG_BRIDGE_DIR ${EGG_DIR}/bridge)
+    
+    # Use a local directory for Rust build artifacts to avoid NFS issues
+    # Default to /tmp/egg_build if not on local disk
+    if(DEFINED ENV{CARGO_TARGET_DIR})
+        set(CARGO_TARGET_DIR $ENV{CARGO_TARGET_DIR})
+    else()
+        set(CARGO_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/cargo-target)
+    endif()
+    set(EGG_BRIDGE_LIB_DIR ${CARGO_TARGET_DIR}/release)
     
     # Determine library name based on platform
     if(WIN32)
@@ -20,8 +29,8 @@ if(CARGO)
     # Custom command to build the Rust library
     add_custom_command(
         OUTPUT ${EGG_BRIDGE_LIB}
-        COMMAND ${CARGO} build --release
-        WORKING_DIRECTORY ${EGG_BRIDGE_DIR}
+        COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${CARGO_TARGET_DIR} ${CARGO} build --release -p egg-bridge
+        WORKING_DIRECTORY ${EGG_DIR}
         COMMENT "Building egg-bridge Rust library"
         VERBATIM
     )
@@ -40,6 +49,7 @@ if(CARGO)
     set(EGG_BRIDGE_INCLUDE_DIR ${EGG_BRIDGE_DIR}/include CACHE PATH "egg-bridge include directory" FORCE)
     set(EGG_BRIDGE_FOUND TRUE CACHE BOOL "egg-bridge found" FORCE)
     message(STATUS "egg-bridge found: ${EGG_BRIDGE_LIB}")
+    message(STATUS "Cargo target directory: ${CARGO_TARGET_DIR}")
     
 else()
     message(WARNING "cargo not found, egg-bridge will not be built")
