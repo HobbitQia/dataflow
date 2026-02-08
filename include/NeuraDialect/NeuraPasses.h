@@ -15,7 +15,7 @@ namespace neura {
 
 void registerNeuraConversionPassPipeline();
 
-// Passes defined in GraphPasses.td
+// Passes defined in NeuraPasses.td
 #define GEN_PASS_DECL
 #include "NeuraDialect/NeuraPasses.h.inc"
 std::unique_ptr<mlir::Pass> createInsertDataMovPass();
@@ -27,10 +27,9 @@ std::unique_ptr<mlir::Pass> createMapToAcceleratorPass();
 std::unique_ptr<mlir::Pass> createGenerateCodePass();
 std::unique_ptr<mlir::Pass> createCanonicalizeReturnPass();
 std::unique_ptr<mlir::Pass> createCanonicalizeLiveInPass();
-std::unique_ptr<mlir::Pass> createPromoteFuncArgToConstPass();
+std::unique_ptr<mlir::Pass> createPromoteInputArgToConstPass();
 std::unique_ptr<mlir::Pass> createTransformToSteerControlPass();
 std::unique_ptr<mlir::Pass> createRemovePredicatedTypePass();
-std::unique_ptr<mlir::Pass> createWrapLoopInKernelPass();
 
 // ====================================
 // Optimization Passes
@@ -46,6 +45,9 @@ std::unique_ptr<mlir::Pass> createCanonicalizeCastPass();
 // Graph mining passes
 std::unique_ptr<mlir::Pass> createIterMergePatternPass();
 std::unique_ptr<mlir::Pass> createInitPatternPass();
+
+// Hardware optimization passes
+std::unique_ptr<mlir::Pass> createHardwareMergePass();
 
 #define GEN_PASS_REGISTRATION
 #include "NeuraDialect/NeuraPasses.h.inc"

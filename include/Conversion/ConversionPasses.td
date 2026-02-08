@@ -47,17 +47,49 @@ def LowerAffineToNeura : Pass<"lower-affine-to-neura", "func::FuncOp">{
 //=========================================================//
 // TaskFlow Conversion Passes.
 //=========================================================//
-def ConvertLinalgToTaskflow : Pass<"convert-linalg-to-taskflow", "ModuleOp">{
-  let summary = "Convert Linalg operations to Taskflow dialect";
+
+def ConvertAffineToTaskflow : Pass<"convert-affine-to-taskflow", "ModuleOp">{
+  let summary = "Convert top-level affine.for operations to Taskflow dialect";
   let description = [{
-    Extracts compute-intensive linalg operations and wraps them into a Taskflow graph for spatial architecture execution.
+    This pass converts top-level affine.for loops in a function into
+    taskflow.task operations within a taskflow.graph. Each top-level loop
+    becomes a separate task, and data dependencies between tasks are made
+    explicit through taskflow.channel operations.
+    
+    The pass:
+    1. Identifies all top-level affine.for operations
+    2. Analyzes data dependencies (RAW, WAR, WAW) between loops
+    3. Creates a taskflow.graph containing the loops
+    4. Converts each loop to a taskflow.task
+    5. Inserts taskflow.channel operations for data dependencies
   }];
-  let constructor = "mlir::createConvertLinalgToTaskflowPass()";
+
+  let constructor = "mlir::createConvertAffineToTaskflowPass()";
   let dependentDialects = [
     "mlir::taskflow::TaskflowDialect",
-    "mlir::linalg::LinalgDialect",
+    "mlir::affine::AffineDialect",
     "mlir::func::FuncDialect",
+    "mlir::memref::MemRefDialect",
     "mlir::arith::ArithDialect"
+  ];
+}
+
+def ConvertTaskflowToNeura : Pass<"convert-taskflow-to-neura", "ModuleOp">{
+  let summary = "Convert taskflow operations to neura.kernel";
+  let description = [{
+    Converts taskflow.hyperblock operations into neura.kernel operations suitable for
+    CGRA tile array mapping.
+
+    Converts the entire taskflow.hyperblock operations and corresponding counters ops
+    to neura.kernel, based on the input architecture spec file.
+
+    mlir-neura-opt --convert-taskflow-to-neura input.mlir --architecture-spec=$PATH/architecture.yaml -o output.mlir
+  }];
+  let constructor = "mlir::createConvertTaskflowToNeuraPass()";
+  let dependentDialects = [
+    "mlir::taskflow::TaskflowDialect",
+    "mlir::neura::NeuraDialect"
+    "mlir::affine::AffineDialect"
   ];
 }
 

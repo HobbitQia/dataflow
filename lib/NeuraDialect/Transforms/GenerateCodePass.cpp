@@ -1,3 +1,4 @@
+#include "Common/AcceleratorAttrs.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/Operation.h"
@@ -23,6 +24,7 @@
 
 #include "NeuraDialect/Architecture/Architecture.h"
 #include "NeuraDialect/NeuraOps.h"
+#include "NeuraDialect/NeuraAttributes.h"
 
 using namespace mlir;
 using namespace neura;
@@ -204,7 +206,7 @@ static std::string extractConstantLiteralFromAttr(Attribute attr) {
 // Literals for CONSTANT operations, e.g. "#10" / "#0" / "#3.0".
 static std::string getConstantLiteral(Operation *op) {
   if (isConstant(op)) {
-    if (auto value_attr = op->getAttr("value")) {
+    if (auto value_attr = op->getAttr(attr::kValue)) {
       std::string result = extractConstantLiteralFromAttr(value_attr);
       if (!result.empty()) return result;
     }
@@ -212,13 +214,13 @@ static std::string getConstantLiteral(Operation *op) {
   }
   
   // Checks for constant_value attribute in non-CONSTANT operations.
-  if (auto constant_value_attr = op->getAttr("constant_value")) {
+  if (auto constant_value_attr = op->getAttr(attr::kConstantValue)) {
     std::string result = extractConstantLiteralFromAttr(constant_value_attr);
     if (!result.empty()) return result;
   }
   
   // Checks for rhs_value attribute (for binary operations with constant RHS).
-  if (auto rhs_value_attr = op->getAttr("rhs_value")) {
+  if (auto rhs_value_attr = op->getAttr(attr::kRhsValue)) {
     std::string result = extractConstantLiteralFromAttr(rhs_value_attr);
     if (!result.empty()) return result;
   }
@@ -265,16 +267,7 @@ struct Topology {
 
 static Topology getTopologyFromArchitecture(int per_cgra_rows, int per_cgra_columns) {
   Topology topo;
-  mlir::neura::Architecture architecture(1,
-                                         1,
-                                         mlir::neura::BaseTopology::MESH,
-                                         per_cgra_rows,
-                                         per_cgra_columns,
-                                         mlir::neura::BaseTopology::MESH,
-                                         mlir::neura::TileDefaults{},
-                                         std::vector<mlir::neura::TileOverride>{},
-                                         mlir::neura::LinkDefaults{},
-                                         std::vector<mlir::neura::LinkOverride>{});
+  const Architecture &architecture = mlir::neura::getArchitecture();
 
   for (auto *tile : architecture.getAllTiles()) {
     topo.tile_location[tile->getId()] = {tile->getX(), tile->getY()};
@@ -409,17 +402,19 @@ struct GenerateCodePass
   }
 
   std::pair<int, int> getArrayDimensions(func::FuncOp function) {
-    int columns = 4, rows = 4; // default 4x4 CGRA.
-    if (auto mapping_info = function->getAttrOfType<DictionaryAttr>("mapping_info")) {
-      if (auto x_tiles = dyn_cast_or_null<IntegerAttr>(mapping_info.get("x_tiles"))) columns = x_tiles.getInt();
-      if (auto y_tiles = dyn_cast_or_null<IntegerAttr>(mapping_info.get("y_tiles"))) rows   = y_tiles.getInt();
+    const Architecture &architecture = mlir::neura::getArchitecture();
+    int columns = architecture.getPerCgraColumns();
+    int rows = architecture.getPerCgraRows();
+    if (auto mapping_info = function->getAttrOfType<DictionaryAttr>(attr::kMappingInfo)) {
+      if (auto x_tiles = dyn_cast_or_null<IntegerAttr>(mapping_info.get(attr::kXTiles))) columns = x_tiles.getInt();
+      if (auto y_tiles = dyn_cast_or_null<IntegerAttr>(mapping_info.get(attr::kYTiles))) rows   = y_tiles.getInt();
     }
     return {columns, rows};
   }
 
   int getCompiledII(func::FuncOp function) {
-    if (auto mapping_info = function->getAttrOfType<DictionaryAttr>("mapping_info")) {
-      if (auto compiled_ii = dyn_cast_or_null<IntegerAttr>(mapping_info.get("compiled_ii"))) {
+    if (auto mapping_info = function->getAttrOfType<DictionaryAttr>(attr::kMappingInfo)) {
+      if (auto compiled_ii = dyn_cast_or_null<IntegerAttr>(mapping_info.get(attr::kCompiledII))) {
         return compiled_ii.getInt();
       }
     }
@@ -510,7 +505,7 @@ struct GenerateCodePass
 
       if (isConstant(op)) {
         inst.src_operands.emplace_back(getConstantLiteral(op), "RED");
-      } else if (op->getAttr("constant_value")) {
+      } else if (op->getAttr(attr::kConstantValue)) {
         // Checks if operation has constant_value attribute (for non-CONSTANT operations).
         inst.src_operands.emplace_back(getConstantLiteral(op), "RED");
       } else {
@@ -524,7 +519,7 @@ struct GenerateCodePass
         }
         
         // Handles cases where binary operations have the RHS constant stored as an attribute.
-        if (auto rhs_value_attr = op->getAttr("rhs_value")) {
+        if (auto rhs_value_attr = op->getAttr(attr::kRhsValue)) {
           std::string rhs_literal = extractConstantLiteralFromAttr(rhs_value_attr);
           if (!rhs_literal.empty()) {
             inst.src_operands.emplace_back(rhs_literal, "RED");
@@ -595,8 +590,8 @@ struct GenerateCodePass
         setUniqueDestination(pi, producer_direction.str());
       else if (!regs.empty())
         setUniqueDestination(pi, "$" + std::to_string(regs.back().regId));
+      }
     }
-  }
 
   // Egress: on source tile at first_link_ts, move [$src_reg] -> [out_dir].
   void placeSrcEgress(const Topology &topology, int src_tile_id, int time_step,
@@ -706,7 +701,8 @@ struct GenerateCodePass
         const bool should_rewire_to_register =
             IsCtrl || (consumer_placement.time_step > deposit_time_step);
         if (should_rewire_to_register) {
-          setConsumerSourceExact(consumer_operation, value_at_consumer, "$" + std::to_string(register_id));
+          setConsumerSourceExact(consumer_operation, value_at_consumer,
+                                 "$" + std::to_string(register_id));
           return true;
         }
       }
@@ -804,7 +800,7 @@ struct GenerateCodePass
     } else {
       return collectDataMovConsumers(forwarder);
     }
-  }
+    }
 
   template<bool IsCtrl>
   void rewriteMovConsumers(Operation *forwarder,
@@ -933,7 +929,7 @@ struct GenerateCodePass
 
   // Helper to extract dfg_id from operation.
   static int getDfgId(Operation *op) {
-    if (auto id_attr = op->getAttrOfType<IntegerAttr>("dfg_id")) {
+    if (auto id_attr = op->getAttrOfType<IntegerAttr>(attr::kDfgId)) {
       return id_attr.getInt();
     }
     return -1;
@@ -1491,7 +1487,8 @@ struct GenerateCodePass
                          return a->time_step < b->time_step;
                        });
 
-      yaml_out << "            - index_per_ii: " << index_per_ii << "\n              operations:\n";
+      yaml_out << "            - index_per_ii: " << index_per_ii
+               << "\n              operations:\n";
       for (const Instruction *inst : operations) {
         yaml_out << "                - opcode: \"" << inst->opcode << "\"\n";
         if (inst->id >= 0)
@@ -1502,13 +1499,15 @@ struct GenerateCodePass
         if (!inst->src_operands.empty()) {
           yaml_out << "                  src_operands:\n";
           for (const Operand &opnd : inst->src_operands)
-            yaml_out << "                    - operand: \"" << opnd.operand << "\"\n                      color: \"" << opnd.color << "\"\n";
+            yaml_out << "                    - operand: \"" << opnd.operand
+                     << "\"\n                      color: \"" << opnd.color << "\"\n";
         }
         // destinations.
         if (!inst->dst_operands.empty()) {
           yaml_out << "                  dst_operands:\n";
           for (const Operand &opnd : inst->dst_operands)
-            yaml_out << "                    - operand: \"" << opnd.operand << "\"\n                      color: \"" << opnd.color << "\"\n";
+            yaml_out << "                    - operand: \"" << opnd.operand
+                     << "\"\n                      color: \"" << opnd.color << "\"\n";
         }
       }
     }
@@ -1577,7 +1576,8 @@ struct GenerateCodePass
       for (size_t i = 0; i < instructions.size(); ++i) {
         const Instruction *inst = instructions[i];
         asm_out << "  " << inst->opcode;
-        for (const Operand &operand : inst->src_operands) asm_out << ", " << formatOperand(operand);
+        for (const Operand &operand : inst->src_operands)
+          asm_out << ", " << formatOperand(operand);
         if (!inst->dst_operands.empty()) {
           asm_out << " -> ";
           for (size_t j = 0; j < inst->dst_operands.size(); ++j) {
@@ -1664,8 +1664,8 @@ struct GenerateCodePass
     ModuleOp module = getOperation();
 
     for (auto func : module.getOps<func::FuncOp>()) {
-      auto accel = func->getAttrOfType<StringAttr>("accelerator");
-      if (!accel || accel.getValue() != "neura") continue;
+      auto accel = func->getAttrOfType<StringAttr>(accel::kAcceleratorAttr);
+      if (!accel || accel.getValue() != accel::kNeuraTarget) continue;
 
       auto [columns, rows] = getArrayDimensions(func);
       Topology topo = getTopologyFromArchitecture(columns, rows);
