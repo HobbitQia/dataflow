@@ -47,6 +47,7 @@ const Architecture &mlir::neura::getArchitecture() {
     return std::move(architecture_result.value());
   }();
   return instance;
+}
 static mlir::neura::TileDefaults tile_defaults;
 
 // Global variable to store area spec file path for egg passes

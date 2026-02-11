@@ -569,7 +569,7 @@ struct ProcessNeuraPass : public impl::ProcessNeuraBase<ProcessNeuraPass> {
       for (Value output : group.externalOutputs) {
         yield_values.push_back(mapping.lookup(output));
       }
-      builder.create<neura::YieldOp>(loc, yield_values);
+      builder.create<neura::YieldOp>(loc, ValueRange{}, yield_values);
 
       // Replaces uses of original outputs with fused results.
       // Only replaces uses that are NOT before the fused_op in the block.

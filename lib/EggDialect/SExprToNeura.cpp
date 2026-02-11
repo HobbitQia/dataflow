@@ -358,7 +358,7 @@ Value SExprToNeura::createFusedOp(const std::string& fusedOpName,
   builder.setInsertionPointToEnd(body);
   
   if (!body->getArguments().empty()) {
-    builder.create<neura::YieldOp>(loc, body->getArguments().front());
+    builder.create<neura::YieldOp>(loc, ValueRange{}, body->getArguments().front());
   } else {
     builder.create<neura::YieldOp>(loc);
   }

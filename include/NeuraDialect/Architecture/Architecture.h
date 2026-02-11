@@ -536,6 +536,8 @@ private:
 
 // Function for getting the architecture object.
 const Architecture &getArchitecture();
+std::string getArchitectureSpecFile();
+TileDefaults getTileDefaults();
 } // namespace neura
 } // namespace mlir
 
