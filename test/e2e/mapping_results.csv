@@ -1,0 +1,2 @@
+test_name,compiled_ii,rec_mii,res_mii,total_memory_ops,memory_cycles,status
+bicg,N/A,N/A,N/A,0,0,MAPPING_ERROR
