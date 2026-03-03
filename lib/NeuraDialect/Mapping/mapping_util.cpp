@@ -9,6 +9,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/Error.h"
+#include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cassert>
 
@@ -994,10 +995,41 @@ mlir::neura::calculateAward(Operation *op, std::set<Operation *> &critical_ops,
     tile_award *= kAwardBaseMultiplier;
 
     // === Time-based award ===
+    int op_latency = getOpLatency(op);
+    bool has_template_info = !mapping_state.getHardwareTemplateInfo().empty();
     for (int t = earliest_start_time_step; t < latest_end_time_step; t += 1) {
       MappingLoc tile_loc_candidate = {tile, t};
+
+      // For multi-cycle ops, check availability for ALL consecutive time steps.
+      bool all_steps_available = true;
+      if (op_latency > 1) {
+        for (int dt = 0; dt < op_latency; ++dt) {
+          MappingLoc check_loc = {tile, t + dt};
+          int status;
+          if (dt == 0)
+            status = START_PIPE_OCCUPY;
+          else if (dt == op_latency - 1)
+            status = END_PIPE_OCCUPY;
+          else
+            status = IN_PIPE_OCCUPY;
+          // Use template-aware check if hardware template info is available.
+          bool available = has_template_info
+              ? mapping_state.isAvailableForOccupyStatusWithTemplate(
+                    check_loc, status, op)
+              : mapping_state.isAvailableForOccupyStatus(check_loc, status);
+          if (!available) {
+            all_steps_available = false;
+            break;
+          }
+        }
+      } else {
+        // Single-cycle: use existing check.
+        all_steps_available =
+            mapping_state.isAvailableAcrossTime(tile_loc_candidate);
+      }
+
       // Considers the tile at time `t` for mapping if available.
-      if (mapping_state.isAvailableAcrossTime(tile_loc_candidate)) {
+      if (all_steps_available) {
         bool meet_producer_constraint =
             producers.empty() ||
             canReachLocInTime(producers, tile_loc_candidate, t, mapping_state);
@@ -1249,15 +1281,237 @@ bool mlir::neura::placeAndRoute(Operation *op, const MappingLoc &target_loc,
   return false;
 }
 
+// Returns the execution latency of an operation from its latency attribute, defaulting to 1.
 int mlir::neura::getOpLatency(Operation *op) {
-  // Try to get the latency attribute from the operation
-  if (auto latency_attr = op->getAttrOfType<IntegerAttr>("latency")) {
+  // Defaults to single-cycle if no latency attribute is present.
+  if (auto latency_attr = op->getAttrOfType<IntegerAttr>("latency"))
     return latency_attr.getInt();
-  }
-  // Default to single-cycle if no latency attribute is present
   return 1;
 }
 
+// Returns true if the operation has a latency greater than 1.
 bool mlir::neura::isMultiCycleOp(Operation *op) {
   return getOpLatency(op) > 1;
+}
+
+// Returns the canonical op name used for hardware template lookup.
+std::string mlir::neura::getOpNameForTemplateLookup(Operation *op) {
+  if (auto fused_op = dyn_cast<neura::FusedOp>(op)) {
+    return fused_op.getPatternName().str();
+  }
+  return op->getName().getStringRef().str();
+}
+
+// Parses hardware_config.json and populates hw_template_info with template-to-op mappings.
+bool mlir::neura::parseHardwareConfigJson(
+    const std::string &file_path, HardwareTemplateInfo &hw_template_info) {
+  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer_or_err =
+      llvm::MemoryBuffer::getFile(file_path);
+  if (!buffer_or_err) {
+    llvm::errs() << "[parseHardwareConfigJson] Failed to open: " << file_path
+                 << "\n";
+    return false;
+  }
+
+  llvm::StringRef content = (*buffer_or_err)->getBuffer();
+
+  // Simple JSON parser for the hardware_config.json structure.
+  // We parse "hardware_templates" array and extract template_id,
+  // supported_single_ops, and supported_composite_ops for each template.
+  //
+  // Format:
+  //   "hardware_templates": [
+  //     {
+  //       "template_id": 0,
+  //       "supported_single_ops": ["neura.add", "neura.mul"],
+  //       "supported_composite_ops": [
+  //         {"pattern_id": 1, "name": "mul->add"}
+  //       ],
+  //       ...
+  //     }
+  //   ]
+
+  // Find "hardware_templates" array
+  size_t templates_pos = content.find("\"hardware_templates\"");
+  if (templates_pos == llvm::StringRef::npos) {
+    llvm::errs() << "[parseHardwareConfigJson] No 'hardware_templates' found\n";
+    return false;
+  }
+
+  // Helper: find next occurrence of a character, skipping strings
+  auto findChar = [&](size_t start, char target) -> size_t {
+    bool in_string = false;
+    for (size_t i = start; i < content.size(); ++i) {
+      if (content[i] == '"' && (i == 0 || content[i - 1] != '\\'))
+        in_string = !in_string;
+      if (!in_string && content[i] == target)
+        return i;
+    }
+    return llvm::StringRef::npos;
+  };
+
+  // Helper: find matching bracket
+  auto findMatchingBracket = [&](size_t open_pos, char open_ch,
+                                 char close_ch) -> size_t {
+    int depth = 0;
+    bool in_string = false;
+    for (size_t i = open_pos; i < content.size(); ++i) {
+      if (content[i] == '"' && (i == 0 || content[i - 1] != '\\'))
+        in_string = !in_string;
+      if (!in_string) {
+        if (content[i] == open_ch)
+          depth++;
+        if (content[i] == close_ch) {
+          depth--;
+          if (depth == 0)
+            return i;
+        }
+      }
+    }
+    return llvm::StringRef::npos;
+  };
+
+  // Helper: extract JSON string value after a key
+  auto extractStringValue = [&](llvm::StringRef text,
+                                size_t key_pos) -> std::string {
+    size_t colon = text.find(':', key_pos);
+    if (colon == llvm::StringRef::npos)
+      return "";
+    size_t quote_start = text.find('"', colon + 1);
+    if (quote_start == llvm::StringRef::npos)
+      return "";
+    size_t quote_end = text.find('"', quote_start + 1);
+    if (quote_end == llvm::StringRef::npos)
+      return "";
+    return text.substr(quote_start + 1, quote_end - quote_start - 1).str();
+  };
+
+  // Helper: extract integer value after a key
+  auto extractIntValue = [&](llvm::StringRef text, size_t key_pos) -> int {
+    size_t colon = text.find(':', key_pos);
+    if (colon == llvm::StringRef::npos)
+      return -1;
+    size_t num_start = colon + 1;
+    while (num_start < text.size() &&
+           (text[num_start] == ' ' || text[num_start] == '\t'))
+      num_start++;
+    size_t num_end = num_start;
+    if (num_end < text.size() && text[num_end] == '-')
+      num_end++;
+    while (num_end < text.size() && text[num_end] >= '0' &&
+           text[num_end] <= '9')
+      num_end++;
+    int val = 0;
+    text.substr(num_start, num_end - num_start).getAsInteger(10, val);
+    return val;
+  };
+
+  // Find the opening '[' of hardware_templates array
+  size_t arr_start = findChar(templates_pos, '[');
+  if (arr_start == llvm::StringRef::npos)
+    return false;
+  size_t arr_end = findMatchingBracket(arr_start, '[', ']');
+  if (arr_end == llvm::StringRef::npos)
+    return false;
+
+  // Iterate over template objects in the array
+  size_t pos = arr_start + 1;
+  while (pos < arr_end) {
+    // Find next template object
+    size_t obj_start = findChar(pos, '{');
+    if (obj_start == llvm::StringRef::npos || obj_start >= arr_end)
+      break;
+    size_t obj_end = findMatchingBracket(obj_start, '{', '}');
+    if (obj_end == llvm::StringRef::npos)
+      break;
+
+    llvm::StringRef obj_text = content.substr(obj_start, obj_end - obj_start + 1);
+
+    // Extract template_id
+    size_t tid_pos = obj_text.find("\"template_id\"");
+    int template_id = -1;
+    if (tid_pos != llvm::StringRef::npos) {
+      template_id = extractIntValue(obj_text, tid_pos);
+    }
+
+    // Extract supported_single_ops
+    size_t single_ops_pos = obj_text.find("\"supported_single_ops\"");
+    if (single_ops_pos != llvm::StringRef::npos && template_id >= 0) {
+      size_t single_arr_start = obj_text.find('[', single_ops_pos);
+      size_t single_arr_end = obj_text.find(']', single_arr_start);
+      if (single_arr_start != llvm::StringRef::npos &&
+          single_arr_end != llvm::StringRef::npos) {
+        llvm::StringRef single_arr =
+            obj_text.substr(single_arr_start + 1,
+                            single_arr_end - single_arr_start - 1);
+        // Parse string values in the array
+        size_t sq = 0;
+        while (sq < single_arr.size()) {
+          size_t qs = single_arr.find('"', sq);
+          if (qs == llvm::StringRef::npos)
+            break;
+          size_t qe = single_arr.find('"', qs + 1);
+          if (qe == llvm::StringRef::npos)
+            break;
+          std::string op_name =
+              single_arr.substr(qs + 1, qe - qs - 1).str();
+          hw_template_info.single_op_to_templates[op_name].insert(template_id);
+          sq = qe + 1;
+        }
+      }
+    }
+
+    // Extract supported_composite_ops
+    size_t composite_pos = obj_text.find("\"supported_composite_ops\"");
+    if (composite_pos != llvm::StringRef::npos && template_id >= 0) {
+      size_t comp_arr_start = obj_text.find('[', composite_pos);
+      if (comp_arr_start != llvm::StringRef::npos) {
+        // Find matching ']'
+        int depth = 1;
+        size_t comp_arr_end = comp_arr_start + 1;
+        while (comp_arr_end < obj_text.size() && depth > 0) {
+          if (obj_text[comp_arr_end] == '[')
+            depth++;
+          if (obj_text[comp_arr_end] == ']')
+            depth--;
+          comp_arr_end++;
+        }
+        llvm::StringRef comp_arr =
+            obj_text.substr(comp_arr_start, comp_arr_end - comp_arr_start);
+        // Find all "name" values in the composite ops array
+        size_t search_pos = 0;
+        while (search_pos < comp_arr.size()) {
+          size_t name_key = comp_arr.find("\"name\"", search_pos);
+          if (name_key == llvm::StringRef::npos)
+            break;
+          std::string pattern_name = extractStringValue(comp_arr, name_key);
+          if (!pattern_name.empty()) {
+            hw_template_info.fused_op_to_template[pattern_name] = template_id;
+            // Also add fused_op patterns to single_op_to_templates for
+            // cross-lookup compatibility.
+            hw_template_info.single_op_to_templates[pattern_name].insert(
+                template_id);
+          }
+          search_pos = name_key + 6;
+        }
+      }
+    }
+
+    pos = obj_end + 1;
+  }
+
+  llvm::errs() << "[parseHardwareConfigJson] Loaded hardware template info: " << hw_template_info.single_op_to_templates.size() << " single ops, " << hw_template_info.fused_op_to_template.size() << " fused ops\n";
+  for (const auto &[op_name, template_ids] :
+       hw_template_info.single_op_to_templates) {
+    llvm::errs() << "  " << op_name << " -> templates: {";
+    bool first = true;
+    for (int tid : template_ids) {
+      if (!first)
+        llvm::errs() << ", ";
+      llvm::errs() << tid;
+      first = false;
+    }
+    llvm::errs() << "}\n";
+  }
+  return true;
 }

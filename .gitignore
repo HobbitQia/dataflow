@@ -7,6 +7,7 @@ build/
 !arch_spec_example.yaml
 !architecture.yaml
 !architecture_with_counter.yaml
+!latency_map.yaml
 /test/**/*.asm
 /test/**/*.json
 /test/**/*.dot

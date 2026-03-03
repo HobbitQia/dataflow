@@ -5,10 +5,63 @@
 #include "mlir/IR/Operation.h"
 #include "llvm/Support/raw_ostream.h"
 #include <optional>
+#include <set>
 #include <vector>
 
 namespace mlir {
 namespace neura {
+
+//===----------------------------------------------------------------------===//
+// HardwareTemplateInfo - Maps operations to hardware template IDs.
+//
+// Parsed from hardware_config.json, this provides information about which
+// hardware template(s) can support a given operation. Used during mapping to
+// detect hardware conflicts: two ops can coexist on the same tile during
+// multi-cycle pipeline occupation only if they share a common template.
+//===----------------------------------------------------------------------===//
+struct HardwareTemplateInfo {
+  // Maps operation name (e.g., "neura.add") to set of template IDs
+  // that can support this operation as a single op.
+  std::map<std::string, std::set<int>> single_op_to_templates;
+
+  // Maps fused_op pattern_name to the template ID it belongs to.
+  std::map<std::string, int> fused_op_to_template;
+
+  // Checks if two operations (given by name) can share a hardware template.
+  // Returns true if they have at least one common template.
+  bool areTemplateCompatible(const std::string &op_a,
+                             const std::string &op_b) const {
+    auto it_a = single_op_to_templates.find(op_a);
+    auto it_b = single_op_to_templates.find(op_b);
+    if (it_a == single_op_to_templates.end() ||
+        it_b == single_op_to_templates.end()) {
+      // If either op is not in the template info, we conservatively assume no
+      // conflict (backward compatibility for ops without template info).
+      return true;
+    }
+    // Check for intersection
+    for (int tid : it_a->second) {
+      if (it_b->second.count(tid))
+        return true;
+    }
+    return false;
+  }
+
+  // Returns the set of template IDs an operation can use.
+  std::set<int> getTemplatesForOp(const std::string &op_name) const {
+    auto it = single_op_to_templates.find(op_name);
+    if (it != single_op_to_templates.end())
+      return it->second;
+    auto fit = fused_op_to_template.find(op_name);
+    if (fit != fused_op_to_template.end())
+      return {fit->second};
+    return {};
+  }
+
+  bool empty() const {
+    return single_op_to_templates.empty() && fused_op_to_template.empty();
+  }
+};
 
 // Occupy status for multi-cycle pipeline support.
 // These states define how a tile/FU is occupied at a given time step.
@@ -61,6 +114,8 @@ namespace neura {
 class MappingState {
 public:
   MappingState(const Architecture &arch, int II, bool is_spatial_only);
+  MappingState(const Architecture &arch, int II, bool is_spatial_only,
+               const HardwareTemplateInfo &hw_template_info);
   // Binds a (tile/link, time_step) location to an operation with default
   // SINGLE_OCCUPY status.
   bool bindOp(const MappingLoc &loc, Operation *op);
@@ -93,6 +148,20 @@ public:
   // - IN_PIPE_OCCUPY: always available (can pipeline with any status)
   bool isAvailableForOccupyStatus(const MappingLoc &loc,
                                   int new_occupy_status) const;
+
+  // Template-aware version of isAvailableForOccupyStatus.
+  // When a multi-cycle op occupies a tile in IN_PIPE_OCCUPY state, another op
+  // can only share the tile if both ops belong to the same hardware template.
+  // The new_op parameter is the operation being placed (used to determine its
+  // template).
+  bool isAvailableForOccupyStatusWithTemplate(const MappingLoc &loc,
+                                              int new_occupy_status,
+                                              Operation *new_op) const;
+
+  // Gets the hardware template info associated with this mapping state.
+  const HardwareTemplateInfo &getHardwareTemplateInfo() const {
+    return hw_template_info;
+  }
 
   // Gets the occupy status at a specific location across time domain.
   // Returns -1 if the location is not occupied.
@@ -172,6 +241,9 @@ private:
   int II;
   bool is_spatial_only;
   static constexpr int kMaxSteps = 10;
+
+  // Hardware template info for template-aware conflict detection.
+  HardwareTemplateInfo hw_template_info;
 
   // Maps location to a list of (occupy_status, operation) pairs.
   // Multiple ops can occupy the same location with compatible pipeline states.

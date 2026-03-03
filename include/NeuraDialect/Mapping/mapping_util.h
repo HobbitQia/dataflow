@@ -123,5 +123,15 @@ int getOpLatency(Operation *op);
 // Checks if an operation is a multi-cycle operation (latency > 1).
 bool isMultiCycleOp(Operation *op);
 
+// Gets the operation name for hardware template lookup purposes.
+// For regular ops: returns the MLIR op name (e.g., "neura.add")
+// For fused_ops: returns the pattern_name (e.g., "mul->add")
+std::string getOpNameForTemplateLookup(Operation *op);
+
+// Parses hardware_config.json and builds a HardwareTemplateInfo structure.
+// Returns true on success.
+bool parseHardwareConfigJson(const std::string &file_path,
+                             HardwareTemplateInfo &hw_template_info);
+
 } // namespace neura
 } // namespace mlir

@@ -1,4 +1,5 @@
 #include "NeuraDialect/Mapping/MappingState.h"
+#include "NeuraDialect/Mapping/mapping_util.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -30,14 +31,20 @@ MappingState::MappingState(const Architecture &arch, int II,
                            bool is_spatial_only)
     : II(II), is_spatial_only(is_spatial_only) {}
 
+MappingState::MappingState(const Architecture &arch, int II,
+                           bool is_spatial_only,
+                           const HardwareTemplateInfo &hw_template_info)
+    : II(II), is_spatial_only(is_spatial_only),
+      hw_template_info(hw_template_info) {}
+
+// Binds an operation to a location using SINGLE_OCCUPY status by default.
 bool MappingState::bindOp(const MappingLoc &loc, Operation *op) {
-  // Default to SINGLE_OCCUPY for backward compatibility
   return bindOp(loc, op, SINGLE_OCCUPY);
 }
 
+// Binds an operation to a location with the specified occupy_status.
 bool MappingState::bindOp(const MappingLoc &loc, Operation *op,
                           int occupy_status) {
-  // Check if the location is available for the specified occupy status
   if (!isAvailableForOccupyStatus(loc, occupy_status)) {
     return false;
   }
@@ -50,9 +57,10 @@ bool MappingState::bindOp(const MappingLoc &loc, Operation *op,
   return true;
 }
 
+// Binds a multi-cycle operation across consecutive time slots starting at start_time.
 bool MappingState::bindMultiCycleOp(BasicResource *resource, int start_time,
                                     int latency, Operation *op) {
-  // First check if all locations are available
+  // Checks all locations first, using template-aware checks when available.
   for (int t = start_time; t < start_time + latency; ++t) {
     MappingLoc check_loc = {resource, t};
     int status;
@@ -63,8 +71,14 @@ bool MappingState::bindMultiCycleOp(BasicResource *resource, int start_time,
     } else {
       status = IN_PIPE_OCCUPY;
     }
-    if (!isAvailableForOccupyStatus(check_loc, status)) {
-      return false;
+    if (!hw_template_info.empty()) {
+      if (!isAvailableForOccupyStatusWithTemplate(check_loc, status, op)) {
+        return false;
+      }
+    } else {
+      if (!isAvailableForOccupyStatus(check_loc, status)) {
+        return false;
+      }
     }
   }
 
@@ -149,51 +163,27 @@ bool MappingState::isAvailableAcrossTime(const MappingLoc &loc) const {
   }
 }
 
+// Checks if a location is available for the given occupy_status, enforcing pipeline coexistence rules.
 bool MappingState::isAvailableForOccupyStatus(const MappingLoc &loc,
                                               int new_occupy_status) const {
-  // Helper lambda to check a single location against all existing entries
   auto checkSingleLoc = [this, new_occupy_status](const MappingLoc &check_loc) -> bool {
     auto it = occupied_locs.find(check_loc);
-    if (it == occupied_locs.end() || it->second.empty()) {
-      // Location is free, always available
+    if (it == occupied_locs.end() || it->second.empty())
       return true;
-    }
 
-    // Check against all existing entries at this location
+    // Pipeline-aware rules: SINGLE_OCCUPY is exclusive; START/END cannot
+    // coexist with another START/END respectively; IN_PIPE_OCCUPY can coexist
+    // with any non-SINGLE status.
     for (const auto &entry : it->second) {
       int existing_status = entry.first;
-
-      // Implement the pipeline-aware availability rules:
-      // - SINGLE_OCCUPY (0): exclusive, no other op can share
-      // - START_PIPE_OCCUPY (1): cannot coexist with SINGLE or another START
-      // - END_PIPE_OCCUPY (2): cannot coexist with SINGLE or another END
-      // - IN_PIPE_OCCUPY (3): can coexist with any status except SINGLE
-
-      if (existing_status == SINGLE_OCCUPY) {
-        // SINGLE_OCCUPY blocks everything
+      if (existing_status == SINGLE_OCCUPY)
         return false;
-      }
-
-      if (new_occupy_status == SINGLE_OCCUPY) {
-        // SINGLE_OCCUPY cannot be placed if anything is there
+      if (new_occupy_status == SINGLE_OCCUPY)
         return false;
-      }
-
-      if (new_occupy_status == START_PIPE_OCCUPY) {
-        // START cannot coexist with another START
-        if (existing_status == START_PIPE_OCCUPY) {
-          return false;
-        }
-      }
-
-      if (new_occupy_status == END_PIPE_OCCUPY) {
-        // END cannot coexist with another END
-        if (existing_status == END_PIPE_OCCUPY) {
-          return false;
-        }
-      }
-
-      // IN_PIPE_OCCUPY can coexist with START, END, or other IN_PIPE
+      if (new_occupy_status == START_PIPE_OCCUPY && existing_status == START_PIPE_OCCUPY)
+        return false;
+      if (new_occupy_status == END_PIPE_OCCUPY && existing_status == END_PIPE_OCCUPY)
+        return false;
     }
     return true;
   };
@@ -214,6 +204,78 @@ bool MappingState::isAvailableForOccupyStatus(const MappingLoc &loc,
       if (!checkSingleLoc(check_loc)) {
         return false;
       }
+    }
+    return true;
+  }
+}
+
+// Checks location availability with hardware template compatibility enforcement.
+bool MappingState::isAvailableForOccupyStatusWithTemplate(
+    const MappingLoc &loc, int new_occupy_status,
+    Operation *new_op) const {
+  // Falls back to basic checking when no template info is available.
+  if (hw_template_info.empty()) {
+    return isAvailableForOccupyStatus(loc, new_occupy_status);
+  }
+
+  std::string new_op_name = getOpNameForTemplateLookup(new_op);
+
+  // Helper lambda to check a single location with template awareness
+  auto checkSingleLocWithTemplate =
+      [this, new_occupy_status,
+       &new_op_name](const MappingLoc &check_loc) -> bool {
+    auto it = occupied_locs.find(check_loc);
+    if (it == occupied_locs.end() || it->second.empty())
+      return true;
+
+    for (const auto &entry : it->second) {
+      int existing_status = entry.first;
+      Operation *existing_op = entry.second;
+
+      // SINGLE_OCCUPY blocks everything
+      if (existing_status == SINGLE_OCCUPY)
+        return false;
+      if (new_occupy_status == SINGLE_OCCUPY)
+        return false;
+
+      // START/END cannot coexist with another START/END respectively
+      if (new_occupy_status == START_PIPE_OCCUPY &&
+          existing_status == START_PIPE_OCCUPY)
+        return false;
+      if (new_occupy_status == END_PIPE_OCCUPY &&
+          existing_status == END_PIPE_OCCUPY)
+        return false;
+
+      // For IN_PIPE_OCCUPY coexistence, check template compatibility.
+      // Two ops sharing an IN_PIPE slot must belong to the same template.
+      if (existing_status == IN_PIPE_OCCUPY ||
+          new_occupy_status == IN_PIPE_OCCUPY ||
+          existing_status == START_PIPE_OCCUPY ||
+          existing_status == END_PIPE_OCCUPY) {
+        std::string existing_op_name = getOpNameForTemplateLookup(existing_op);
+        if (!hw_template_info.areTemplateCompatible(new_op_name, existing_op_name)) {
+          llvm::errs() << "[MappingState] Hardware template conflict: '" << new_op_name << "' and '" << existing_op_name << "' belong to different templates.\n";
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  // For spatial mapping, check all time steps
+  if (this->is_spatial_only) {
+    for (int t = 0; t < II * kMaxSteps; ++t) {
+      MappingLoc check_loc = {loc.resource, t};
+      if (!checkSingleLocWithTemplate(check_loc))
+        return false;
+    }
+    return true;
+  } else {
+    // Check across time domain (modulo II)
+    for (int t = loc.time_step % II; t < II * kMaxSteps; t += II) {
+      MappingLoc check_loc = {loc.resource, t};
+      if (!checkSingleLocWithTemplate(check_loc))
+        return false;
     }
     return true;
   }

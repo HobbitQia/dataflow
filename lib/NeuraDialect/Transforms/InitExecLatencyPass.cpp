@@ -25,7 +25,7 @@ using namespace mlir;
 
 namespace {
 
-// Helper function to parse YAML scalar to integer
+// Parses a YAML scalar node as an integer value.
 static bool parseYamlScalarInt(const llvm::yaml::Node *node, int &result) {
   auto *scalar = llvm::dyn_cast_or_null<llvm::yaml::ScalarNode>(node);
   if (!scalar)
@@ -39,7 +39,7 @@ static bool parseYamlScalarInt(const llvm::yaml::Node *node, int &result) {
   return true;
 }
 
-// Helper function to parse YAML scalar to string
+// Parses a YAML scalar node as a string value.
 static bool parseYamlScalarString(const llvm::yaml::Node *node,
                                    std::string &result) {
   auto *scalar = llvm::dyn_cast_or_null<llvm::yaml::ScalarNode>(node);
@@ -51,7 +51,7 @@ static bool parseYamlScalarString(const llvm::yaml::Node *node,
   return true;
 }
 
-// Parse latency YAML file: expects a mapping of operation names to latency values
+// Parses a latency YAML file and populates latency_map with op name to latency mappings.
 static bool parseLatencyYaml(const std::string &file_path,
                               std::map<std::string, int> &latency_map) {
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer_or_err =
@@ -105,22 +105,38 @@ static bool parseLatencyYaml(const std::string &file_path,
   return true;
 }
 
+// Assigns the latency attribute to an operation by looking up its name in latency_map.
 void SetLatency(Operation *op, std::map<std::string, int> &latency_map) {
-    // Get operation name and look up latency
-    std::string op_name = op->getName().getStringRef().str();
-    if (op_name.compare("neura.fused_op") == 0) {
-      op_name = op->getAttrOfType<StringAttr>("pattern_name").getValue().str();
-    }
-    op_name = op_name.substr(op_name.find_last_of(".") + 1); // remove neura. prefix if exists
-    auto it = latency_map.find(op_name);
+  std::string op_name = op->getName().getStringRef().str();
+
+  if (auto fused_op = dyn_cast<neura::FusedOp>(op)) {
+    // Tries "fused_op:<pattern_name>" first, then bare "<pattern_name>".
+    std::string pattern_name = fused_op.getPatternName().str();
+    std::string fused_key = "fused_op:" + pattern_name;
+    auto it = latency_map.find(fused_key);
     if (it != latency_map.end()) {
-        op->setAttr("latency", 
-        IntegerAttr::get(IntegerType::get(op->getContext(), 32), it->second));
+      op->setAttr("latency", IntegerAttr::get(IntegerType::get(op->getContext(), 32), it->second));
+      llvm::errs() << "[InitExecLatencyPass] Set fused_op latency from YAML key '" << fused_key << "' = " << it->second << "\n";
+      return;
     }
-    else {
-        op->setAttr("latency", 
-            IntegerAttr::get(IntegerType::get(op->getContext(), 32), 1)); 
+    it = latency_map.find(pattern_name);
+    if (it != latency_map.end()) {
+      op->setAttr("latency", IntegerAttr::get(IntegerType::get(op->getContext(), 32), it->second));
+      llvm::errs() << "[InitExecLatencyPass] Set fused_op latency from YAML key '" << pattern_name << "' = " << it->second << "\n";
+      return;
     }
+    op->setAttr("latency", IntegerAttr::get(IntegerType::get(op->getContext(), 32), 1));
+    llvm::errs() << "[InitExecLatencyPass] fused_op '" << pattern_name << "' not found in latency map, defaulting to 1\n";
+    return;
+  }
+
+  // Strips the "neura." dialect prefix before the map lookup.
+  op_name = op_name.substr(op_name.find_last_of(".") + 1);
+  auto it = latency_map.find(op_name);
+  if (it != latency_map.end())
+    op->setAttr("latency", IntegerAttr::get(IntegerType::get(op->getContext(), 32), it->second));
+  else
+    op->setAttr("latency", IntegerAttr::get(IntegerType::get(op->getContext(), 32), 1));
 }
 
 struct InitExecLatencyPass
@@ -137,9 +153,8 @@ struct InitExecLatencyPass
   }
   
   void runOnOperation() override {
-
     ModuleOp module_op = getOperation();
-    llvm::errs() << "[InitExecLatencyPass] Running init-exec-latency pass\n";
+    llvm::errs() << "[InitExecLatencyPass] Running  init-exec-latency pass\n";
     // Get latency spec file from global function (set by command line)
     std::string latency_file = mlir::neura::getLatencySpecFile();
     if (latency_file.empty()) {

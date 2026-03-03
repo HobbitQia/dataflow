@@ -72,6 +72,13 @@ struct MapToAcceleratorPass
       llvm::cl::desc(
           "Dump the resource allocation table after mapping (default: true)"),
       llvm::cl::init(true)};
+  Option<std::string> hardwareConfigFile{
+      *this, "hardware-config",
+      llvm::cl::desc(
+          "Path to hardware_config.json for template-aware mapping. "
+          "If provided, multi-cycle ops can share tiles with ops that "
+          "belong to the same hardware template."),
+      llvm::cl::init("")};
 
   // Configures mapping strategy and mode based on command-line options.
   bool configureMappingStrategy(StringRef mapping_strategy_opt,
@@ -181,7 +188,8 @@ struct MapToAcceleratorPass
   bool mapRegion(OpType op, Region &region, const Architecture &architecture,
                  Mapping *mapping_strategy, bool is_spatial_only,
                  const std::string &resolved_mapping_mode,
-                 const std::string &resolved_mapping_strategy) {
+                 const std::string &resolved_mapping_strategy,
+                 const HardwareTemplateInfo &hw_template_info) {
     // Checks steering mode compatibility with architecture.
     auto dataflow_mode_attr =
         op->template getAttrOfType<StringAttr>(attr::kDataflowMode);
@@ -287,7 +295,8 @@ struct MapToAcceleratorPass
       llvm::errs() << "[MapToAcceleratorPass] Start mapping with target II of "
                    << ii << "\n";
       // Creates a mapping state for the current II.
-      MappingState mapping_state(architecture, ii, is_spatial_only);
+      MappingState mapping_state(architecture, ii, is_spatial_only,
+                                   hw_template_info);
       if (mapping_strategy->map(sorted_ops_with_alap_levels, critical_ops,
                                 architecture, mapping_state)) {
         // success
@@ -357,6 +366,17 @@ struct MapToAcceleratorPass
 
     const Architecture &architecture = mlir::neura::getArchitecture();
 
+    // Parse hardware template info if a config file is provided.
+    HardwareTemplateInfo hw_template_info;
+    std::string hw_config_path = hardwareConfigFile.getValue();
+    if (!hw_config_path.empty()) {
+      if (parseHardwareConfigJson(hw_config_path, hw_template_info)) {
+        llvm::errs() << "[MapToAcceleratorPass] Loaded hardware template info from: " << hw_config_path << "\n";
+      } else {
+        llvm::errs() << "[MapToAcceleratorPass] Warning: Failed to parse hardware config: " << hw_config_path << ". Continuing without template-aware mapping.\n";
+      }
+    }
+
     // Maps kernels.
     module.walk([&](neura::KernelOp kernel_op) {
       auto accel_attr =
@@ -368,7 +388,8 @@ struct MapToAcceleratorPass
       Region &kernel_region = kernel_op.getBody();
       if (!mapRegion(kernel_op, kernel_region, architecture,
                      mapping_strategy.get(), is_spatial_only,
-                     resolved_mapping_mode, resolved_mapping_strategy)) {
+                     resolved_mapping_mode, resolved_mapping_strategy,
+                     hw_template_info)) {
         llvm::errs() << "[MapToAcceleratorPass] Mapping failed for kernel.\n";
         signalPassFailure();
       }
@@ -386,7 +407,7 @@ struct MapToAcceleratorPass
 
       if (!mapRegion(func_op, func_region, architecture, mapping_strategy.get(),
                      is_spatial_only, resolved_mapping_mode,
-                     resolved_mapping_strategy)) {
+                     resolved_mapping_strategy, hw_template_info)) {
         llvm::errs() << "[MapToAcceleratorPass] Failed to map function.\n";
         signalPassFailure();
       }
