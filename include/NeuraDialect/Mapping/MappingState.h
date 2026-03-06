@@ -113,9 +113,11 @@ namespace neura {
 // Tracks placement and routing of ops on the CGRA.
 class MappingState {
 public:
-  MappingState(const Architecture &arch, int II, bool is_spatial_only);
   MappingState(const Architecture &arch, int II, bool is_spatial_only,
-               const HardwareTemplateInfo &hw_template_info);
+               const std::string &tile_sharing_mode = "exclusive");
+  MappingState(const Architecture &arch, int II, bool is_spatial_only,
+               const HardwareTemplateInfo &hw_template_info,
+               const std::string &tile_sharing_mode = "exclusive");
   // Binds a (tile/link, time_step) location to an operation with default
   // SINGLE_OCCUPY status.
   bool bindOp(const MappingLoc &loc, Operation *op);
@@ -162,6 +164,17 @@ public:
   const HardwareTemplateInfo &getHardwareTemplateInfo() const {
     return hw_template_info;
   }
+
+  // Returns true if the tile sharing mode is "exclusive".
+  bool isExclusiveMode() const { return tile_sharing_mode == "exclusive"; }
+
+  // Returns the tile sharing mode string.
+  const std::string &getTileSharingMode() const { return tile_sharing_mode; }
+
+  // Checks if a tile is available for data_mov routing at the given time step.
+  // In exclusive mode, tiles occupied by multi-cycle ops (pipeline statuses)
+  // are not available for routing. In inclusive mode, always returns true.
+  bool isTileAvailableForRouting(Tile *tile, int time_step) const;
 
   // Gets the occupy status at a specific location across time domain.
   // Returns -1 if the location is not occupied.
@@ -241,6 +254,14 @@ private:
   int II;
   bool is_spatial_only;
   static constexpr int kMaxSteps = 10;
+
+  // Tile sharing mode: "exclusive" (default) or "inclusive".
+  // In exclusive mode, a multi-cycle op fully locks the tile for all its
+  // cycles; no other op or data_mov routing can share that tile.
+  // In inclusive mode, ops without hardware conflicts and without
+  // start/end cycle collisions may share the tile, and data_mov can route
+  // through occupied tiles.
+  std::string tile_sharing_mode;
 
   // Hardware template info for template-aware conflict detection.
   HardwareTemplateInfo hw_template_info;

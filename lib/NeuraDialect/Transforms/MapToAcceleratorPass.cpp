@@ -79,6 +79,14 @@ struct MapToAcceleratorPass
           "If provided, multi-cycle ops can share tiles with ops that "
           "belong to the same hardware template."),
       llvm::cl::init("")};
+  Option<std::string> tileSharingMode{
+      *this, "tile-sharing-mode",
+      llvm::cl::desc(
+          "Tile sharing policy for multi-cycle ops: "
+          "exclusive (default) blocks all sharing and routing through "
+          "occupied tiles; inclusive allows template-compatible sharing "
+          "and data_mov routing through occupied tiles."),
+      llvm::cl::init("exclusive")};
 
   // Configures mapping strategy and mode based on command-line options.
   bool configureMappingStrategy(StringRef mapping_strategy_opt,
@@ -189,7 +197,8 @@ struct MapToAcceleratorPass
                  Mapping *mapping_strategy, bool is_spatial_only,
                  const std::string &resolved_mapping_mode,
                  const std::string &resolved_mapping_strategy,
-                 const HardwareTemplateInfo &hw_template_info) {
+                 const HardwareTemplateInfo &hw_template_info,
+                 const std::string &tile_sharing_mode) {
     // Checks steering mode compatibility with architecture.
     auto dataflow_mode_attr =
         op->template getAttrOfType<StringAttr>(attr::kDataflowMode);
@@ -296,7 +305,7 @@ struct MapToAcceleratorPass
                    << ii << "\n";
       // Creates a mapping state for the current II.
       MappingState mapping_state(architecture, ii, is_spatial_only,
-                                   hw_template_info);
+                                   hw_template_info, tile_sharing_mode);
       if (mapping_strategy->map(sorted_ops_with_alap_levels, critical_ops,
                                 architecture, mapping_state)) {
         // success
@@ -377,6 +386,8 @@ struct MapToAcceleratorPass
       }
     }
 
+    llvm::errs() << "[MapToAcceleratorPass] Tile sharing mode: " << tileSharingMode.getValue() << "\n";
+
     // Maps kernels.
     module.walk([&](neura::KernelOp kernel_op) {
       auto accel_attr =
@@ -389,7 +400,7 @@ struct MapToAcceleratorPass
       if (!mapRegion(kernel_op, kernel_region, architecture,
                      mapping_strategy.get(), is_spatial_only,
                      resolved_mapping_mode, resolved_mapping_strategy,
-                     hw_template_info)) {
+                     hw_template_info, tileSharingMode.getValue())) {
         llvm::errs() << "[MapToAcceleratorPass] Mapping failed for kernel.\n";
         signalPassFailure();
       }
@@ -407,7 +418,8 @@ struct MapToAcceleratorPass
 
       if (!mapRegion(func_op, func_region, architecture, mapping_strategy.get(),
                      is_spatial_only, resolved_mapping_mode,
-                     resolved_mapping_strategy, hw_template_info)) {
+                     resolved_mapping_strategy, hw_template_info,
+                     tileSharingMode.getValue())) {
         llvm::errs() << "[MapToAcceleratorPass] Failed to map function.\n";
         signalPassFailure();
       }

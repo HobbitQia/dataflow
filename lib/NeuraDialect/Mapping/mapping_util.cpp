@@ -675,6 +675,15 @@ bool mlir::neura::tryRouteDataMove(Operation *mov_op, MappingLoc src_loc,
       continue;
     }
 
+    // In exclusive mode, skips expansion from a waypoint tile that is occupied
+    // by a multi-cycle op.  The source tile is always allowed because the data
+    // originates there.
+    if (current_state.current_tile != src_tile &&
+        !state.isTileAvailableForRouting(current_state.current_tile,
+                                         current_state.current_time)) {
+      continue;
+    }
+
     // Option 1: Moves to adjacent tile through link.
     for (Link *out_link : current_state.current_tile->getOutLinks()) {
       MappingLoc link_loc = {out_link, current_state.current_time};

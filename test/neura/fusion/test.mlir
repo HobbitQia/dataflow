@@ -366,3 +366,37 @@
 // CHECK-HARDWARE-MERGE:     ]
 // CHECK-HARDWARE-MERGE:   }
 // CHECK-HARDWARE-MERGE: }
+
+// RUN: mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
+// RUN:           --assign-accelerator \
+// RUN:           --lower-llvm-to-neura \
+// RUN:           --promote-input-arg-to-const \
+// RUN:           --canonicalize-cast \
+// RUN:           --canonicalize-return \
+// RUN:           --canonicalize-live-in \
+// RUN:           --leverage-predicated-value \
+// RUN:           --fold-constant \
+// RUN:           --transform-ctrl-to-data-flow \
+// RUN:           --fold-constant \
+// RUN:           --iter-merge-pattern="min-support=3 max-iter=4" \
+// RUN:           --insert-data-mov \
+// RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=simple tile-sharing-mode=exclusive" %t-kernel.mlir | FileCheck %s --check-prefix=CHECK-EXCLUSIVE-MAPPING
+
+// CHECK-EXCLUSIVE-MAPPING: mapping_info = {compiled_ii = 12 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 3 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
+
+// RUN: mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
+// RUN:           --assign-accelerator \
+// RUN:           --lower-llvm-to-neura \
+// RUN:           --promote-input-arg-to-const \
+// RUN:           --canonicalize-cast \
+// RUN:           --canonicalize-return \
+// RUN:           --canonicalize-live-in \
+// RUN:           --leverage-predicated-value \
+// RUN:           --fold-constant \
+// RUN:           --transform-ctrl-to-data-flow \
+// RUN:           --fold-constant \
+// RUN:           --iter-merge-pattern="min-support=3 max-iter=4" \
+// RUN:           --insert-data-mov \
+// RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=simple tile-sharing-mode=inclusive" %t-kernel.mlir | FileCheck %s --check-prefix=CHECK-INCLUSIVE-MAPPING
+
+// CHECK-INCLUSIVE-MAPPING: mapping_info = {compiled_ii = 12 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 3 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}

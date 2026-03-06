@@ -28,13 +28,17 @@ constexpr int kSingleDigitLen = 1;
 constexpr int kDoubleDigitLen = 2;
 
 MappingState::MappingState(const Architecture &arch, int II,
-                           bool is_spatial_only)
-    : II(II), is_spatial_only(is_spatial_only) {}
+                           bool is_spatial_only,
+                           const std::string &tile_sharing_mode)
+    : II(II), is_spatial_only(is_spatial_only),
+      tile_sharing_mode(tile_sharing_mode) {}
 
 MappingState::MappingState(const Architecture &arch, int II,
                            bool is_spatial_only,
-                           const HardwareTemplateInfo &hw_template_info)
+                           const HardwareTemplateInfo &hw_template_info,
+                           const std::string &tile_sharing_mode)
     : II(II), is_spatial_only(is_spatial_only),
+      tile_sharing_mode(tile_sharing_mode),
       hw_template_info(hw_template_info) {}
 
 // Binds an operation to a location using SINGLE_OCCUPY status by default.
@@ -168,22 +172,32 @@ bool MappingState::isAvailableForOccupyStatus(const MappingLoc &loc,
                                               int new_occupy_status) const {
   auto checkSingleLoc = [this, new_occupy_status](const MappingLoc &check_loc) -> bool {
     auto it = occupied_locs.find(check_loc);
-    if (it == occupied_locs.end() || it->second.empty())
+    if (it == occupied_locs.end() || it->second.empty()) {
       return true;
+    }
 
-    // Pipeline-aware rules: SINGLE_OCCUPY is exclusive; START/END cannot
-    // coexist with another START/END respectively; IN_PIPE_OCCUPY can coexist
-    // with any non-SINGLE status.
+    // In exclusive mode, any existing entry blocks all new placements.
+    if (tile_sharing_mode == "exclusive") {
+      return false;
+    }
+
+    // Pipeline-aware rules (inclusive mode): SINGLE_OCCUPY is exclusive;
+    // START/END cannot coexist with another START/END respectively;
+    // IN_PIPE_OCCUPY can coexist with any non-SINGLE status.
     for (const auto &entry : it->second) {
       int existing_status = entry.first;
-      if (existing_status == SINGLE_OCCUPY)
+      if (existing_status == SINGLE_OCCUPY) {
         return false;
-      if (new_occupy_status == SINGLE_OCCUPY)
+      }
+      if (new_occupy_status == SINGLE_OCCUPY) {
         return false;
-      if (new_occupy_status == START_PIPE_OCCUPY && existing_status == START_PIPE_OCCUPY)
+      }
+      if (new_occupy_status == START_PIPE_OCCUPY && existing_status == START_PIPE_OCCUPY) {
         return false;
-      if (new_occupy_status == END_PIPE_OCCUPY && existing_status == END_PIPE_OCCUPY)
+      }
+      if (new_occupy_status == END_PIPE_OCCUPY && existing_status == END_PIPE_OCCUPY) {
         return false;
+      }
     }
     return true;
   };
@@ -225,26 +239,34 @@ bool MappingState::isAvailableForOccupyStatusWithTemplate(
       [this, new_occupy_status,
        &new_op_name](const MappingLoc &check_loc) -> bool {
     auto it = occupied_locs.find(check_loc);
-    if (it == occupied_locs.end() || it->second.empty())
+    if (it == occupied_locs.end() || it->second.empty()) {
       return true;
+    }
+
+    // In exclusive mode, any existing entry blocks all new placements.
+    if (tile_sharing_mode == "exclusive") {
+      return false;
+    }
 
     for (const auto &entry : it->second) {
       int existing_status = entry.first;
       Operation *existing_op = entry.second;
 
-      // SINGLE_OCCUPY blocks everything
-      if (existing_status == SINGLE_OCCUPY)
+      // SINGLE_OCCUPY blocks everything.
+      if (existing_status == SINGLE_OCCUPY) {
         return false;
-      if (new_occupy_status == SINGLE_OCCUPY)
+      }
+      if (new_occupy_status == SINGLE_OCCUPY) {
         return false;
+      }
 
-      // START/END cannot coexist with another START/END respectively
-      if (new_occupy_status == START_PIPE_OCCUPY &&
-          existing_status == START_PIPE_OCCUPY)
+      // START/END cannot coexist with another START/END respectively.
+      if (new_occupy_status == START_PIPE_OCCUPY && existing_status == START_PIPE_OCCUPY) {
         return false;
-      if (new_occupy_status == END_PIPE_OCCUPY &&
-          existing_status == END_PIPE_OCCUPY)
+      }
+      if (new_occupy_status == END_PIPE_OCCUPY && existing_status == END_PIPE_OCCUPY) {
         return false;
+      }
 
       // For IN_PIPE_OCCUPY coexistence, check template compatibility.
       // Two ops sharing an IN_PIPE slot must belong to the same template.
@@ -266,16 +288,17 @@ bool MappingState::isAvailableForOccupyStatusWithTemplate(
   if (this->is_spatial_only) {
     for (int t = 0; t < II * kMaxSteps; ++t) {
       MappingLoc check_loc = {loc.resource, t};
-      if (!checkSingleLocWithTemplate(check_loc))
+      if (!checkSingleLocWithTemplate(check_loc)) {
         return false;
+      }
     }
     return true;
   } else {
-    // Check across time domain (modulo II)
     for (int t = loc.time_step % II; t < II * kMaxSteps; t += II) {
       MappingLoc check_loc = {loc.resource, t};
-      if (!checkSingleLocWithTemplate(check_loc))
+      if (!checkSingleLocWithTemplate(check_loc)) {
         return false;
+      }
     }
     return true;
   }
@@ -316,6 +339,45 @@ bool MappingState::isAvailableAcrossTimeInRange(BasicResource *resource,
     // Checks the availability across time domain.
     if (!isAvailableAcrossTime(check_loc)) {
       return false;
+    }
+  }
+  return true;
+}
+
+// Checks if a tile is available for data_mov routing at the given time step.
+bool MappingState::isTileAvailableForRouting(Tile *tile,
+                                             int time_step) const {
+  if (tile_sharing_mode != "exclusive") {
+    return true;
+  }
+
+  // In exclusive mode, checks whether the tile has any multi-cycle pipeline
+  // occupation (START/IN_PIPE/END) at this time step modulo II.
+  auto checkTime = [&](int t) -> bool {
+    MappingLoc check_loc = {tile, t};
+    auto it = occupied_locs.find(check_loc);
+    if (it == occupied_locs.end()) {
+      return true;
+    }
+    for (const auto &entry : it->second) {
+      if (entry.first == START_PIPE_OCCUPY || entry.first == IN_PIPE_OCCUPY || entry.first == END_PIPE_OCCUPY) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (is_spatial_only) {
+    for (int t = 0; t < II * kMaxSteps; ++t) {
+      if (!checkTime(t)) {
+        return false;
+      }
+    }
+  } else {
+    for (int t = time_step % II; t < II * kMaxSteps; t += II) {
+      if (!checkTime(t)) {
+        return false;
+      }
     }
   }
   return true;
