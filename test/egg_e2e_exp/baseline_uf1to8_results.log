@@ -1,0 +1,58 @@
+=== Baseline (no egg) all kernels uf=1/2/4/8 ===
+date: Sun Feb 22 11:55:14 CST 2026
+
+### AXPY (kN=1024, pragma on loop)
+axpy uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=16
+axpy uf=2   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=24
+axpy uf=4   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=40
+axpy uf=8   compiled_ii=5  rec_mii=5  res_mii=5  dfg_nodes=72
+
+### BICG (M=N=256, pragma on innermost j-loop)
+bicg uf=1   compiled_ii=9  rec_mii=9  res_mii=3  dfg_nodes=48
+bicg uf=2   compiled_ii=9  rec_mii=9  res_mii=4  dfg_nodes=64
+bicg uf=4   compiled_ii=12  rec_mii=9  res_mii=6  dfg_nodes=96
+bicg uf=8   compiled_ii=15  rec_mii=9  res_mii=10  dfg_nodes=160
+
+### FFT (BPGROUP=128, pragma on k-loop)
+fft  uf=1   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=33
+fft  uf=2   compiled_ii=5  rec_mii=5  res_mii=4  dfg_nodes=58
+fft  uf=4   compiled_ii=7  rec_mii=5  res_mii=7  dfg_nodes=108
+fft  uf=8   compiled_ii=13  rec_mii=5  res_mii=13  dfg_nodes=208
+
+### FIR (NTAPS=32, pragma on single loop)
+fir  uf=1   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=20
+fir  uf=2   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=27
+fir  uf=4   compiled_ii=8  rec_mii=6  res_mii=3  dfg_nodes=41
+fir  uf=8   compiled_ii=12  rec_mii=10  res_mii=5  dfg_nodes=69
+
+### GEMM (NI=NJ=NK=64, pointer args, pragma on j-loop)
+gemm uf=1   compiled_ii=14  rec_mii=13  res_mii=4  dfg_nodes=66
+gemm uf=2   compiled_ii=14  rec_mii=13  res_mii=4  dfg_nodes=66
+gemm uf=4   compiled_ii=14  rec_mii=13  res_mii=4  dfg_nodes=66
+gemm uf=8   compiled_ii=14  rec_mii=13  res_mii=4  dfg_nodes=66
+
+### GEMV (N=512, pragma on inner j-loop)
+gemv uf=1   compiled_ii=10  rec_mii=9  res_mii=3  dfg_nodes=55
+gemv uf=2   compiled_ii=11  rec_mii=9  res_mii=4  dfg_nodes=63
+gemv uf=4   compiled_ii=13  rec_mii=9  res_mii=5  dfg_nodes=79
+gemv uf=8   compiled_ii=17  rec_mii=10  res_mii=7  dfg_nodes=111
+
+### HISTOGRAM (DATA_LEN=1024, BUCKET_LEN=16, pragma on loop)
+hist uf=1   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=18
+hist uf=2   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=28
+hist uf=4   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=48
+hist uf=8   compiled_ii=6  rec_mii=5  res_mii=6  dfg_nodes=88
+
+### RELU (standalone, NI=NJ=64, pragma on inner j-loop)
+relu uf=1   compiled_ii=10  rec_mii=9  res_mii=3  dfg_nodes=48
+relu uf=2   compiled_ii=10  rec_mii=9  res_mii=3  dfg_nodes=56
+relu uf=4   compiled_ii=11  rec_mii=9  res_mii=4  dfg_nodes=72
+relu uf=8   compiled_ii=11  rec_mii=9  res_mii=6  dfg_nodes=104
+
+### SPMV (standalone, NNZ=1024, pragma on loop)
+spmv uf=1   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=24
+spmv uf=2   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=40
+spmv uf=4   compiled_ii=5  rec_mii=5  res_mii=5  dfg_nodes=72
+spmv uf=8   compiled_ii=9  rec_mii=5  res_mii=9  dfg_nodes=136
+
+=== done ===

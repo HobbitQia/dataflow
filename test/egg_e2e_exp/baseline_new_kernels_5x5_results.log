@@ -1,0 +1,29 @@
+=== Baseline new kernels (5x5) ===
+date: Sat Mar  7 12:53:01 CST 2026
+
+### DTW (SIZE=512, inner x-loop, squared distance)
+dtw  uf=1   compiled_ii=7  rec_mii=5  res_mii=2  dfg_nodes=49
+dtw  uf=2: MAP_ERR
+dtw  uf=4: MAP_ERR
+
+### MVT (N=256, inner i-loop)
+mvt  uf=1   compiled_ii=8  rec_mii=5  res_mii=2  dfg_nodes=55
+mvt  uf=2   compiled_ii=8  rec_mii=5  res_mii=3  dfg_nodes=77
+mvt  uf=4   compiled_ii=9  rec_mii=5  res_mii=5  dfg_nodes=121
+
+### CONV (1D, N=1024, K=7, inner k-loop)
+conv uf=1   compiled_ii=11  rec_mii=9  res_mii=2  dfg_nodes=56
+conv uf=2   compiled_ii=13  rec_mii=10  res_mii=3  dfg_nodes=82
+conv uf=4: MAP_ERR
+
+### LATNRM (N=512, D=64, inner j-loop)
+latnrm uf=1   compiled_ii=15  rec_mii=13  res_mii=3  dfg_nodes=87
+latnrm uf=2: MAP_ERR
+latnrm uf=4: MAP_ERR
+
+### GEMM_V2 (merged i,k, NI=NJ=NK=64, j-loop)
+gemm_v2 uf=1   compiled_ii=7  rec_mii=5  res_mii=2  dfg_nodes=43
+gemm_v2 uf=2   compiled_ii=7  rec_mii=5  res_mii=2  dfg_nodes=53
+gemm_v2 uf=4   compiled_ii=7  rec_mii=5  res_mii=3  dfg_nodes=73
+
+=== done ===

@@ -1,0 +1,14 @@
+=== pragma unroll baseline: axpy + bicg ===
+date: Sat Feb 21 17:07:02 CST 2026
+
+### AXPY (kN=1024, pragma clang loop unroll_count)
+axpy uf=1:   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=17
+axpy uf=2:   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=25
+axpy uf=4:   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=41
+
+### BICG (standalone, integer, M=N=256, pragma clang loop unroll_count on innermost j-loop)
+bicg uf=1:   compiled_ii=9  rec_mii=9  res_mii=3  dfg_nodes=49
+bicg uf=2:   compiled_ii=9  rec_mii=9  res_mii=4  dfg_nodes=65
+bicg uf=4:   compiled_ii=12  rec_mii=9  res_mii=6  dfg_nodes=97
+
+=== done ===

@@ -1,0 +1,470 @@
+[mlir-neura-opt] Architecture specification file: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+[ctrl2data] Processing neura.return operation...
+"neura.return"() : () -> ()
+[CanoLiveIn] True branch creates a back edge (loop pattern)
+[CanoLiveIn] True branch creates a back edge (loop pattern)
+[ctrl2data] Asserting live-out values dominated by block arguments
+[ctrl2data] All live-out values are dominated by block arguments or live-in values.
+[ctrl2data] ReturnOp found: "neura.return"(%32) {return_type = "void"} : (!neura.data<i64, i1>) -> ()
+[ctrl2data] ReturnOp found: "neura.return"(%108) {return_type = "void"} : (!neura.data<i1, i1>) -> ()
+[ctrl2data] Asserting live-out values dominated by block arguments
+[ctrl2data] All live-out values are dominated by block arguments or live-in values.
+[ctrl2data] Converting neura.return operations to return_void/value...
+[ctrl2data] Converting to neura.return_void.
+[ctrl2data] Converting to neura.return_void.
+[ctrl2data] All neura.return operations converted successfully.
+[ctrl2data] Parent operation: func.func @kernel(%arg0: i32, %arg1: i32, %arg2: !llvm.ptr {llvm.nocapture, llvm.readonly}, %arg3: !llvm.ptr {llvm.nocapture}, %arg4: !llvm.ptr {llvm.nocapture}, %arg5: !llvm.ptr {llvm.nocapture, llvm.readonly}, %arg6: !llvm.ptr {llvm.nocapture, llvm.readonly}) -> !llvm.void attributes {CConv = #llvm.cconv<ccc>, accelerator = "neura", frame_pointer = #llvm.framePointerKind<none>, linkage = #llvm.linkage<external>, no_infs_fp_math = false, no_nans_fp_math = false, no_signed_zeros_fp_math = false, no_unwind, passthrough = ["nofree", "norecurse", ["uwtable", "2"], ["disable-tail-calls", "false"], ["less-precise-fpmad", "false"], ["min-legal-vector-width", "0"], ["no-jump-tables", "false"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"], ["use-soft-float", "false"]], target_cpu = "x86-64", target_features = #llvm.target_features<["+cx8", "+fxsr", "+mmx", "+sse", "+sse2", "+x87"]>, tune_cpu = "generic", unnamed_addr = 1 : i64, unsafe_fp_math = false, visibility_ = 0 : i64} {
+  %0 = "neura.constant"() <{value = "%arg0"}> : () -> !neura.data<i32, i1>
+  %1 = "neura.grant_once"(%0) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %2 = "neura.constant"() <{value = "%arg1"}> : () -> !neura.data<i32, i1>
+  %3 = "neura.grant_once"(%2) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %4 = "neura.constant"() <{value = "%arg3"}> : () -> !neura.data<!llvm.ptr, i1>
+  %5 = "neura.grant_once"(%4) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %6 = "neura.constant"() <{value = "%arg4"}> : () -> !neura.data<!llvm.ptr, i1>
+  %7 = "neura.grant_once"(%6) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %8 = "neura.constant"() <{value = 0 : i8}> : () -> !neura.data<i8, i1>
+  %9 = "neura.grant_once"(%8) : (!neura.data<i8, i1>) -> !neura.data<i8, i1>
+  %10 = "neura.constant"() <{value = 0 : i64}> : () -> !neura.data<i64, i1>
+  %11 = "neura.grant_once"(%10) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %12 = "neura.icmp"(%0) <{cmpType = "sgt"}> {rhs_value = 0 : i32} : (!neura.data<i32, i1>) -> !neura.data<i1, i1>
+  %13 = "neura.grant_once"(%12) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %14 = neura.grant_predicate %1, %13 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %15 = neura.grant_predicate %5, %13 : !neura.data<!llvm.ptr, i1>, !neura.data<i1, i1> -> !neura.data<!llvm.ptr, i1>
+  %16 = neura.grant_predicate %9, %13 : !neura.data<i8, i1>, !neura.data<i1, i1> -> !neura.data<i8, i1>
+  %17 = neura.grant_predicate %3, %13 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %18 = neura.grant_predicate %11, %13 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %19 = "neura.not"(%13) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %20 = neura.grant_predicate %3, %19 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %21 = neura.grant_predicate %7, %19 : !neura.data<!llvm.ptr, i1>, !neura.data<i1, i1> -> !neura.data<!llvm.ptr, i1>
+  %22 = neura.grant_predicate %9, %19 : !neura.data<i8, i1>, !neura.data<i1, i1> -> !neura.data<i8, i1>
+  %23 = "neura.icmp"(%20) <{cmpType = "sgt"}> {rhs_value = 0 : i32} : (!neura.data<i32, i1>) -> !neura.data<i1, i1>
+  %24 = "neura.not"(%23) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %25 = neura.grant_predicate %24, %24 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+  %26 = neura.grant_predicate %20, %23 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %27 = neura.grant_predicate %21, %23 : !neura.data<!llvm.ptr, i1>, !neura.data<i1, i1> -> !neura.data<!llvm.ptr, i1>
+  %28 = neura.grant_predicate %22, %23 : !neura.data<i8, i1>, !neura.data<i1, i1> -> !neura.data<i8, i1>
+  %29 = neura.zext %26 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %30 = "neura.shl"(%29) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  "neura.memset"(%27, %28, %30) <{is_volatile = false}> : (!neura.data<!llvm.ptr, i1>, !neura.data<i8, i1>, !neura.data<i64, i1>) -> ()
+  neura.return_void %30 : !neura.data<i64, i1>
+  %31 = neura.zext %14 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %32 = "neura.shl"(%31) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  "neura.memset"(%15, %16, %32) <{is_volatile = false}> : (!neura.data<!llvm.ptr, i1>, !neura.data<i8, i1>, !neura.data<i64, i1>) -> ()
+  %33 = "neura.icmp"(%17) <{cmpType = "sgt"}> {rhs_value = 0 : i32} : (!neura.data<i32, i1>) -> !neura.data<i1, i1>
+  %34 = "neura.not"(%33) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %35 = neura.grant_predicate %14, %33 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %36 = neura.grant_predicate %17, %33 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %37 = neura.grant_predicate %18, %33 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %38 = neura.grant_predicate %34, %34 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+  %39 = neura.sext %35 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %40 = neura.zext %36 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %41 = neura.reserve : !neura.data<i64, i1>
+  %42 = "neura.phi"(%41, %40) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %43 = neura.reserve : !neura.data<i64, i1>
+  %44 = "neura.phi"(%43, %37) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %45 = neura.reserve : !neura.data<i64, i1>
+  %46 = "neura.phi"(%45, %37) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %47 = "neura.gep"(%46) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg4"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  "neura.store"(%47) {lhs_value = 0.000000e+00 : f64} : (!neura.data<!llvm.ptr, i1>) -> ()
+  %48 = "neura.gep"(%46) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg6"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %49 = neura.reserve : !neura.data<i64, i1>
+  %50 = "neura.phi"(%49, %44) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %51 = neura.reserve : !neura.data<i64, i1>
+  %52 = "neura.phi"(%51, %42) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %53 = neura.reserve : !neura.data<i64, i1>
+  %54 = "neura.phi"(%53, %44) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %55 = "neura.gep"(%54) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg3"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %56 = "neura.load"(%55) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %57 = "neura.load"(%48) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %58 = "neura.gep"(%46, %54) <{operandSegmentSizes = array<i32: 0, 2>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %59 = "neura.load"(%58) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %60 = "neura.fmul"(%57, %59) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %61 = "neura.fadd"(%56, %60) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%61, %55) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %62 = "neura.load"(%47) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %63 = "neura.load"(%58) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %64 = "neura.gep"(%54) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg5"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %65 = "neura.load"(%64) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %66 = "neura.fmul"(%63, %65) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %67 = "neura.fadd"(%62, %66) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%67, %47) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %68 = "neura.or"(%54) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %69 = "neura.gep"(%68) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg3"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %70 = "neura.load"(%69) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %71 = "neura.load"(%48) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %72 = "neura.gep"(%46, %68) <{operandSegmentSizes = array<i32: 0, 2>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %73 = "neura.load"(%72) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %74 = "neura.fmul"(%71, %73) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %75 = "neura.fadd"(%70, %74) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%75, %69) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %76 = "neura.load"(%47) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %77 = "neura.load"(%72) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %78 = "neura.gep"(%68) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg5"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %79 = "neura.load"(%78) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %80 = "neura.fmul"(%77, %79) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %81 = "neura.fadd"(%76, %80) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%81, %47) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %82 = "neura.or"(%54) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %83 = "neura.gep"(%82) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg3"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %84 = "neura.load"(%83) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %85 = "neura.load"(%48) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %86 = "neura.gep"(%46, %82) <{operandSegmentSizes = array<i32: 0, 2>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %87 = "neura.load"(%86) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %88 = "neura.fmul"(%85, %87) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %89 = "neura.fadd"(%84, %88) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%89, %83) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %90 = "neura.load"(%47) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %91 = "neura.load"(%86) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %92 = "neura.gep"(%82) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg5"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %93 = "neura.load"(%92) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %94 = "neura.fmul"(%91, %93) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %95 = "neura.fadd"(%90, %94) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%95, %47) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %96 = "neura.or"(%54) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %97 = "neura.gep"(%96) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg3"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %98 = "neura.load"(%97) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %99 = "neura.load"(%48) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %100 = "neura.gep"(%46, %96) <{operandSegmentSizes = array<i32: 0, 2>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %101 = "neura.load"(%100) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %102 = "neura.fmul"(%99, %101) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %103 = "neura.fadd"(%98, %102) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%103, %97) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %104 = "neura.load"(%47) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %105 = "neura.load"(%100) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %106 = "neura.gep"(%96) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg5"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %107 = "neura.load"(%106) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<f64, i1>
+  %108 = "neura.fmul"(%105, %107) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  %109 = "neura.fadd"(%104, %108) : (!neura.data<f64, i1>, !neura.data<f64, i1>) -> !neura.data<f64, i1>
+  "neura.store"(%109, %47) : (!neura.data<f64, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %110 = "neura.add"(%54) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %111 = "neura.icmp"(%110, %39) <{cmpType = "slt"}> : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %112 = neura.grant_predicate %110, %111 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %112 -> %53 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %113 = neura.grant_predicate %52, %111 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %113 -> %51 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %114 = neura.grant_predicate %50, %111 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %114 -> %49 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %115 = "neura.not"(%111) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %116 = neura.grant_predicate %46, %115 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %117 = neura.grant_predicate %52, %115 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %118 = neura.grant_predicate %50, %115 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %119 = "neura.add"(%116) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %120 = "neura.icmp"(%119, %117) <{cmpType = "eq"}> : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %121 = "neura.not"(%120) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %122 = neura.grant_predicate %119, %121 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %122 -> %45 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %123 = neura.grant_predicate %118, %121 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %123 -> %43 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %124 = neura.grant_predicate %117, %121 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %124 -> %41 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %125 = neura.grant_predicate %120, %120 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+  %126 = "neura.phi"(%38, %25, %125) : (!neura.data<i1, i1>, !neura.data<i1, i1>, !neura.data<i1, i1>) -> !neura.data<i1, i1>
+  neura.return_void %126 : !neura.data<i1, i1>
+  neura.yield
+}
+[ctrl2data] Set dataflow mode to predicate for function: kernel
+[ctrl2data] Converting phi operations to phi_start...
+=== DFG Pattern Extraction Results ===
+Extracted 54 fusion patterns from DFG with constraints:
+  - min_frequency: 2
+  - max_area: 50000
+  - max_ops: 20
+  - max_critical_path_latency: 1000 ps
+
+Extracted patterns:
+  [0] freq=16, ops=2, area=8905, latency=619ps
+      pattern: (load (gep ?_))
+  [1] freq=10, ops=3, area=10427, latency=877ps
+      pattern: (load (gep (phi_start ?_ ?_)))
+  [2] freq=8, ops=6, area=13025, latency=619ps
+      pattern: (fadd (load (gep ?_)) (fmul (load ?_) (load ?_)))
+  [3] freq=8, ops=3, area=2060, latency=283ps
+      pattern: (fadd (load ?_) (fmul ?_ ?_))
+  [4] freq=8, ops=3, area=4120, latency=283ps
+      pattern: (fmul (load ?_) (load ?_))
+  [5] freq=8, ops=3, area=8905, latency=619ps
+      pattern: (store (fadd ?_ ?_) (gep ?_))
+  [6] freq=8, ops=2, area=8905, latency=619ps
+      pattern: (load (gep ?_ ?_))
+  [7] freq=6, ops=4, area=13062, latency=882ps
+      pattern: (load (gep (phi_start ?_ ?_) (or ?_)))
+  [8] freq=6, ops=3, area=11540, latency=882ps
+      pattern: (load (gep (or ?_)))
+  [9] freq=6, ops=3, area=11002, latency=857ps
+      pattern: (gep (or (phi_start ?_ ?_)))
+  [10] freq=6, ops=3, area=5467, latency=572ps
+      pattern: (grant_pred (grant_pred ?_ ?_) (icmp ?_ sgt))
+  [11] freq=6, ops=2, area=9480, latency=599ps
+      pattern: (gep (or ?_))
+  [12] freq=5, ops=6, area=12487, latency=877ps
+      pattern: (store (fadd (load ?_) (fmul ?_ ?_)) (gep (phi_start ?_ ?_)))
+  [13] freq=5, ops=4, area=6883, latency=851ps
+      pattern: (grant_pred (grant_once) (grant_once (icmp ?_ sgt)))
+  [14] freq=5, ops=3, area=4248, latency=558ps
+      pattern: (grant_pred (grant_once) (grant_once ?_))
+  [15] freq=4, ops=9, area=28237, latency=877ps
+      pattern: (fadd (load (gep (phi_start ?_ ?_))) (fmul (load (gep ?_ ?_)) (load (gep ?_))))
+  [16] freq=4, ops=5, area=17810, latency=619ps
+      pattern: (fmul (load (gep ?_ ?_)) (load (gep ?_)))
+  [17] freq=4, ops=5, area=17810, latency=619ps
+      pattern: (fmul (load (gep ?_)) (load (gep ?_ ?_)))
+  [18] freq=4, ops=2, area=8367, latency=594ps
+      pattern: (gep (phi_start ?_ ?_))
+  [19] freq=3, ops=9, area=29350, latency=882ps
+      pattern: (fadd (load (gep (or ?_))) (fmul (load (gep ?_)) (load (gep ?_ ?_))))
+  [20] freq=3, ops=8, area=24602, latency=882ps
+      pattern: (fmul (load (gep (phi_start ?_ ?_) (or ?_))) (load (gep (or ?_))))
+  [21] freq=3, ops=8, area=23489, latency=882ps
+      pattern: (fmul (load (gep (phi_start ?_ ?_))) (load (gep (phi_start ?_ ?_) (or ?_))))
+  [22] freq=3, ops=6, area=13600, latency=882ps
+      pattern: (store (fadd (load ?_) (fmul ?_ ?_)) (gep (or ?_)))
+  [23] freq=3, ops=6, area=10934, latency=851ps
+      pattern: (grant_pred (grant_pred (grant_once) (not ?_)) (icmp (grant_pred ?_ ?_) sgt))
+  [24] freq=3, ops=6, area=9715, latency=851ps
+      pattern: (grant_pred (grant_pred (grant_once) (grant_once ?_)) (icmp (grant_pred ?_ ?_) sgt))
+  [25] freq=3, ops=5, area=13940, latency=873ps
+      pattern: (gep (phi_start (grant_pred ?_ ?_) ?_) (or (phi_start ?_ ?_)))
+  [26] freq=3, ops=4, area=6883, latency=821ps
+      pattern: (grant_pred (grant_once) (not (grant_once ?_)))
+  [27] freq=3, ops=3, area=5679, latency=779ps
+      pattern: (or (phi_start (phi_start ?_ ?_) ?_))
+  [28] freq=3, ops=3, area=5467, latency=558ps
+      pattern: (grant_pred (grant_once) (not ?_))
+  [29] freq=3, ops=3, area=5573, latency=542ps
+      pattern: (grant_pred (phi_start ?_ ?_) (not ?_))
+  [30] freq=3, ops=3, area=11002, latency=599ps
+      pattern: (gep (phi_start ?_ ?_) (or ?_))
+  [31] freq=3, ops=2, area=3044, latency=516ps
+      pattern: (phi_start (phi_start ?_ ?_) ?_)
+  [32] freq=3, ops=2, area=4157, latency=521ps
+      pattern: (or (phi_start ?_ ?_))
+  [33] freq=3, ops=2, area=2616, latency=542ps
+      pattern: (zext (grant_pred ?_ ?_))
+  [34] freq=2, ops=6, area=12259, latency=835ps
+      pattern: (grant_pred (grant_pred (phi_start ?_ ?_) (not ?_)) (not (icmp ?_ ?_ eq)))
+  [35] freq=2, ops=6, area=15140, latency=908ps
+      pattern: (grant_pred (phi_start (phi_start ?_ ?_) ?_) (icmp (add ?_) (sext ?_) slt))
+  [36] freq=2, ops=5, area=9730, latency=835ps
+      pattern: (grant_pred (phi_start (phi_start ?_ ?_) ?_) (not (icmp ?_ ?_ slt)))
+  [37] freq=2, ops=5, area=11956, latency=835ps
+      pattern: (grant_pred (not (icmp ?_ sgt)) (not (icmp ?_ sgt)))
+  [38] freq=2, ops=4, area=2832, latency=279ps
+      pattern: (memset (grant_pred ?_ ?_) (grant_pred ?_ ?_) (shl ?_))
+  [39] freq=2, ops=4, area=6667, latency=835ps
+      pattern: (zext (grant_pred (grant_pred ?_ ?_) (icmp ?_ sgt)))
+  [40] freq=2, ops=4, area=6989, latency=830ps
+      pattern: (phi_start (grant_pred (grant_pred ?_ ?_) (icmp ?_ sgt)) ?_)
+  [41] freq=2, ops=4, area=11949, latency=877ps
+      pattern: (load (gep (phi_start ?_ ?_) (phi_start ?_ ?_)))
+  [42] freq=2, ops=3, area=6686, latency=542ps
+      pattern: (grant_pred (not ?_) (not ?_))
+  [43] freq=2, ops=3, area=5467, latency=558ps
+      pattern: (grant_pred (grant_pred ?_ ?_) (not ?_))
+  [44] freq=2, ops=3, area=9889, latency=852ps
+      pattern: (gep (phi_start (phi_start ?_ ?_) ?_))
+  [45] freq=2, ops=3, area=2616, latency=791ps
+      pattern: (shl (zext (grant_pred ?_ ?_)))
+  [46] freq=2, ops=3, area=4460, latency=795ps
+      pattern: (phi_start (phi_start (grant_pred ?_ ?_) ?_) ?_)
+  [47] freq=2, ops=3, area=6686, latency=835ps
+      pattern: (not (icmp (grant_pred ?_ ?_) sgt))
+  [48] freq=2, ops=3, area=5573, latency=572ps
+      pattern: (grant_pred (phi_start ?_ ?_) (icmp ?_ ?_ slt))
+  [49] freq=2, ops=3, area=9783, latency=873ps
+      pattern: (gep (phi_start (grant_pred ?_ ?_) ?_))
+  [50] freq=2, ops=2, area=2938, latency=537ps
+      pattern: (phi_start (grant_pred ?_ ?_) ?_)
+  [51] freq=2, ops=2, area=1200, latency=512ps
+      pattern: (shl (zext ?_))
+  [52] freq=2, ops=2, area=5270, latency=556ps
+      pattern: (not (icmp ?_ sgt))
+  [53] freq=2, ops=2, area=4051, latency=572ps
+      pattern: (icmp (grant_pred ?_ ?_) sgt)
+======================================
+
+=== Generated Rewrite Rules ===
+Total rules: 54
+  [0] fuse_load_gep: (load (gep ?a)) => (fused load_gep ?a)
+  [1] fuse_load_gep_phi_start: (load (gep (phi_start ?a ?b))) => (fused load_gep_phi_start ?a ?b)
+  [2] fuse_fadd_load_gep_fmul_load_load: (fadd (load (gep ?a)) (fmul (load ?b) (load ?c))) => (fused fadd_load_gep_fmul_load_load ?a ?b ?c)
+  [3] fuse_fadd_load_fmul: (fadd (load ?a) (fmul ?b ?c)) => (fused fadd_load_fmul ?a ?b ?c)
+  [4] fuse_fmul_load_load: (fmul (load ?a) (load ?b)) => (fused fmul_load_load ?a ?b)
+  [5] fuse_store_fadd_gep: (store (fadd ?a ?b) (gep ?c)) => (fused store_fadd_gep ?a ?b ?c)
+  [6] fuse_load_gep_1: (load (gep ?a ?b)) => (fused load_gep ?a ?b)
+  [7] fuse_load_gep_phi_start_or: (load (gep (phi_start ?a ?b) (or ?c))) => (fused load_gep_phi_start_or ?a ?b ?c)
+  [8] fuse_load_gep_or: (load (gep (or ?a))) => (fused load_gep_or ?a)
+  [9] fuse_gep_or_phi_start: (gep (or (phi_start ?a ?b))) => (fused gep_or_phi_start ?a ?b)
+  [10] fuse_grant_pred_grant_pred_icmp: (grant_pred (grant_pred ?a ?b) (icmp ?c sgt)) => (fused grant_pred_grant_pred_icmp ?a ?b ?c)
+  [11] fuse_gep_or: (gep (or ?a)) => (fused gep_or ?a)
+  [12] fuse_store_fadd_load_fmul_gep_phi_start: (store (fadd (load ?a) (fmul ?b ?c)) (gep (phi_start ?d ?e))) => (fused store_fadd_load_fmul_gep_phi_start ?a ?b ?c ?d ?e)
+  [13] fuse_grant_pred_grant_once_grant_once_icmp: (grant_pred (grant_once) (grant_once (icmp ?a sgt))) => (fused grant_pred_grant_once_grant_once_icmp ?a)
+  [14] fuse_grant_pred_grant_once_grant_once: (grant_pred (grant_once) (grant_once ?a)) => (fused grant_pred_grant_once_grant_once ?a)
+  [15] fuse_fadd_load_gep_phi_start_fmul_load_gep_load_gep: (fadd (load (gep (phi_start ?a ?b))) (fmul (load (gep ?c ?d)) (load (gep ?e)))) => (fused fadd_load_gep_phi_start_fmul_load_gep_load_gep ?a ?b ?c ?d ?e)
+  [16] fuse_fmul_load_gep_load_gep: (fmul (load (gep ?a ?b)) (load (gep ?c))) => (fused fmul_load_gep_load_gep ?a ?b ?c)
+  [17] fuse_fmul_load_gep_load_gep_2: (fmul (load (gep ?a)) (load (gep ?b ?c))) => (fused fmul_load_gep_load_gep ?a ?b ?c)
+  [18] fuse_gep_phi_start: (gep (phi_start ?a ?b)) => (fused gep_phi_start ?a ?b)
+  [19] fuse_fadd_load_gep_or_fmul_load_gep_load_gep: (fadd (load (gep (or ?a))) (fmul (load (gep ?b)) (load (gep ?c ?d)))) => (fused fadd_load_gep_or_fmul_load_gep_load_gep ?a ?b ?c ?d)
+  [20] fuse_fmul_load_gep_phi_start_or_load_gep_or: (fmul (load (gep (phi_start ?a ?b) (or ?c))) (load (gep (or ?d)))) => (fused fmul_load_gep_phi_start_or_load_gep_or ?a ?b ?c ?d)
+  [21] fuse_fmul_load_gep_phi_start_load_gep_phi_start_or: (fmul (load (gep (phi_start ?a ?b))) (load (gep (phi_start ?c ?d) (or ?e)))) => (fused fmul_load_gep_phi_start_load_gep_phi_start_or ?a ?b ?c ?d ?e)
+  [22] fuse_store_fadd_load_fmul_gep_or: (store (fadd (load ?a) (fmul ?b ?c)) (gep (or ?d))) => (fused store_fadd_load_fmul_gep_or ?a ?b ?c ?d)
+  [23] fuse_grant_pred_grant_pred_grant_once_not_icmp_grant_pred: (grant_pred (grant_pred (grant_once) (not ?a)) (icmp (grant_pred ?b ?c) sgt)) => (fused grant_pred_grant_pred_grant_once_not_icmp_grant_pred ?a ?b ?c)
+  [24] fuse_grant_pred_grant_pred_grant_once_grant_once_icmp_grant_pred: (grant_pred (grant_pred (grant_once) (grant_once ?a)) (icmp (grant_pred ?b ?c) sgt)) => (fused grant_pred_grant_pred_grant_once_grant_once_icmp_grant_pred ?a ?b ?c)
+  [25] fuse_gep_phi_start_grant_pred_or_phi_start: (gep (phi_start (grant_pred ?a ?b) ?c) (or (phi_start ?d ?e))) => (fused gep_phi_start_grant_pred_or_phi_start ?a ?b ?c ?d ?e)
+  [26] fuse_grant_pred_grant_once_not_grant_once: (grant_pred (grant_once) (not (grant_once ?a))) => (fused grant_pred_grant_once_not_grant_once ?a)
+  [27] fuse_or_phi_start_phi_start: (or (phi_start (phi_start ?a ?b) ?c)) => (fused or_phi_start_phi_start ?a ?b ?c)
+  [28] fuse_grant_pred_grant_once_not: (grant_pred (grant_once) (not ?a)) => (fused grant_pred_grant_once_not ?a)
+  [29] fuse_grant_pred_phi_start_not: (grant_pred (phi_start ?a ?b) (not ?c)) => (fused grant_pred_phi_start_not ?a ?b ?c)
+  [30] fuse_gep_phi_start_or: (gep (phi_start ?a ?b) (or ?c)) => (fused gep_phi_start_or ?a ?b ?c)
+  [31] fuse_phi_start_phi_start: (phi_start (phi_start ?a ?b) ?c) => (fused phi_start_phi_start ?a ?b ?c)
+  [32] fuse_or_phi_start: (or (phi_start ?a ?b)) => (fused or_phi_start ?a ?b)
+  [33] fuse_zext_grant_pred: (zext (grant_pred ?a ?b)) => (fused zext_grant_pred ?a ?b)
+  [34] fuse_grant_pred_grant_pred_phi_start_not_not_icmp: (grant_pred (grant_pred (phi_start ?a ?b) (not ?c)) (not (icmp ?d ?e eq))) => (fused grant_pred_grant_pred_phi_start_not_not_icmp ?a ?b ?c ?d ?e)
+  [35] fuse_grant_pred_phi_start_phi_start_icmp_add_sext: (grant_pred (phi_start (phi_start ?a ?b) ?c) (icmp (add ?d) (sext ?e) slt)) => (fused grant_pred_phi_start_phi_start_icmp_add_sext ?a ?b ?c ?d ?e)
+  [36] fuse_grant_pred_phi_start_phi_start_not_icmp: (grant_pred (phi_start (phi_start ?a ?b) ?c) (not (icmp ?d ?e slt))) => (fused grant_pred_phi_start_phi_start_not_icmp ?a ?b ?c ?d ?e)
+  [37] fuse_grant_pred_not_icmp_not_icmp: (grant_pred (not (icmp ?a sgt)) (not (icmp ?b sgt))) => (fused grant_pred_not_icmp_not_icmp ?a ?b)
+  [38] fuse_memset_grant_pred_grant_pred_shl: (memset (grant_pred ?a ?b) (grant_pred ?c ?d) (shl ?e)) => (fused memset_grant_pred_grant_pred_shl ?a ?b ?c ?d ?e)
+  [39] fuse_zext_grant_pred_grant_pred_icmp: (zext (grant_pred (grant_pred ?a ?b) (icmp ?c sgt))) => (fused zext_grant_pred_grant_pred_icmp ?a ?b ?c)
+  [40] fuse_phi_start_grant_pred_grant_pred_icmp: (phi_start (grant_pred (grant_pred ?a ?b) (icmp ?c sgt)) ?d) => (fused phi_start_grant_pred_grant_pred_icmp ?a ?b ?c ?d)
+  [41] fuse_load_gep_phi_start_phi_start: (load (gep (phi_start ?a ?b) (phi_start ?c ?d))) => (fused load_gep_phi_start_phi_start ?a ?b ?c ?d)
+  [42] fuse_grant_pred_not_not: (grant_pred (not ?a) (not ?b)) => (fused grant_pred_not_not ?a ?b)
+  [43] fuse_grant_pred_grant_pred_not: (grant_pred (grant_pred ?a ?b) (not ?c)) => (fused grant_pred_grant_pred_not ?a ?b ?c)
+  [44] fuse_gep_phi_start_phi_start: (gep (phi_start (phi_start ?a ?b) ?c)) => (fused gep_phi_start_phi_start ?a ?b ?c)
+  [45] fuse_shl_zext_grant_pred: (shl (zext (grant_pred ?a ?b))) => (fused shl_zext_grant_pred ?a ?b)
+  [46] fuse_phi_start_phi_start_grant_pred: (phi_start (phi_start (grant_pred ?a ?b) ?c) ?d) => (fused phi_start_phi_start_grant_pred ?a ?b ?c ?d)
+  [47] fuse_not_icmp_grant_pred: (not (icmp (grant_pred ?a ?b) sgt)) => (fused not_icmp_grant_pred ?a ?b)
+  [48] fuse_grant_pred_phi_start_icmp: (grant_pred (phi_start ?a ?b) (icmp ?c ?d slt)) => (fused grant_pred_phi_start_icmp ?a ?b ?c ?d)
+  [49] fuse_gep_phi_start_grant_pred: (gep (phi_start (grant_pred ?a ?b) ?c)) => (fused gep_phi_start_grant_pred ?a ?b ?c)
+  [50] fuse_phi_start_grant_pred: (phi_start (grant_pred ?a ?b) ?c) => (fused phi_start_grant_pred ?a ?b ?c)
+  [51] fuse_shl_zext: (shl (zext ?a)) => (fused shl_zext ?a)
+  [52] fuse_not_icmp: (not (icmp ?a sgt)) => (fused not_icmp ?a)
+  [53] fuse_icmp_grant_pred: (icmp (grant_pred ?a ?b) sgt) => (fused icmp_grant_pred ?a ?b)
+================================
+
+
+=== EGraph Saturation Results ===
+Expression [0]:
+  Input:  (memset (grant_pred (grant_pred (grant_once %arg4) (not (grant_once))) (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt)) (grant_pred (grant_pred (grant_once 0) (not (grant_once))) (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt)) (shl (zext (grant_pred (grant_pred (grant_once %arg1) (not (grant_once))) (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [9, 10] }))
+Expression [1]:
+  Input:  (return_void (shl (zext (grant_pred (grant_pred (grant_once %arg1) (not (grant_once))) (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [9, 10] }))
+Expression [2]:
+  Input:  (memset (grant_pred (grant_once %arg3) (grant_once)) (grant_pred (grant_once 0) (grant_once)) (shl (zext (grant_pred (grant_once %arg0) (grant_once)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "shl", children: [12] }))
+Expression [3]:
+  Input:  (store (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [4]:
+  Input:  (store (fadd (load (gep (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))))) (gep (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [5]:
+  Input:  (store (fadd (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))) (load (gep (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))))) (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [6]:
+  Input:  (store (fadd (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [7]:
+  Input:  (store (fadd (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [8]:
+  Input:  (store (fadd (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [9]:
+  Input:  (store (fadd (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [10]:
+  Input:  (store (fadd (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2)))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [11]:
+  Input:  (store (fadd (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)))) (fmul (load (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))) (load (gep (or (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))))))) (gep (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [12]:
+  Input:  (ctrl_mov (grant_pred (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)) (reserve r2))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [13]:
+  Input:  (ctrl_mov (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)) (reserve r4))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [14]:
+  Input:  (ctrl_mov (grant_pred (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r5)) (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)) (reserve r5))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [15]:
+  Input:  (ctrl_mov (grant_pred (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (not (icmp (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) eq))) (reserve r0))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [16]:
+  Input:  (ctrl_mov (grant_pred (grant_pred (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r5)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) (not (icmp (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) eq))) (reserve r1))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [17]:
+  Input:  (ctrl_mov (grant_pred (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) (not (icmp (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) eq))) (reserve r3))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [7, 8] }))
+Expression [18]:
+  Input:  (return_void (phi (grant_pred (not (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (not (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (grant_pred (not (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt)) (not (icmp (grant_pred (grant_once %arg1) (not (grant_once))) sgt))) (grant_pred (icmp (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) eq) (icmp (add (grant_pred (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r0)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt)))) (grant_pred (phi_start (phi_start (zext (grant_pred (grant_pred (grant_once %arg1) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) (reserve r3)) (reserve r4)) (not (icmp (add (phi_start (phi_start (grant_pred (grant_pred (grant_once 0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt)) (reserve r1)) (reserve r2))) (sext (grant_pred (grant_pred (grant_once %arg0) (grant_once)) (icmp (grant_pred (grant_once %arg1) (grant_once)) sgt))) slt))) eq))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [3, 4] }))
+Expression [19]:
+  Input:  (yield)
+  Output: (unchanged)
+  Status: FAILED (Failed to parse rules: Failed to parse LHS '(load (gep ?a))': BadOp(BadOp(FromOpError { op: "gep", children: [0] })))
+=================================
+
+
+=== Creating FusedOp ===
+Total fusion groups found: 33
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'fadd_load_fmul' with 3 ops, 1 outputs
+  Created fused_op 'gep_or' with 2 ops, 2 outputs
+  Created fused_op 'gep_or' with 2 ops, 2 outputs
+  Created fused_op 'gep_or' with 2 ops, 2 outputs
+  Created fused_op 'gep_phi_start' with 2 ops, 2 outputs
+  Created fused_op 'gep_phi_start' with 2 ops, 2 outputs
+  Created fused_op 'grant_pred_grant_once_grant_once' with 3 ops, 2 outputs
+  Created fused_op 'grant_pred_grant_once_not' with 3 ops, 3 outputs
+  Created fused_op 'grant_pred_grant_pred_icmp' with 3 ops, 2 outputs
+  Created fused_op 'grant_pred_grant_pred_icmp' with 3 ops, 2 outputs
+  Created fused_op 'grant_pred_grant_pred_not' with 3 ops, 2 outputs
+  Created fused_op 'grant_pred_not_not' with 2 ops, 1 outputs
+  Created fused_op 'grant_pred_not_not' with 2 ops, 1 outputs
+  Created fused_op 'grant_pred_phi_start_icmp' with 3 ops, 3 outputs
+  Created fused_op 'load_gep' with 2 ops, 2 outputs
+  Created fused_op 'load_gep' with 2 ops, 2 outputs
+  Created fused_op 'load_gep' with 2 ops, 1 outputs
+  Created fused_op 'load_gep' with 2 ops, 2 outputs
+  Created fused_op 'load_gep' with 2 ops, 1 outputs
+  Created fused_op 'load_gep' with 2 ops, 2 outputs
+  Created fused_op 'load_gep' with 2 ops, 1 outputs
+  Created fused_op 'load_gep' with 2 ops, 2 outputs
+  Created fused_op 'load_gep' with 2 ops, 1 outputs
+  Created fused_op 'memset_grant_pred_grant_pred_shl' with 4 ops, 0 outputs
+  Created fused_op 'phi_start_grant_pred' with 2 ops, 2 outputs
+  Created fused_op 'shl_zext' with 2 ops, 1 outputs
+=================================
+/mnt/public/qjj/dataflow/test/e2e/bicg/kernel-uf4.mlir:18:10: error: operand #0 does not dominate this use
+    %9 = llvm.icmp "sgt" %arg0, %0 : i32
+         ^
+/mnt/public/qjj/dataflow/test/e2e/bicg/kernel-uf4.mlir:18:10: note: see current operation: %160 = "neura.grant_predicate"(%10#0, %7#0) : (!neura.data<i32, i1>, !neura.data<i1, i1>) -> !neura.data<i32, i1>
+/mnt/public/qjj/dataflow/test/e2e/bicg/kernel-uf4.mlir:8:3: note: operand defined here (op in a parent region)
+  llvm.func local_unnamed_addr @kernel(%arg0: i32, %arg1: i32, %arg2: !llvm.ptr {llvm.nocapture, llvm.readonly}, %arg3: !llvm.ptr {llvm.nocapture}, %arg4: !llvm.ptr {llvm.nocapture}, %arg5: !llvm.ptr {llvm.nocapture, llvm.readonly}, %arg6: !llvm.ptr {llvm.nocapture, llvm.readonly}) attributes {frame_pointer = #llvm.framePointerKind<none>, no_infs_fp_math = false, no_nans_fp_math = false, no_signed_zeros_fp_math = false, no_unwind, passthrough = ["nofree", "norecurse", ["uwtable", "2"], ["disable-tail-calls", "false"], ["less-precise-fpmad", "false"], ["min-legal-vector-width", "0"], ["no-jump-tables", "false"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"], ["use-soft-float", "false"]], target_cpu = "x86-64", target_features = #llvm.target_features<["+cx8", "+fxsr", "+mmx", "+sse", "+sse2", "+x87"]>, tune_cpu = "generic", unsafe_fp_math = false} {
+  ^

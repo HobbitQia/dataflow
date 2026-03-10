@@ -1,0 +1,42 @@
+========== Unroll Factor = 1 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Loop bounds:  LARGE (axpy kN=1024, fir NTAPS=1024, gemv N=512, histogram DATA_LEN=1024, polybench LARGE_DATASET)
+Date: Wed Feb 18 16:10:00 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         5              5          1          19           OK      
+bicg         12             9          6          173          OK      
+fft          20             12         7          168          OK      
+fir          5              5          2          22           OK      
+gemm         N/A            N/A        N/A        N/A          CRASH   
+gemv         10             9          3          60           OK      
+histogram    5              5          2          23           OK      
+relu         5              5          2          30           OK      
+spmv         8              5          3          46           OK      
+
+========== Unroll Factor = 2 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Loop bounds:  LARGE (axpy kN=1024, fir NTAPS=1024, gemv N=512, histogram DATA_LEN=1024, polybench LARGE_DATASET)
+Date: Wed Feb 18 16:20:13 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         3              3          2          39           OK      
+bicg         12             10         7          193          OK      
+fft          20             13         8          251          OK      
+fir          6              4          2          34           OK      
+gemm         N/A            N/A        N/A        N/A          CRASH   
+gemv         11             9          4          78           OK      
+histogram    3              3          2          38           OK      
+relu         3              3          2          64           OK      
+spmv         7              4          4          68           OK      
+
+========== Unroll Factor = 4 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Loop bounds:  LARGE (axpy kN=1024, fir NTAPS=1024, gemv N=512, histogram DATA_LEN=1024, polybench LARGE_DATASET)
+Date: Wed Feb 18 16:31:12 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         4              3          3          62           OK      

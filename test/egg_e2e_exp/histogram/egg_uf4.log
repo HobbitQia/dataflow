@@ -1,0 +1,1851 @@
+[mlir-neura-opt] Architecture specification file: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+[ctrl2data] Processing neura.return operation...
+"neura.return"() : () -> ()
+[ctrl2data] Asserting live-out values dominated by block arguments
+[ctrl2data] All live-out values are dominated by block arguments or live-in values.
+[ctrl2data] ReturnOp found: "neura.return"(%45) {return_type = "void"} : (!neura.data<i1, i1>) -> ()
+[ctrl2data] Asserting live-out values dominated by block arguments
+[ctrl2data] All live-out values are dominated by block arguments or live-in values.
+[ctrl2data] Converting neura.return operations to return_void/value...
+[ctrl2data] Converting to neura.return_void.
+[ctrl2data] All neura.return operations converted successfully.
+[ctrl2data] Parent operation: func.func @_Z6kernelPiS_(%arg0: !llvm.ptr {llvm.nocapture, llvm.readonly}, %arg1: !llvm.ptr {llvm.nocapture}) -> !llvm.void attributes {CConv = #llvm.cconv<ccc>, accelerator = "neura", frame_pointer = #llvm.framePointerKind<none>, linkage = #llvm.linkage<external>, no_infs_fp_math = false, no_nans_fp_math = false, no_signed_zeros_fp_math = false, no_unwind, passthrough = ["mustprogress", "nofree", "norecurse", ["uwtable", "2"], ["disable-tail-calls", "false"], ["less-precise-fpmad", "false"], ["min-legal-vector-width", "0"], ["no-jump-tables", "false"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"], ["use-soft-float", "false"]], target_cpu = "x86-64", target_features = #llvm.target_features<["+cx8", "+fxsr", "+mmx", "+sse", "+sse2", "+x87"]>, tune_cpu = "generic", unnamed_addr = 1 : i64, unsafe_fp_math = false, visibility_ = 0 : i64} {
+  %0 = "neura.constant"() <{value = 0 : i64}> : () -> !neura.data<i64, i1>
+  %1 = "neura.grant_once"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %2 = neura.reserve : !neura.data<i64, i1>
+  %3 = "neura.phi"(%2, %1) : (!neura.data<i64, i1>, !neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %4 = "neura.gep"(%3) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %5 = "neura.load"(%4) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %6 = "neura.mul"(%5) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %7 = "neura.add"(%6) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %8 = "neura.div"(%7) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %9 = neura.sext %8 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %10 = "neura.gep"(%9) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %12 = "neura.add"(%11) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  "neura.store"(%12, %10) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %13 = "neura.or"(%3) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %14 = "neura.gep"(%13) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %16 = "neura.mul"(%15) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %17 = "neura.add"(%16) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %19 = neura.sext %18 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %20 = "neura.gep"(%19) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %21 = "neura.load"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %22 = "neura.add"(%21) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  "neura.store"(%22, %20) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %23 = "neura.or"(%3) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %24 = "neura.gep"(%23) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %25 = "neura.load"(%24) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %26 = "neura.mul"(%25) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %27 = "neura.add"(%26) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %28 = "neura.div"(%27) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %29 = neura.sext %28 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %30 = "neura.gep"(%29) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %31 = "neura.load"(%30) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %32 = "neura.add"(%31) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  "neura.store"(%32, %30) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %33 = "neura.or"(%3) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %34 = "neura.gep"(%33) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %35 = "neura.load"(%34) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %36 = "neura.mul"(%35) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %37 = "neura.add"(%36) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %38 = "neura.div"(%37) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %39 = neura.sext %38 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %40 = "neura.gep"(%39) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %41 = "neura.load"(%40) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %42 = "neura.add"(%41) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  "neura.store"(%42, %40) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  %43 = "neura.add"(%3) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %44 = "neura.icmp"(%3) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %45 = "neura.not"(%44) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %46 = neura.grant_predicate %43, %44 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %46 -> %2 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %47 = neura.grant_predicate %45, %45 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+  neura.return_void %47 : !neura.data<i1, i1>
+  neura.yield
+}
+[ctrl2data] Set dataflow mode to predicate for function: _Z6kernelPiS_
+[ctrl2data] Converting phi operations to phi_start...
+=== DFG Pattern Extraction Results ===
+Extracted 25 fusion patterns from DFG with constraints:
+  - min_frequency: 2
+  - max_area: 50000
+  - max_ops: 20
+  - max_critical_path_latency: 1000 ps
+
+Extracted patterns:
+  [0] freq=8, ops=2, area=8905, latency=619ps
+      pattern: (load (gep ?_))
+  [1] freq=4, ops=5, area=19010, latency=902ps
+      pattern: (store (add (load ?_)) (gep (sext ?_)))
+  [2] freq=4, ops=4, area=23402, latency=922ps
+      pattern: (div (add (mul (load ?_))))
+  [3] freq=4, ops=4, area=10105, latency=882ps
+      pattern: (load (gep (sext (div ?_))))
+  [4] freq=4, ops=4, area=22542, latency=902ps
+      pattern: (sext (div (add (mul ?_))))
+  [5] freq=4, ops=4, area=14890, latency=935ps
+      pattern: (gep (sext (div (add ?_))))
+  [6] freq=4, ops=3, area=8045, latency=599ps
+      pattern: (sext (div (add ?_)))
+  [7] freq=4, ops=3, area=23402, latency=922ps
+      pattern: (mul (load (gep ?_)))
+  [8] freq=4, ops=3, area=10105, latency=882ps
+      pattern: (load (gep (sext ?_)))
+  [9] freq=4, ops=3, area=8045, latency=599ps
+      pattern: (gep (sext (div ?_)))
+  [10] freq=4, ops=3, area=21342, latency=639ps
+      pattern: (div (add (mul ?_)))
+  [11] freq=4, ops=3, area=15750, latency=619ps
+      pattern: (store (add ?_) (gep ?_))
+  [12] freq=4, ops=3, area=23402, latency=922ps
+      pattern: (add (mul (load ?_)))
+  [13] freq=4, ops=3, area=15750, latency=955ps
+      pattern: (add (load (gep ?_)))
+  [14] freq=4, ops=2, area=8905, latency=619ps
+      pattern: (add (load ?_))
+  [15] freq=4, ops=2, area=1200, latency=263ps
+      pattern: (sext (div ?_))
+  [16] freq=4, ops=2, area=16557, latency=586ps
+      pattern: (mul (load ?_))
+  [17] freq=4, ops=2, area=8045, latency=599ps
+      pattern: (gep (sext ?_))
+  [18] freq=4, ops=2, area=6845, latency=336ps
+      pattern: (div (add ?_))
+  [19] freq=4, ops=2, area=21342, latency=639ps
+      pattern: (add (mul ?_))
+  [20] freq=3, ops=3, area=11540, latency=882ps
+      pattern: (load (gep (or ?_)))
+  [21] freq=3, ops=3, area=5573, latency=800ps
+      pattern: (or (phi_start (grant_once) ?_))
+  [22] freq=3, ops=3, area=11002, latency=857ps
+      pattern: (gep (or (phi_start ?_ ?_)))
+  [23] freq=3, ops=2, area=4157, latency=521ps
+      pattern: (or (phi_start ?_ ?_))
+  [24] freq=3, ops=2, area=9480, latency=599ps
+      pattern: (gep (or ?_))
+======================================
+
+=== Generated Rewrite Rules ===
+Total rules: 25
+  [0] fuse_load_gep: (load (gep ?a)) => (fused load_gep ?a)
+  [1] fuse_store_add_load_gep_sext: (store (add (load ?a)) (gep (sext ?b))) => (fused store_add_load_gep_sext ?a ?b)
+  [2] fuse_div_add_mul_load: (div (add (mul (load ?a)))) => (fused div_add_mul_load ?a)
+  [3] fuse_load_gep_sext_div: (load (gep (sext (div ?a)))) => (fused load_gep_sext_div ?a)
+  [4] fuse_sext_div_add_mul: (sext (div (add (mul ?a)))) => (fused sext_div_add_mul ?a)
+  [5] fuse_gep_sext_div_add: (gep (sext (div (add ?a)))) => (fused gep_sext_div_add ?a)
+  [6] fuse_sext_div_add: (sext (div (add ?a))) => (fused sext_div_add ?a)
+  [7] fuse_mul_load_gep: (mul (load (gep ?a))) => (fused mul_load_gep ?a)
+  [8] fuse_load_gep_sext: (load (gep (sext ?a))) => (fused load_gep_sext ?a)
+  [9] fuse_gep_sext_div: (gep (sext (div ?a))) => (fused gep_sext_div ?a)
+  [10] fuse_div_add_mul: (div (add (mul ?a))) => (fused div_add_mul ?a)
+  [11] fuse_store_add_gep: (store (add ?a) (gep ?b)) => (fused store_add_gep ?a ?b)
+  [12] fuse_add_mul_load: (add (mul (load ?a))) => (fused add_mul_load ?a)
+  [13] fuse_add_load_gep: (add (load (gep ?a))) => (fused add_load_gep ?a)
+  [14] fuse_add_load: (add (load ?a)) => (fused add_load ?a)
+  [15] fuse_sext_div: (sext (div ?a)) => (fused sext_div ?a)
+  [16] fuse_mul_load: (mul (load ?a)) => (fused mul_load ?a)
+  [17] fuse_gep_sext: (gep (sext ?a)) => (fused gep_sext ?a)
+  [18] fuse_div_add: (div (add ?a)) => (fused div_add ?a)
+  [19] fuse_add_mul: (add (mul ?a)) => (fused add_mul ?a)
+  [20] fuse_load_gep_or: (load (gep (or ?a))) => (fused load_gep_or ?a)
+  [21] fuse_or_phi_start_grant_once: (or (phi_start (grant_once) ?a)) => (fused or_phi_start_grant_once ?a)
+  [22] fuse_gep_or_phi_start: (gep (or (phi_start ?a ?b))) => (fused gep_or_phi_start ?a ?b)
+  [23] fuse_or_phi_start: (or (phi_start ?a ?b)) => (fused or_phi_start ?a ?b)
+  [24] fuse_gep_or: (gep (or ?a)) => (fused gep_or ?a)
+================================
+
+
+=== EGraph Saturation Results ===
+Expression [0]:
+  Input:  (store (add (load (gep (sext (div (add (mul (load (gep (phi_start (grant_once 0) (reserve r0))))))))))) (gep (sext (div (add (mul (load (gep (phi_start (grant_once 0) (reserve r0))))))))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "gep", children: [4] }))
+Expression [1]:
+  Input:  (store (add (load (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))) (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "or", children: [4] }))
+Expression [2]:
+  Input:  (store (add (load (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))) (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "or", children: [4] }))
+Expression [3]:
+  Input:  (store (add (load (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))) (gep (sext (div (add (mul (load (gep (or (phi_start (grant_once 0) (reserve r0)))))))))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "or", children: [4] }))
+Expression [4]:
+  Input:  (ctrl_mov (grant_pred (add (phi_start (grant_once 0) (reserve r0))) (icmp (phi_start (grant_once 0) (reserve r0)) ult)) (reserve r0))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "add", children: [4] }))
+Expression [5]:
+  Input:  (return_void (grant_pred (not (icmp (phi_start (grant_once 0) (reserve r0)) ult)) (not (icmp (phi_start (grant_once 0) (reserve r0)) ult))))
+  Output: (unchanged)
+  Status: FAILED (Failed to parse expression: BadOp(FromOpError { op: "icmp", children: [4, 5] }))
+Expression [6]:
+  Input:  (yield)
+  Output: (unchanged)
+  Status: FAILED (Failed to parse rules: Failed to parse LHS '(load (gep ?a))': BadOp(BadOp(FromOpError { op: "gep", children: [0] })))
+=================================
+
+
+=== Creating FusedOp ===
+Total fusion groups found: 16
+  Created fused_op 'add_load' with 2 ops, 1 outputs
+  Created fused_op 'add_load' with 2 ops, 1 outputs
+  Created fused_op 'add_load' with 2 ops, 1 outputs
+  Created fused_op 'add_load' with 2 ops, 1 outputs
+  Created fused_op 'add_mul' with 2 ops, 1 outputs
+  Created fused_op 'add_mul' with 2 ops, 1 outputs
+  Created fused_op 'add_mul' with 2 ops, 1 outputs
+  Created fused_op 'add_mul' with 2 ops, 1 outputs
+  Created fused_op 'gep_or' with 2 ops, 1 outputs
+  Created fused_op 'gep_or' with 2 ops, 1 outputs
+  Created fused_op 'gep_or' with 2 ops, 1 outputs
+  Created fused_op 'gep_sext' with 2 ops, 1 outputs
+  Created fused_op 'gep_sext' with 2 ops, 1 outputs
+  Created fused_op 'gep_sext' with 2 ops, 1 outputs
+  Created fused_op 'gep_sext' with 2 ops, 1 outputs
+  Created fused_op 'load_gep' with 2 ops, 1 outputs
+=================================
+[InsertDataMovPass] Processing functions...
+[InsertDataMovPass]   Processing function: _Z6kernelPiS_
+[InsertDataMovPass]   ✅ Successfully processed
+[InsertDataMovPass] Processing kernels...
+[InsertDataMovPass] ✅ Pass complete
+[MapToAcceleratorPass] Starting mapping pass...
+[MapToAcceleratorPass] Using Mapping Mode: spatial-temporal
+Unknown YAML root key: extensions
+Unknown YAML root key: simulator
+Collecting recurrence cycles from back edge: parent_op %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>->%1 = neura.reserve : !neura.data<i64, i1>
+[MapToAcceleratorPass] Calculated Recurrence MII: 3
+[calculateResMii] Total operations: 36
+Collecting recurrence cycles from back edge: parent_op %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>->%1 = neura.reserve : !neura.data<i64, i1>
+[MapToAcceleratorPass] Filtered out 48 operations inside fused_op regions
+[MapToAcceleratorPass] Start mapping with target II of 3
+[calculateAward] Operation: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>; Producers: 0
+[DEBUG] Schedule op %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1> onto loc: tile#4 @t=0
+[calculateAward] Operation: %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>; Producers: 1
+[DEBUG] Schedule op %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1> onto loc: tile#4 @t=1
+Processing operand: %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: register#128 @t=0 
+[DEBUG] Successfully routed data move: %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=0 to tile#4 @t=1
+Processing operand: %1 = neura.reserve : !neura.data<i64, i1>
+[calculateAward] Operation: %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>; Producers: 1
+[DEBUG] Schedule op %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1> onto loc: tile#4 @t=2
+Processing operand: %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: register#128 @t=1 
+[DEBUG] Successfully routed data move: %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#4 @t=2
+[calculateAward] Operation: %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>; Producers: 1
+[DEBUG] Schedule op %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1> onto loc: tile#5 @t=2
+Processing operand: %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: link#10 @t=1 
+[DEBUG] Successfully routed data move: %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#5 @t=2
+[calculateAward] Operation: %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#0 @t=2
+Processing operand: %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: link#11 @t=1 
+[DEBUG] Successfully routed data move: %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#0 @t=2
+[calculateAward] Operation: %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#8 @t=2
+Processing operand: %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: link#12 @t=1 
+[DEBUG] Successfully routed data move: %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#8 @t=2
+[calculateAward] Operation: %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#0 @t=3
+Processing operand: %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: register#129 @t=1 link#11 @t=2 
+[DEBUG] Successfully routed data move: %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#0 @t=3
+[calculateAward] Operation: %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>; Producers: 2
+[DEBUG] Schedule op %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1> onto loc: tile#5 @t=3
+Processing operand: %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: register#160 @t=2 
+[DEBUG] Successfully routed data move: %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#5 @t=2 to tile#5 @t=3
+Processing operand: %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Reserving route for operation: %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Path: link#10 @t=2 
+[DEBUG] Successfully routed data move: %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> from tile#4 @t=2 to tile#5 @t=3
+[DEBUG] Found ctrl_mov user: neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[tryRouteBackwardMove] src_loc: tile#5 @t=3, dst_loc: tile#4 @t=1
+Reserving route for operation: neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+Path: link#13 @t=3 
+[DEBUG] Successfully routed ctrl_mov: neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1> to tile#4 @t=1
+[calculateAward] Operation: %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1> onto loc: tile#8 @t=3
+Processing operand: %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Reserving route for operation: %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+Path: register#130 @t=1 link#12 @t=2 
+[DEBUG] Successfully routed data move: %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> from tile#4 @t=1 to tile#8 @t=3
+[calculateAward] Operation: %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#1 @t=3
+Processing operand: %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#0 @t=2 
+[DEBUG] Successfully routed data move: %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#0 @t=2 to tile#1 @t=3
+[calculateAward] Operation: %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#9 @t=3
+Processing operand: %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#24 @t=2 
+[DEBUG] Successfully routed data move: %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#8 @t=2 to tile#9 @t=3
+[calculateAward] Operation: %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#1 @t=4
+Processing operand: %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#0 @t=3 
+[DEBUG] Successfully routed data move: %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#0 @t=3 to tile#1 @t=4
+[calculateAward] Operation: %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#8 @t=4
+Processing operand: %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#256 @t=3 
+[DEBUG] Successfully routed data move: %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#8 @t=3 to tile#8 @t=4
+[calculateAward] Operation: %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#2 @t=4
+Processing operand: %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#3 @t=3 
+[DEBUG] Successfully routed data move: %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#1 @t=3 to tile#2 @t=4
+[calculateAward] Operation: %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#9 @t=4
+Processing operand: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#288 @t=3 
+[DEBUG] Successfully routed data move: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#9 @t=3 to tile#9 @t=4
+[calculateAward] Operation: %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#1 @t=5
+Processing operand: %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#32 @t=4 
+[DEBUG] Successfully routed data move: %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#1 @t=4 to tile#1 @t=5
+[calculateAward] Operation: %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#9 @t=5
+Processing operand: %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#24 @t=4 
+[DEBUG] Successfully routed data move: %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#8 @t=4 to tile#9 @t=5
+[calculateAward] Operation: %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#2 @t=5
+Processing operand: %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#64 @t=4 
+[DEBUG] Successfully routed data move: %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#2 @t=4 to tile#2 @t=5
+[calculateAward] Operation: %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#10 @t=5
+Processing operand: %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#28 @t=4 
+[DEBUG] Successfully routed data move: %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#9 @t=4 to tile#10 @t=5
+[calculateAward] Operation: %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> onto loc: tile#2 @t=6
+Processing operand: %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#3 @t=5 
+[DEBUG] Successfully routed data move: %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#1 @t=5 to tile#2 @t=6
+[calculateAward] Operation: %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>; Producers: 1
+[DEBUG] Schedule op %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> onto loc: tile#6 @t=6
+Processing operand: %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Reserving route for operation: %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Path: register#128 @t=2 link#10 @t=3 link#14 @t=4 register#192 @t=5 
+[DEBUG] Successfully routed data move: %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> from tile#4 @t=2 to tile#6 @t=6
+[calculateAward] Operation: %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#10 @t=6
+Processing operand: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#28 @t=5 
+[DEBUG] Successfully routed data move: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#9 @t=5 to tile#10 @t=6
+[calculateAward] Operation: %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#3 @t=6
+Processing operand: %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#6 @t=5 
+[DEBUG] Successfully routed data move: %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#2 @t=5 to tile#3 @t=6
+[calculateAward] Operation: %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#11 @t=6
+Processing operand: %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#32 @t=5 
+[DEBUG] Successfully routed data move: %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#10 @t=5 to tile#11 @t=6
+[calculateAward] Operation: %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>; Producers: 1
+[DEBUG] Schedule op %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> onto loc: tile#3 @t=7
+Processing operand: %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#6 @t=6 
+[DEBUG] Successfully routed data move: %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#2 @t=6 to tile#3 @t=7
+[calculateAward] Operation: %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>; Producers: 2
+[DEBUG] Schedule op %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1> onto loc: tile#6 @t=7
+Processing operand: %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Reserving route for operation: %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Path: register#192 @t=6 
+[DEBUG] Successfully routed data move: %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> from tile#6 @t=6 to tile#6 @t=7
+Processing operand: %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Reserving route for operation: %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Path: register#193 @t=6 
+[DEBUG] Successfully routed data move: %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> from tile#6 @t=6 to tile#6 @t=7
+[calculateAward] Operation: %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#10 @t=7
+Processing operand: %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: register#320 @t=6 
+[DEBUG] Successfully routed data move: %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#10 @t=6 to tile#10 @t=7
+[calculateAward] Operation: %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#7 @t=7
+Processing operand: %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#9 @t=6 
+[DEBUG] Successfully routed data move: %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#3 @t=6 to tile#7 @t=7
+[calculateAward] Operation: %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#11 @t=7
+Processing operand: %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: register#352 @t=6 
+[DEBUG] Successfully routed data move: %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#11 @t=6 to tile#11 @t=7
+[calculateAward] Operation: %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>; Producers: 1
+[DEBUG] Schedule op %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> onto loc: tile#7 @t=8
+Processing operand: %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#9 @t=7 
+[DEBUG] Successfully routed data move: %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#3 @t=7 to tile#7 @t=8
+[calculateAward] Operation: "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> (); Producers: 2
+[DEBUG] Schedule op "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () onto loc: tile#6 @t=8
+Processing operand: %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#33 @t=7 
+[DEBUG] Successfully routed data move: %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#10 @t=7 to tile#6 @t=8
+Processing operand: %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#33 @t=6 register#192 @t=7 
+[DEBUG] Successfully routed data move: %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#10 @t=6 to tile#6 @t=8
+[calculateAward] Operation: "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> (); Producers: 2
+[DEBUG] Schedule op "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () onto loc: tile#7 @t=9
+Processing operand: %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#224 @t=7 register#224 @t=8 
+[DEBUG] Successfully routed data move: %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#7 @t=7 to tile#7 @t=9
+Processing operand: %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#8 @t=6 link#6 @t=7 link#9 @t=8 
+[DEBUG] Successfully routed data move: %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#3 @t=6 to tile#7 @t=9
+[calculateAward] Operation: "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> (); Producers: 2
+[DEBUG] Schedule op "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () onto loc: tile#11 @t=8
+Processing operand: %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: register#352 @t=7 
+[DEBUG] Successfully routed data move: %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#11 @t=7 to tile#11 @t=8
+Processing operand: %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: register#353 @t=6 register#353 @t=7 
+[DEBUG] Successfully routed data move: %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#11 @t=6 to tile#11 @t=8
+[calculateAward] Operation: "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> (); Producers: 2
+[DEBUG] Schedule op "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () onto loc: tile#5 @t=10
+Processing operand: %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Reserving route for operation: %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+Path: link#21 @t=8 link#17 @t=9 
+[DEBUG] Successfully routed data move: %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> from tile#7 @t=8 to tile#5 @t=10
+Processing operand: %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Reserving route for operation: %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+Path: link#8 @t=7 link#5 @t=8 link#4 @t=9 
+[DEBUG] Successfully routed data move: %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> from tile#3 @t=7 to tile#5 @t=10
+[calculateAward] Operation: neura.return_void %70 : !neura.data<i1, i1>; Producers: 1
+[DEBUG] Schedule op neura.return_void %70 : !neura.data<i1, i1> onto loc: tile#14 @t=9
+Processing operand: %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Reserving route for operation: %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+Path: link#20 @t=7 link#34 @t=8 
+[DEBUG] Successfully routed data move: %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> from tile#6 @t=7 to tile#14 @t=9
+=== MappingState: Resource Allocation Table ===
+II = 3
+
+Tile     | t%3=0                               | t%3=1                               | t%3=2                               | 
+---------+-------------------------------------+-------------------------------------+-------------------------------------+
+Tile#0   | %14 = fused_op(%13) (t=3)           |                                     | %8 = fused_op(%7)                   | 
+Tile#1   | %47 = load(%9) (t=3)                | %25 = load(%15) (t=4)               | %27 = fused_op(%26) (t=5)           | 
+Tile#2   | %29 = div(%28) (t=6)                | %49 = fused_op(%48) (t=4)           | %51 = div(%50) (t=5)                | 
+Tile#3   | %53 = fused_op(%52) (t=6)           | %31 = fused_op(%30) (t=7)           |                                     | 
+Tile#4   | %0 = grant_once                     | %3 = phi_start(%2, %1)              | %61 = icmp(%60)                     | 
+Tile#5   | %66 = grant_predicate(%64, %65) ... | store(%35, %32) (t=10)              | %59 = add(%58)                      | 
+Tile#6   | %63 = not(%62) (t=6)                | %69 = grant_predicate(%67, %68) ... | store(%24, %21) (t=8)               | 
+Tile#7   | store(%57, %54) (t=9)               | %56 = fused_op(%55) (t=7)           | %34 = fused_op(%33) (t=8)           | 
+Tile#8   | %5 = fused_op(%4) (t=3)             | %16 = fused_op(%6) (t=4)            | %11 = fused_op(%10)                 | 
+Tile#9   | %36 = load(%12) (t=3)               | %38 = fused_op(%37) (t=4)           | %18 = div(%17) (t=5)                | 
+Tile#10  | %20 = fused_op(%19) (t=6)           | %23 = fused_op(%22) (t=7)           | %40 = div(%39) (t=5)                | 
+Tile#11  | %42 = fused_op(%41) (t=6)           | %45 = fused_op(%44) (t=7)           | store(%46, %43) (t=8)               | 
+Tile#14  | return_void(%70) (t=9)              |                                     |                                     | 
+
+=== Legend ===
+- Table shows operations mapped to tiles (modulo II scheduling)
+- Column headers: t%II=X means time slot X (t=X, X+II, X+2*II, ...)
+- Operations with (t=Y) annotation are scheduled at actual time step Y
+- Operations without annotation are scheduled at t=0 to t=2
+=== End ===
+Collecting recurrence cycles from back edge: parent_op %66 = neura.grant_predicate %64, %65 {mapping_locs = [{id = 5 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 1 : i32, y = 1 : i32}]} : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>->%1 = neura.reserve : !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=0 to %0 = "neura.grant_once"() <{constant_value = 0 : i64}> {dfg_id = 0 : i32, mapping_locs = [{id = 4 : i32, index_per_ii = 0 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 0 : i32, x = 0 : i32, y = 1 : i32}]} : () -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=1 to %1 = neura.reserve {dfg_id = 1 : i32} : !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=2 to %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 2 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=3 to %71 = "neura.or"(%arg2) {dfg_id = 3 : i32, rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=4 to %71 = "neura.or"(%arg2) {dfg_id = 4 : i32, rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=5 to %71 = "neura.or"(%arg2) {dfg_id = 5 : i32, rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=6 to %71 = "neura.mul"(%arg2) {dfg_id = 6 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=7 to %71 = neura.sext %arg2 {dfg_id = 7 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=8 to %71 = "neura.load"(%arg2) {dfg_id = 8 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=9 to %71 = "neura.mul"(%arg2) {dfg_id = 9 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=10 to %71 = neura.sext %arg2 {dfg_id = 10 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=11 to %71 = "neura.load"(%arg2) {dfg_id = 11 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=12 to %71 = "neura.mul"(%arg2) {dfg_id = 12 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=13 to %71 = neura.sext %arg2 {dfg_id = 13 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=14 to %71 = "neura.load"(%arg2) {dfg_id = 14 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=15 to %71 = "neura.mul"(%arg2) {dfg_id = 15 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=16 to %71 = neura.sext %arg2 {dfg_id = 16 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=17 to %71 = "neura.load"(%arg2) {dfg_id = 17 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=18 to neura.yield {dfg_id = 18 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=19 to %2 = "neura.data_mov"(%0) {dfg_id = 19 : i32, mapping_locs = [{id = 128 : i32, index_per_ii = 0 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 0 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=20 to %72 = "neura.load"(%71) {dfg_id = 20 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=21 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 21 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=22 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 22 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=23 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 23 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=24 to %72 = "neura.add"(%71) {dfg_id = 24 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=25 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 25 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=26 to %72 = "neura.add"(%71) {dfg_id = 26 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=27 to %72 = "neura.add"(%71) {dfg_id = 27 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=28 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 28 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=29 to %72 = "neura.add"(%71) {dfg_id = 29 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=30 to %72 = "neura.add"(%71) {dfg_id = 30 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=31 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 31 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=32 to %72 = "neura.add"(%71) {dfg_id = 32 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=33 to %72 = "neura.add"(%71) {dfg_id = 33 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=34 to %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 34 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=35 to %72 = "neura.add"(%71) {dfg_id = 35 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=36 to %3 = neura.phi_start %2, %1 {dfg_id = 36 : i32, mapping_locs = [{id = 4 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 1 : i32, x = 0 : i32, y = 1 : i32}]} : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=37 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 37 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=38 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 38 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=39 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 39 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=40 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 40 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=41 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 41 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=42 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 42 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=43 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 43 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=44 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 44 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=45 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 45 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=46 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 46 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=47 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 47 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=48 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 48 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=49 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 49 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=50 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 50 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=51 to neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 51 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=52 to neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 52 : i32}
+[MapToAcceleratorPass] Assigned dfg_id=53 to %4 = "neura.data_mov"(%3) {dfg_id = 53 : i32, mapping_locs = [{id = 130 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 2 : i32, resource = "register", time_step = 1 : i32}, {id = 12 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 2 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=54 to %7 = "neura.data_mov"(%3) {dfg_id = 54 : i32, mapping_locs = [{id = 11 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 1 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=55 to %10 = "neura.data_mov"(%3) {dfg_id = 55 : i32, mapping_locs = [{id = 12 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 1 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=56 to %13 = "neura.data_mov"(%3) {dfg_id = 56 : i32, mapping_locs = [{id = 129 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 1 : i32, resource = "register", time_step = 1 : i32}, {id = 11 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 2 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=57 to %60 = "neura.data_mov"(%3) {dfg_id = 57 : i32, mapping_locs = [{id = 128 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 1 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=58 to %58 = "neura.data_mov"(%3) {dfg_id = 58 : i32, mapping_locs = [{id = 10 : i32, index_per_ii = 1 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 1 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=59 to %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 2 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) {dfg_id = 20 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 37 : i32}
+}) {dfg_id = 59 : i32, mapping_locs = [{id = 8 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 0 : i32, y = 2 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=60 to %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {dfg_id = 3 : i32, rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 21 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 38 : i32}
+}) {dfg_id = 60 : i32, mapping_locs = [{id = 0 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 2 : i32, x = 0 : i32, y = 0 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=61 to %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {dfg_id = 4 : i32, rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 22 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 39 : i32}
+}) {dfg_id = 61 : i32, mapping_locs = [{id = 8 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 2 : i32, x = 0 : i32, y = 2 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=62 to %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {dfg_id = 5 : i32, rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 23 : i32, lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 40 : i32}
+}) {dfg_id = 62 : i32, mapping_locs = [{id = 0 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 0 : i32, y = 0 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=63 to %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {dfg_id = 63 : i32, mapping_locs = [{id = 4 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 2 : i32, x = 0 : i32, y = 1 : i32}], rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=64 to %59 = "neura.add"(%58) {dfg_id = 64 : i32, mapping_locs = [{id = 5 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 2 : i32, x = 1 : i32, y = 1 : i32}], rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=65 to %6 = "neura.data_mov"(%5) {dfg_id = 65 : i32, mapping_locs = [{id = 256 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 3 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=66 to %9 = "neura.data_mov"(%8) {dfg_id = 66 : i32, mapping_locs = [{id = 0 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 2 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=67 to %12 = "neura.data_mov"(%11) {dfg_id = 67 : i32, mapping_locs = [{id = 24 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 2 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=68 to %15 = "neura.data_mov"(%14) {dfg_id = 68 : i32, mapping_locs = [{id = 0 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 3 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=69 to %65 = "neura.data_mov"(%61) {dfg_id = 69 : i32, mapping_locs = [{id = 10 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, resource = "link", time_step = 2 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=70 to %62 = "neura.data_mov"(%61) {dfg_id = 70 : i32, mapping_locs = [{id = 128 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 2 : i32}, {id = 10 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 3 : i32}, {id = 14 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 4 : i32}, {id = 192 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 5 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=71 to %64 = "neura.data_mov"(%59) {dfg_id = 71 : i32, mapping_locs = [{id = 160 : i32, index_per_ii = 2 : i32, invalid_iterations = 0 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 2 : i32}]} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=72 to %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {dfg_id = 6 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 24 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 41 : i32}
+}) {dfg_id = 72 : i32, mapping_locs = [{id = 8 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 4 : i32, x = 0 : i32, y = 2 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=73 to %47 = "neura.load"(%9) {dfg_id = 73 : i32, mapping_locs = [{id = 1 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 1 : i32, y = 0 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=74 to %36 = "neura.load"(%12) {dfg_id = 74 : i32, mapping_locs = [{id = 9 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 1 : i32, y = 2 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=75 to %25 = "neura.load"(%15) {dfg_id = 75 : i32, mapping_locs = [{id = 1 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 4 : i32, x = 1 : i32, y = 0 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=76 to %63 = "neura.not"(%62) {dfg_id = 76 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 6 : i32, x = 2 : i32, y = 1 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=77 to %66 = neura.grant_predicate %64, %65 {dfg_id = 77 : i32, mapping_locs = [{id = 5 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 3 : i32, x = 1 : i32, y = 1 : i32}]} : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=78 to %17 = "neura.data_mov"(%16) {dfg_id = 78 : i32, mapping_locs = [{id = 24 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 4 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=79 to %48 = "neura.data_mov"(%47) {dfg_id = 79 : i32, mapping_locs = [{id = 3 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 3 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=80 to %37 = "neura.data_mov"(%36) {dfg_id = 80 : i32, mapping_locs = [{id = 288 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 3 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=81 to %26 = "neura.data_mov"(%25) {dfg_id = 81 : i32, mapping_locs = [{id = 32 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 4 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=82 to %67 = "neura.data_mov"(%63) {dfg_id = 82 : i32, mapping_locs = [{id = 192 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 6 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=83 to %68 = "neura.data_mov"(%63) {dfg_id = 83 : i32, mapping_locs = [{id = 193 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 1 : i32, resource = "register", time_step = 6 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=84 to neura.ctrl_mov %66 -> %1 {dfg_id = 84 : i32, mapping_locs = [{id = 13 : i32, index_per_ii = 0 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 3 : i32}]} : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Assigned dfg_id=85 to %18 = "neura.div"(%17) {dfg_id = 85 : i32, mapping_locs = [{id = 9 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 5 : i32, x = 1 : i32, y = 2 : i32}], rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=86 to %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {dfg_id = 15 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 33 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 50 : i32}
+}) {dfg_id = 86 : i32, mapping_locs = [{id = 2 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 4 : i32, x = 2 : i32, y = 0 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=87 to %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {dfg_id = 12 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 30 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 47 : i32}
+}) {dfg_id = 87 : i32, mapping_locs = [{id = 9 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 4 : i32, x = 1 : i32, y = 2 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=88 to %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {dfg_id = 9 : i32, rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 27 : i32, rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 44 : i32}
+}) {dfg_id = 88 : i32, mapping_locs = [{id = 1 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 5 : i32, x = 1 : i32, y = 0 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=89 to %69 = neura.grant_predicate %67, %68 {dfg_id = 89 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 7 : i32, x = 2 : i32, y = 1 : i32}]} : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=90 to %19 = "neura.data_mov"(%18) {dfg_id = 90 : i32, mapping_locs = [{id = 28 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 5 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=91 to %50 = "neura.data_mov"(%49) {dfg_id = 91 : i32, mapping_locs = [{id = 64 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 4 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=92 to %39 = "neura.data_mov"(%38) {dfg_id = 92 : i32, mapping_locs = [{id = 28 : i32, index_per_ii = 1 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 4 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=93 to %28 = "neura.data_mov"(%27) {dfg_id = 93 : i32, mapping_locs = [{id = 3 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 5 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=94 to %70 = "neura.data_mov"(%69) {dfg_id = 94 : i32, mapping_locs = [{id = 20 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 7 : i32}, {id = 34 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 8 : i32}]} : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Assigned dfg_id=95 to %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 {dfg_id = 7 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 25 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 42 : i32}
+}) {dfg_id = 95 : i32, mapping_locs = [{id = 10 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 6 : i32, x = 2 : i32, y = 2 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=96 to %51 = "neura.div"(%50) {dfg_id = 96 : i32, mapping_locs = [{id = 2 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 5 : i32, x = 2 : i32, y = 0 : i32}], rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=97 to %40 = "neura.div"(%39) {dfg_id = 97 : i32, mapping_locs = [{id = 10 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "tile", time_step = 5 : i32, x = 2 : i32, y = 2 : i32}], rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=98 to %29 = "neura.div"(%28) {dfg_id = 98 : i32, mapping_locs = [{id = 2 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 6 : i32, x = 2 : i32, y = 0 : i32}], rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=99 to neura.return_void %70 : !neura.data<i1, i1> {dfg_id = 99 : i32, mapping_locs = [{id = 14 : i32, index_per_ii = 0 : i32, invalid_iterations = 3 : i32, resource = "tile", time_step = 9 : i32, x = 2 : i32, y = 3 : i32}]}
+[MapToAcceleratorPass] Assigned dfg_id=100 to %22 = "neura.data_mov"(%20) {dfg_id = 100 : i32, mapping_locs = [{id = 320 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 6 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=101 to %21 = "neura.data_mov"(%20) {dfg_id = 101 : i32, mapping_locs = [{id = 33 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 6 : i32}, {id = 192 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 7 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=102 to %52 = "neura.data_mov"(%51) {dfg_id = 102 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 5 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=103 to %41 = "neura.data_mov"(%40) {dfg_id = 103 : i32, mapping_locs = [{id = 32 : i32, index_per_ii = 2 : i32, invalid_iterations = 1 : i32, resource = "link", time_step = 5 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=104 to %30 = "neura.data_mov"(%29) {dfg_id = 104 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 6 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=105 to %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) {dfg_id = 8 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 26 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 43 : i32}
+}) {dfg_id = 105 : i32, mapping_locs = [{id = 10 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 7 : i32, x = 2 : i32, y = 2 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=106 to %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 {dfg_id = 16 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 34 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 51 : i32}
+}) {dfg_id = 106 : i32, mapping_locs = [{id = 3 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 6 : i32, x = 3 : i32, y = 0 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=107 to %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 {dfg_id = 13 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 31 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 48 : i32}
+}) {dfg_id = 107 : i32, mapping_locs = [{id = 11 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 6 : i32, x = 3 : i32, y = 2 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=108 to %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 {dfg_id = 10 : i32} : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {dfg_id = 28 : i32, lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>) {dfg_id = 45 : i32}
+}) {dfg_id = 108 : i32, mapping_locs = [{id = 3 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 7 : i32, x = 3 : i32, y = 0 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=109 to %24 = "neura.data_mov"(%23) {dfg_id = 109 : i32, mapping_locs = [{id = 33 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 7 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=110 to %55 = "neura.data_mov"(%53) {dfg_id = 110 : i32, mapping_locs = [{id = 9 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 6 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=111 to %54 = "neura.data_mov"(%53) {dfg_id = 111 : i32, mapping_locs = [{id = 8 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 6 : i32}, {id = 6 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 7 : i32}, {id = 9 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 8 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=112 to %44 = "neura.data_mov"(%42) {dfg_id = 112 : i32, mapping_locs = [{id = 352 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 6 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=113 to %43 = "neura.data_mov"(%42) {dfg_id = 113 : i32, mapping_locs = [{id = 353 : i32, index_per_ii = 0 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 1 : i32, resource = "register", time_step = 6 : i32}, {id = 353 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 1 : i32, resource = "register", time_step = 7 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=114 to %33 = "neura.data_mov"(%31) {dfg_id = 114 : i32, mapping_locs = [{id = 9 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 7 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=115 to %32 = "neura.data_mov"(%31) {dfg_id = 115 : i32, mapping_locs = [{id = 8 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 7 : i32}, {id = 5 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 8 : i32}, {id = 4 : i32, index_per_ii = 0 : i32, invalid_iterations = 3 : i32, resource = "link", time_step = 9 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Assigned dfg_id=116 to "neura.store"(%24, %21) {dfg_id = 116 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 8 : i32, x = 2 : i32, y = 1 : i32}]} : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Assigned dfg_id=117 to %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) {dfg_id = 17 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 35 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 52 : i32}
+}) {dfg_id = 117 : i32, mapping_locs = [{id = 7 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 7 : i32, x = 3 : i32, y = 1 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=118 to %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) {dfg_id = 14 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 32 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 49 : i32}
+}) {dfg_id = 118 : i32, mapping_locs = [{id = 11 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 7 : i32, x = 3 : i32, y = 2 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=119 to %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) {dfg_id = 11 : i32} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {dfg_id = 29 : i32, rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>) {dfg_id = 46 : i32}
+}) {dfg_id = 119 : i32, mapping_locs = [{id = 7 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 8 : i32, x = 3 : i32, y = 1 : i32}]} : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=120 to %57 = "neura.data_mov"(%56) {dfg_id = 120 : i32, mapping_locs = [{id = 224 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 7 : i32}, {id = 224 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 8 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=121 to %46 = "neura.data_mov"(%45) {dfg_id = 121 : i32, mapping_locs = [{id = 352 : i32, index_per_ii = 1 : i32, invalid_iterations = 2 : i32, per_tile_register_id = 0 : i32, resource = "register", time_step = 7 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=122 to %35 = "neura.data_mov"(%34) {dfg_id = 122 : i32, mapping_locs = [{id = 21 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "link", time_step = 8 : i32}, {id = 17 : i32, index_per_ii = 0 : i32, invalid_iterations = 3 : i32, resource = "link", time_step = 9 : i32}]} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Assigned dfg_id=123 to "neura.store"(%57, %54) {dfg_id = 123 : i32, mapping_locs = [{id = 7 : i32, index_per_ii = 0 : i32, invalid_iterations = 3 : i32, resource = "tile", time_step = 9 : i32, x = 3 : i32, y = 1 : i32}]} : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Assigned dfg_id=124 to "neura.store"(%46, %43) {dfg_id = 124 : i32, mapping_locs = [{id = 11 : i32, index_per_ii = 2 : i32, invalid_iterations = 2 : i32, resource = "tile", time_step = 8 : i32, x = 3 : i32, y = 2 : i32}]} : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Assigned dfg_id=125 to "neura.store"(%35, %32) {dfg_id = 125 : i32, mapping_locs = [{id = 5 : i32, index_per_ii = 1 : i32, invalid_iterations = 3 : i32, resource = "tile", time_step = 10 : i32, x = 1 : i32, y = 1 : i32}]} : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Assigned 126 dfg_id(s) in total
+[DEBUG] Recurrence cycle (length 3):
+  %1 = neura.reserve : !neura.data<i64, i1>
+  %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[DEBUG] Recurrence cycle (length 3):
+  %1 = neura.reserve : !neura.data<i64, i1>
+  %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Longest recurrence cycle (length 3):
+%1 = neura.reserve : !neura.data<i64, i1>
+%3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+%58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+[MapToAcceleratorPass] Skipping op inside fused_op: neura.yield results(%72 : !neura.data<i32, i1>)
+[MapToAcceleratorPass] Topologically sorted op: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %1 = neura.reserve : !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.yield
+[MapToAcceleratorPass] Topologically sorted op: %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.return_void %70 : !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Topologically sorted op: %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Topologically sorted op: "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] Topologically sorted op: "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] ALAP Bucket Level 0: 3 ops
+  %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+  %1 = neura.reserve : !neura.data<i64, i1>
+  %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 1: 6 ops
+  %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 2: 11 ops
+  %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 3: 10 ops
+  %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1>
+  %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 4: 8 ops
+  %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 5: 9 ops
+  %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 6: 11 ops
+  %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+  %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+  %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+  %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+  %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 7: 14 ops
+  %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+  %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 8: 6 ops
+  neura.yield
+  neura.return_void %70 : !neura.data<i1, i1>
+  "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+  "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[MapToAcceleratorPass] ALAP sorted op: %1 = neura.reserve : !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %2 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %60 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %58 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %7 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %10 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %13 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %65 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %64 = "neura.data_mov"(%59) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %4 = "neura.data_mov"(%3) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %9 = "neura.data_mov"(%8) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %12 = "neura.data_mov"(%11) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %15 = "neura.data_mov"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: neura.ctrl_mov %66 -> %1 : !neura.data<i64, i1> !neura.data<i64, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %6 = "neura.data_mov"(%5) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %26 = "neura.data_mov"(%25) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %28 = "neura.data_mov"(%27) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %62 = "neura.data_mov"(%61) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %67 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %68 = "neura.data_mov"(%63) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %22 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %55 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %44 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %33 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %70 = "neura.data_mov"(%69) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %21 = "neura.data_mov"(%20) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %54 = "neura.data_mov"(%53) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %43 = "neura.data_mov"(%42) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %32 = "neura.data_mov"(%31) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %46 = "neura.data_mov"(%45) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (ALAP level: 8)
+[MapToAcceleratorPass] ALAP sorted op: "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (ALAP level: 8)
+[MapToAcceleratorPass] ALAP sorted op: "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (ALAP level: 8)
+[MapToAcceleratorPass] ALAP sorted op: "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (ALAP level: 8)
+[MapToAcceleratorPass] ALAP sorted op: neura.return_void %70 : !neura.data<i1, i1> (ALAP level: 8)
+[MapToAcceleratorPass] ALAP sorted op: neura.yield (ALAP level: 8)
+---------------------------------------------------------
+[HeuristicMapping] Starting mapping with 78 operations.
+Configuration: MAX Backtrack Depth = 3, MAX Candidate Locations = 5
+[HeuristicMapping] Filtered 43 non-materialized operations, 35 operations require physical mapping.
+[HeuristicMapping] Materialized operations list:
+0 %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1> (level: 0)
+1 %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1> (level: 1)
+2 %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1> (level: 2)
+3 %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (level: 2)
+4 %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (level: 2)
+5 %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (level: 2)
+6 %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (level: 2)
+7 %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1> (level: 3)
+8 %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1> (level: 3)
+9 %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 3)
+10 %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 3)
+11 %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 3)
+12 %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 4)
+13 %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 4)
+14 %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 4)
+15 %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 4)
+16 %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 5)
+17 %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 5)
+18 %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 5)
+19 %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 5)
+20 %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (level: 6)
+21 %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (level: 6)
+22 %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (level: 6)
+23 %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (level: 6)
+24 %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1> (level: 6)
+25 %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1> (level: 7)
+26 %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 7)
+27 %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 7)
+28 %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 7)
+29 %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 7)
+30 "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (level: 8)
+31 "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (level: 8)
+32 "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (level: 8)
+33 "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> () (level: 8)
+34 neura.return_void %70 : !neura.data<i1, i1> (level: 8)
+[HeuristicMapping] Found 48 candidate locations for operation: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#4 @t=0
+[HeuristicMapping] Successfully mapped operation %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[HeuristicMapping] Found 23 candidate locations for operation: %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#4 @t=1
+[tryRouteDataMove] Routing from Tile#4 @t=0 to Tile#4 @t=1
+[tryRouteDataMove] Successfully routed on same tile using Register #128
+[HeuristicMapping] Successfully mapped operation %3 = neura.phi_start %2, %1 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Found 22 candidate locations for operation: %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#4 @t=2
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#4 @t=2
+[tryRouteDataMove] Successfully routed on same tile using Register #128
+[HeuristicMapping] Successfully mapped operation %61 = "neura.icmp"(%60) <{cmpType = "ult"}> {rhs_value = 16 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Found 21 candidate locations for operation: %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#5 @t=2
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#5 @t=2
+[HeuristicMapping] Successfully mapped operation %59 = "neura.add"(%58) {rhs_value = 4 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[HeuristicMapping] Found 18 candidate locations for operation: %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#0 @t=2
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#0 @t=2
+[HeuristicMapping] Successfully mapped operation %8 = "neura.fused_op"(%7) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 3 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 15 candidate locations for operation: %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#8 @t=2
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#8 @t=2
+[HeuristicMapping] Successfully mapped operation %11 = "neura.fused_op"(%10) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 2 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 10 candidate locations for operation: %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#0 @t=3
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#0 @t=3
+[HeuristicMapping] Successfully mapped operation %14 = "neura.fused_op"(%13) <{frequency = 3 : i64, pattern_id = 7 : i64, pattern_name = "gep_or"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.or"(%arg2) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 1 candidate locations for operation: %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/1 at tile#5 @t=3
+[tryRouteDataMove] Routing from Tile#5 @t=2 to Tile#5 @t=3
+[tryRouteDataMove] Successfully routed on same tile using Register #160
+[tryRouteDataMove] Routing from Tile#4 @t=2 to Tile#5 @t=3
+[tryRouteDataMove] Routing from Tile#5 @t=3 to Tile#4 @t=4
+[HeuristicMapping] Successfully mapped operation %66 = neura.grant_predicate %64, %65 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#8 @t=3
+[tryRouteDataMove] Routing from Tile#4 @t=1 to Tile#8 @t=3
+[HeuristicMapping] Successfully mapped operation %5 = "neura.fused_op"(%4) <{frequency = 1 : i64, pattern_id = 7 : i64, pattern_name = "load_gep"}> ({
+^bb0(%arg2: !neura.data<i64, i1>):
+  %71 = "neura.gep"(%arg2) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %72 = "neura.load"(%71) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i64, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#1 @t=3
+[tryRouteDataMove] Routing from Tile#0 @t=2 to Tile#1 @t=3
+[HeuristicMapping] Successfully mapped operation %47 = "neura.load"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 17 candidate locations for operation: %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#9 @t=3
+[tryRouteDataMove] Routing from Tile#8 @t=2 to Tile#9 @t=3
+[HeuristicMapping] Successfully mapped operation %36 = "neura.load"(%12) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 7 candidate locations for operation: %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#1 @t=4
+[tryRouteDataMove] Routing from Tile#0 @t=3 to Tile#1 @t=4
+[HeuristicMapping] Successfully mapped operation %25 = "neura.load"(%15) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 13 candidate locations for operation: %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#8 @t=4
+[tryRouteDataMove] Routing from Tile#8 @t=3 to Tile#8 @t=4
+[tryRouteDataMove] Successfully routed on same tile using Register #256
+[HeuristicMapping] Successfully mapped operation %16 = "neura.fused_op"(%6) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 14 candidate locations for operation: %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#2 @t=4
+[tryRouteDataMove] Routing from Tile#1 @t=3 to Tile#2 @t=4
+[HeuristicMapping] Successfully mapped operation %49 = "neura.fused_op"(%48) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 21 candidate locations for operation: %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#9 @t=4
+[tryRouteDataMove] Routing from Tile#9 @t=3 to Tile#9 @t=4
+[tryRouteDataMove] Successfully routed on same tile using Register #288
+[HeuristicMapping] Successfully mapped operation %38 = "neura.fused_op"(%37) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#1 @t=5
+[tryRouteDataMove] Routing from Tile#1 @t=4 to Tile#1 @t=5
+[tryRouteDataMove] Successfully routed on same tile using Register #32
+[HeuristicMapping] Successfully mapped operation %27 = "neura.fused_op"(%26) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_mul"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = "neura.mul"(%arg2) {rhs_value = 5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = -5 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 13 candidate locations for operation: %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#9 @t=5
+[tryRouteDataMove] Routing from Tile#8 @t=4 to Tile#9 @t=5
+[HeuristicMapping] Successfully mapped operation %18 = "neura.div"(%17) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 16 candidate locations for operation: %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#2 @t=5
+[tryRouteDataMove] Routing from Tile#2 @t=4 to Tile#2 @t=5
+[tryRouteDataMove] Successfully routed on same tile using Register #64
+[HeuristicMapping] Successfully mapped operation %51 = "neura.div"(%50) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 18 candidate locations for operation: %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=5
+[tryRouteDataMove] Routing from Tile#9 @t=4 to Tile#10 @t=5
+[HeuristicMapping] Successfully mapped operation %40 = "neura.div"(%39) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 9 candidate locations for operation: %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#2 @t=6
+[tryRouteDataMove] Routing from Tile#1 @t=5 to Tile#2 @t=6
+[HeuristicMapping] Successfully mapped operation %29 = "neura.div"(%28) {rhs_value = 18 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 23 candidate locations for operation: %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#6 @t=6
+[tryRouteDataMove] Routing from Tile#4 @t=2 to Tile#6 @t=6
+[HeuristicMapping] Successfully mapped operation %63 = "neura.not"(%62) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Found 16 candidate locations for operation: %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=6
+[tryRouteDataMove] Routing from Tile#9 @t=5 to Tile#10 @t=6
+[HeuristicMapping] Successfully mapped operation %20 = "neura.fused_op"(%19) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#3 @t=6
+[tryRouteDataMove] Routing from Tile#2 @t=5 to Tile#3 @t=6
+[HeuristicMapping] Successfully mapped operation %53 = "neura.fused_op"(%52) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 18 candidate locations for operation: %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#11 @t=6
+[tryRouteDataMove] Routing from Tile#10 @t=5 to Tile#11 @t=6
+[HeuristicMapping] Successfully mapped operation %42 = "neura.fused_op"(%41) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 7 candidate locations for operation: %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#3 @t=7
+[tryRouteDataMove] Routing from Tile#2 @t=6 to Tile#3 @t=7
+[HeuristicMapping] Successfully mapped operation %31 = "neura.fused_op"(%30) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "gep_sext"}> ({
+^bb0(%arg2: !neura.data<i32, i1>):
+  %71 = neura.sext %arg2 : !neura.data<i32, i1> -> !neura.data<i64, i1>
+  %72 = "neura.gep"(%71) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg1"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  neura.yield results(%72 : !neura.data<!llvm.ptr, i1>)
+}) : (!neura.data<i32, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 13 candidate locations for operation: %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#6 @t=7
+[tryRouteDataMove] Routing from Tile#6 @t=6 to Tile#6 @t=7
+[tryRouteDataMove] Successfully routed on same tile using Register #192
+[tryRouteDataMove] Routing from Tile#6 @t=6 to Tile#6 @t=7
+[tryRouteDataMove] Successfully routed on same tile using Register #193
+[HeuristicMapping] Successfully mapped operation %69 = neura.grant_predicate %67, %68 : !neura.data<i1, i1>, !neura.data<i1, i1> -> !neura.data<i1, i1>
+[HeuristicMapping] Found 14 candidate locations for operation: %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=7
+[tryRouteDataMove] Routing from Tile#10 @t=6 to Tile#10 @t=7
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[HeuristicMapping] Successfully mapped operation %23 = "neura.fused_op"(%22) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 7 candidate locations for operation: %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#7 @t=7
+[tryRouteDataMove] Routing from Tile#3 @t=6 to Tile#7 @t=7
+[HeuristicMapping] Successfully mapped operation %56 = "neura.fused_op"(%55) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#11 @t=7
+[tryRouteDataMove] Routing from Tile#11 @t=6 to Tile#11 @t=7
+[tryRouteDataMove] Successfully routed on same tile using Register #352
+[HeuristicMapping] Successfully mapped operation %45 = "neura.fused_op"(%44) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 6 candidate locations for operation: %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#7 @t=8
+[tryRouteDataMove] Routing from Tile#3 @t=7 to Tile#7 @t=8
+[HeuristicMapping] Successfully mapped operation %34 = "neura.fused_op"(%33) <{frequency = 4 : i64, pattern_id = 7 : i64, pattern_name = "add_load"}> ({
+^bb0(%arg2: !neura.data<!llvm.ptr, i1>):
+  %71 = "neura.load"(%arg2) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %72 = "neura.add"(%71) {rhs_value = 1 : i32} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.yield results(%72 : !neura.data<i32, i1>)
+}) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 12 candidate locations for operation: "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Trying candidate 1/5 at tile#6 @t=8
+[tryRouteDataMove] Routing from Tile#10 @t=7 to Tile#6 @t=8
+[tryRouteDataMove] Routing from Tile#10 @t=6 to Tile#6 @t=8
+[HeuristicMapping] Successfully mapped operation "neura.store"(%24, %21) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Found 4 candidate locations for operation: "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Trying candidate 1/4 at tile#7 @t=9
+[tryRouteDataMove] Routing from Tile#7 @t=7 to Tile#7 @t=9
+[tryRouteDataMove] Successfully routed on same tile using Register #224
+[tryRouteDataMove] Routing from Tile#3 @t=6 to Tile#7 @t=9
+[HeuristicMapping] Successfully mapped operation "neura.store"(%57, %54) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Found 8 candidate locations for operation: "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Trying candidate 1/5 at tile#11 @t=8
+[tryRouteDataMove] Routing from Tile#11 @t=7 to Tile#11 @t=8
+[tryRouteDataMove] Successfully routed on same tile using Register #352
+[tryRouteDataMove] Routing from Tile#11 @t=6 to Tile#11 @t=8
+[tryRouteDataMove] Successfully routed on same tile using Register #353
+[HeuristicMapping] Successfully mapped operation "neura.store"(%46, %43) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Found 3 candidate locations for operation: "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Trying candidate 1/3 at tile#5 @t=10
+[tryRouteDataMove] Routing from Tile#7 @t=8 to Tile#5 @t=10
+[tryRouteDataMove] Routing from Tile#3 @t=7 to Tile#5 @t=10
+[HeuristicMapping] Successfully mapped operation "neura.store"(%35, %32) : (!neura.data<i32, i1>, !neura.data<!llvm.ptr, i1>) -> ()
+[HeuristicMapping] Found 5 candidate locations for operation: neura.return_void %70 : !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#14 @t=9
+[tryRouteDataMove] Routing from Tile#6 @t=7 to Tile#14 @t=9
+[HeuristicMapping] Successfully mapped operation neura.return_void %70 : !neura.data<i1, i1>
+[HeuristicMapping] Successfully mapped all 35 operations.

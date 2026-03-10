@@ -1,0 +1,62 @@
+=== egg-process-neura all kernels uf=1/2/4/8 ===
+date: Sun Feb 22 18:30:17 CST 2026
+
+### AXPY
+axpy uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=15
+axpy uf=2   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=18
+axpy uf=4   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=28
+axpy uf=8   compiled_ii=6  rec_mii=5  res_mii=2  dfg_nodes=48
+
+### BICG
+bicg uf=1   compiled_ii=9  rec_mii=8  res_mii=2  dfg_nodes=37
+bicg uf=2   compiled_ii=9  rec_mii=8  res_mii=2  dfg_nodes=47
+bicg uf=4   compiled_ii=9  rec_mii=8  res_mii=3  dfg_nodes=67
+bicg uf=8   compiled_ii=12  rec_mii=8  res_mii=5  dfg_nodes=107
+
+### FFT
+fft  uf=1   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=31
+fft  uf=2   compiled_ii=4  rec_mii=4  res_mii=2  dfg_nodes=47
+fft  uf=4   compiled_ii=6  rec_mii=4  res_mii=4  dfg_nodes=87
+fft  uf=8   compiled_ii=10  rec_mii=4  res_mii=7  dfg_nodes=167
+
+### FIR
+fir  uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=18
+fir  uf=2   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=24
+fir  uf=4   compiled_ii=6  rec_mii=5  res_mii=2  dfg_nodes=35
+fir  uf=8   compiled_ii=11  rec_mii=8  res_mii=3  dfg_nodes=61
+
+### GEMM
+run_egg_uf1to8_5x5.sh: line 22: 1206342 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=1: MAP_ERR
+run_egg_uf1to8_5x5.sh: line 22: 1206347 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=2: MAP_ERR
+run_egg_uf1to8_5x5.sh: line 22: 1206352 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=4: MAP_ERR
+run_egg_uf1to8_5x5.sh: line 22: 1206357 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=8: MAP_ERR
+
+### GEMV
+gemv uf=1   compiled_ii=8  rec_mii=7  res_mii=2  dfg_nodes=47
+gemv uf=2   compiled_ii=9  rec_mii=7  res_mii=2  dfg_nodes=53
+gemv uf=4: MAP_ERR
+gemv uf=8: MAP_ERR
+
+### HISTOGRAM
+hist uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=16
+hist uf=2   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=24
+hist uf=4   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=40
+hist uf=8   compiled_ii=6  rec_mii=5  res_mii=3  dfg_nodes=72
+
+### RELU
+relu uf=1   compiled_ii=7  rec_mii=7  res_mii=2  dfg_nodes=41
+relu uf=2   compiled_ii=7  rec_mii=7  res_mii=2  dfg_nodes=50
+relu uf=4: MAP_ERR
+relu uf=8: MAP_ERR
+
+### SPMV
+spmv uf=1   compiled_ii=7  rec_mii=5  res_mii=1  dfg_nodes=20
+spmv uf=2   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=24
+spmv uf=4   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=40
+spmv uf=8   compiled_ii=6  rec_mii=5  res_mii=3  dfg_nodes=72
+
+=== done ===

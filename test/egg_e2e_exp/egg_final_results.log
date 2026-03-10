@@ -1,0 +1,105 @@
+=== Egg FINAL mapping (no-regression params) ===
+date: Sun Mar  8 10:22:52 CST 2026
+
+Per-kernel best params (3x3 tuned, per-size fallback for regressions):
+  axpy:   ops=20 area=50000
+  fir:    ops=20 area=50000; 4x4/4x8 uf=2: ops=1 (avoid regression)
+  hist:   ops=20 area=50000
+  gemv:   ops=20 area=10000
+  latnrm: 3x3: ops=3 area=10000; >=4x4 uf=1: ops=20 area=50000; uf=2: ops=3 area=10000; uf=4: ops=1
+  spmv:   uf=1: ops=1; uf=2/4: ops=20 area=50000
+  gemm:   ops=2 area=50000
+
+========== 3x3 ==========
+axpy  3x3 uf=1   ii=5 rec=5 res=2
+axpy  3x3 uf=2   ii=5 rec=5 res=2
+axpy  3x3 uf=4   ii=5 rec=5 res=4
+fir   3x3 uf=1   ii=5 rec=5 res=2
+fir   3x3 uf=2   ii=5 rec=5 res=3
+fir   3x3 uf=4   ii=7 rec=5 res=4
+hist  3x3 uf=1   ii=5 rec=5 res=2
+hist  3x3 uf=2   ii=5 rec=5 res=3
+hist  3x3 uf=4   ii=5 rec=5 res=5
+gemv  3x3 uf=1   ii=9 rec=7 res=4
+gemv  3x3 uf=2   ii=10 rec=7 res=5
+gemv  3x3 uf=4   ii=11 rec=7 res=6
+latnrm 3x3 uf=1   ii=16 rec=13 res=6
+latnrm 3x3 uf=2   ii=16 rec=13 res=7
+latnrm 3x3 uf=4   ii=19 rec=13 res=12
+spmv  3x3 uf=1   ii=5 rec=5 res=3
+spmv  3x3 uf=2   ii=5 rec=5 res=3
+spmv  3x3 uf=4   ii=6 rec=5 res=5
+gemm  3x3 uf=1   ii=14 rec=11 res=5
+gemm  3x3 uf=2   ii=14 rec=11 res=5
+gemm  3x3 uf=4   ii=14 rec=11 res=5
+
+========== 4x4 ==========
+axpy  4x4 uf=1   ii=5 rec=5 res=1
+axpy  4x4 uf=2   ii=5 rec=5 res=2
+axpy  4x4 uf=4   ii=5 rec=5 res=2
+fir   4x4 uf=1   ii=5 rec=5 res=1
+fir   4x4 uf=2   ii=5 rec=5 res=2
+fir   4x4 uf=4   ii=7 rec=5 res=3
+hist  4x4 uf=1   ii=5 rec=5 res=1
+hist  4x4 uf=2   ii=5 rec=5 res=2
+hist  4x4 uf=4   ii=5 rec=5 res=3
+gemv  4x4 uf=1   ii=8 rec=7 res=3
+gemv  4x4 uf=2   ii=9 rec=7 res=3
+gemv  4x4 uf=4   ii=12 rec=7 res=4
+latnrm 4x4 uf=1   ii=15 rec=13 res=4
+latnrm 4x4 uf=2   ii=15 rec=13 res=4
+latnrm 4x4 uf=4   ii=17 rec=13 res=7
+spmv  4x4 uf=1   ii=5 rec=5 res=2
+spmv  4x4 uf=2   ii=5 rec=5 res=2
+spmv  4x4 uf=4   ii=5 rec=5 res=3
+gemm  4x4 uf=1   ii=12 rec=11 res=3
+gemm  4x4 uf=2   ii=12 rec=11 res=3
+gemm  4x4 uf=4   ii=12 rec=11 res=3
+
+========== 5x5 ==========
+axpy  5x5 uf=1   ii=5 rec=5 res=1
+axpy  5x5 uf=2   ii=5 rec=5 res=1
+axpy  5x5 uf=4   ii=5 rec=5 res=2
+fir   5x5 uf=1   ii=5 rec=5 res=1
+fir   5x5 uf=2   ii=5 rec=5 res=1
+fir   5x5 uf=4   ii=6 rec=5 res=2
+hist  5x5 uf=1   ii=5 rec=5 res=1
+hist  5x5 uf=2   ii=5 rec=5 res=1
+hist  5x5 uf=4   ii=5 rec=5 res=2
+gemv  5x5 uf=1   ii=9 rec=7 res=2
+gemv  5x5 uf=2   ii=9 rec=7 res=2
+gemv  5x5 uf=4   MAP_ERR
+latnrm 5x5 uf=1   ii=15 rec=13 res=3
+latnrm 5x5 uf=2   MAP_ERR
+latnrm 5x5 uf=4   MAP_ERR
+spmv  5x5 uf=1   ii=5 rec=5 res=1
+spmv  5x5 uf=2   ii=5 rec=5 res=1
+spmv  5x5 uf=4   ii=5 rec=5 res=2
+gemm  5x5 uf=1   ii=12 rec=11 res=2
+gemm  5x5 uf=2   ii=12 rec=11 res=2
+gemm  5x5 uf=4   ii=12 rec=11 res=2
+
+========== 4x8 ==========
+axpy  4x8 uf=1   ii=5 rec=5 res=1
+axpy  4x8 uf=2   ii=5 rec=5 res=1
+axpy  4x8 uf=4   ii=5 rec=5 res=1
+fir   4x8 uf=1   ii=5 rec=5 res=1
+fir   4x8 uf=2   ii=6 rec=5 res=1
+fir   4x8 uf=4   ii=7 rec=5 res=2
+hist  4x8 uf=1   ii=5 rec=5 res=1
+hist  4x8 uf=2   ii=5 rec=5 res=1
+hist  4x8 uf=4   ii=5 rec=5 res=2
+gemv  4x8 uf=1   ii=8 rec=7 res=2
+gemv  4x8 uf=2   ii=9 rec=7 res=2
+gemv  4x8 uf=4   MAP_ERR
+latnrm 4x8 uf=1   MAP_ERR
+latnrm 4x8 uf=2   MAP_ERR
+latnrm 4x8 uf=4   MAP_ERR
+spmv  4x8 uf=1   ii=5 rec=5 res=1
+spmv  4x8 uf=2   ii=5 rec=5 res=1
+spmv  4x8 uf=4   ii=5 rec=5 res=2
+gemm  4x8 uf=1   MAP_ERR
+gemm  4x8 uf=2   MAP_ERR
+gemm  4x8 uf=4   MAP_ERR
+
+=== done ===

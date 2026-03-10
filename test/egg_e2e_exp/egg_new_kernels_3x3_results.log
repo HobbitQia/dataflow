@@ -1,0 +1,29 @@
+=== Egg new kernels (3x3) ===
+date: Sat Mar  7 13:32:59 CST 2026
+
+### DTW (SIZE=512, inner x-loop, squared distance)
+dtw  uf=1   compiled_ii=7  rec_mii=5  res_mii=5  dfg_nodes=45
+dtw  uf=2   compiled_ii=10  rec_mii=6  res_mii=7  dfg_nodes=70
+dtw  uf=4   compiled_ii=10  rec_mii=10  res_mii=8  dfg_nodes=77
+
+### MVT (N=256, inner i-loop)
+mvt  uf=1   compiled_ii=6  rec_mii=5  res_mii=5  dfg_nodes=45
+mvt  uf=2   compiled_ii=7  rec_mii=4  res_mii=7  dfg_nodes=65
+mvt  uf=4   compiled_ii=10  rec_mii=4  res_mii=10  dfg_nodes=96
+
+### CONV (1D, N=1024, K=7, inner k-loop)
+conv uf=1   compiled_ii=8  rec_mii=6  res_mii=4  dfg_nodes=49
+conv uf=2   compiled_ii=11  rec_mii=8  res_mii=6  dfg_nodes=70
+conv uf=4: MAP_ERR
+
+### LATNRM (N=512, D=64, inner j-loop)
+latnrm uf=1   compiled_ii=17  rec_mii=13  res_mii=6  dfg_nodes=77
+latnrm uf=2   compiled_ii=16  rec_mii=13  res_mii=8  dfg_nodes=92
+latnrm uf=4: MAP_ERR
+
+### GEMM_V2 (merged i,k, NI=NJ=NK=64, j-loop)
+gemm_v2 uf=1   compiled_ii=7  rec_mii=5  res_mii=4  dfg_nodes=39
+gemm_v2 uf=2: MAP_ERR
+gemm_v2 uf=4: MAP_ERR
+
+=== done ===

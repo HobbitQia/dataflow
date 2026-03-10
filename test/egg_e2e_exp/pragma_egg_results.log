@@ -1,0 +1,42 @@
+=== Pragma-unroll + egg-process-neura results ===
+date: Sat Feb 21 23:46:05 CST 2026
+
+### FFT (standalone, BPGROUP=128, integer, pragma on k-loop)
+fft  uf=1   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=31
+fft  uf=2   compiled_ii=4  rec_mii=4  res_mii=3  dfg_nodes=47
+fft  uf=4   compiled_ii=7  rec_mii=4  res_mii=6  dfg_nodes=87
+
+### FIR (NTAPS=32, integer, pragma on single loop)
+fir  uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=18
+fir  uf=2   compiled_ii=6  rec_mii=5  res_mii=2  dfg_nodes=24
+fir  uf=4   compiled_ii=7  rec_mii=5  res_mii=3  dfg_nodes=35
+
+### GEMM (standalone, NI=NJ=NK=64, integer, pointer args, pragma on j-loop)
+run_pragma_egg.sh: line 23: 1159575 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=1: MAP_ERR
+run_pragma_egg.sh: line 23: 1159580 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=2: MAP_ERR
+run_pragma_egg.sh: line 23: 1159585 Aborted                 (core dumped) $NEURA_OPT --architecture-spec="$ARCH" --area-spec="$PPA_SPEC" --assign-accelerator --lower-llvm-to-neura --promote-input-arg-to-const --fold-constant --canonicalize-return --canonicalize-live-in --leverage-predicated-value --transform-ctrl-to-data-flow --fold-constant "--egg-process-neura=max-pattern-area=50000 max-pattern-ops=20" --insert-data-mov "--map-to-accelerator=mapping-strategy=heuristic" "$in_mlir" -o "$out_mlir" > /dev/null 2> /dev/null
+gemm uf=4: MAP_ERR
+
+### GEMV (N=512, integer, pragma on inner j-loop)
+gemv uf=1   compiled_ii=9  rec_mii=7  res_mii=3  dfg_nodes=47
+gemv uf=2   compiled_ii=10  rec_mii=7  res_mii=3  dfg_nodes=53
+gemv uf=4: MAP_ERR
+
+### HISTOGRAM (DATA_LEN=1024, BUCKET_LEN=16, integer, pragma on loop)
+hist uf=1   compiled_ii=5  rec_mii=5  res_mii=1  dfg_nodes=16
+hist uf=2   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=24
+hist uf=4   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=40
+
+### RELU (standalone, NI=NJ=64, integer, 2D loop, pragma on inner j-loop)
+relu uf=1   compiled_ii=9  rec_mii=7  res_mii=2  dfg_nodes=41
+relu uf=2   compiled_ii=7  rec_mii=7  res_mii=3  dfg_nodes=50
+relu uf=4: MAP_ERR
+
+### SPMV (standalone, NNZ=1024, integer, pragma on loop)
+spmv uf=1   compiled_ii=7  rec_mii=5  res_mii=2  dfg_nodes=20
+spmv uf=2   compiled_ii=5  rec_mii=5  res_mii=2  dfg_nodes=24
+spmv uf=4   compiled_ii=5  rec_mii=5  res_mii=3  dfg_nodes=40
+
+=== done ===

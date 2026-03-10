@@ -1,0 +1,49 @@
+========== Unroll Factor = 1 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Date: Tue Feb 17 23:31:48 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         5              5          1          19           OK      
+bicg         12             9          6          173          OK      
+fft          20             12         7          168          OK      
+fir          5              5          2          22           OK      
+gemm         N/A            N/A        N/A        N/A          CRASH   
+gemv         10             9          3          60           OK      
+histogram    5              5          2          23           OK      
+relu         5              5          2          37           OK      
+spmv         8              5          3          46           OK      
+
+========== Unroll Factor = 2 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Date: Tue Feb 17 23:42:24 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         3              3          2          39           OK      
+bicg         12             10         7          193          OK      
+fft          20             13         8          251          OK      
+fir          6              4          2          34           OK      
+gemm         N/A            N/A        N/A        N/A          CRASH   
+gemv         N/A            N/A        N/A        N/A          CRASH   
+histogram    3              3          2          38           OK      
+relu         3              3          2          57           OK      
+spmv         7              4          4          68           OK      
+
+========== Unroll Factor = 4 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+Date: Tue Feb 17 23:52:18 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+axpy         4              3          3          62           OK      
+bicg         14             10         9          294          OK      
+fft          N/A            N/A        N/A        N/A          ERROR   
+fir          4              3          2          22           OK      
+gemm         16             13         8          256          OK      
+gemv         7              5          4          75           OK      
+histogram    4              3          4          65           OK      
+relu         5              3          4          98           OK      
+spmv         8              4          6          116          OK      
+
+========== Done ==========

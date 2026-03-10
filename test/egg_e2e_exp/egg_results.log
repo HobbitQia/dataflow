@@ -1,0 +1,79 @@
+========== Unroll Factor = 1 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+PPA Spec:     /mnt/public/qjj/dataflow/test/e2e/../../test/egg/ppa_spec.yaml
+Date: Wed Feb 18 15:46:51 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+  Running axpy (uf=1) ... OK
+axpy         5              5          1          16           OK      
+  Running bicg (uf=1) ... ERROR
+bicg         N/A            N/A        N/A        N/A          ERROR   
+  Running fft (uf=1) ... OK
+fft          18             15         6          119          OK      
+  Running fir (uf=1) ... OK
+fir          5              5          1          19           OK      
+  Running gemm (uf=1) ... CRASH
+gemm         N/A            N/A        N/A        N/A          CRASH   
+  Running gemv (uf=1) ... OK
+gemv         9              7          3          48           OK      
+  Running histogram (uf=1) ... OK
+histogram    5              5          2          18           OK      
+  Running relu (uf=1) ... OK
+relu         6              6          1          18           OK      
+  Running spmv (uf=1) ... OK
+spmv         6              5          2          31           OK      
+
+========== Unroll Factor = 2 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+PPA Spec:     /mnt/public/qjj/dataflow/test/e2e/../../test/egg/ppa_spec.yaml
+Date: Wed Feb 18 15:51:15 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+  Running axpy (uf=2) ... OK
+axpy         3              3          2          19           OK      
+  Running bicg (uf=2) ... ERROR
+bicg         N/A            N/A        N/A        N/A          ERROR   
+  Running fft (uf=2) ... OK
+fft          19             16         7          134          OK      
+  Running fir (uf=2) ... OK
+fir          5              4          2          25           OK      
+  Running gemm (uf=2) ... CRASH
+gemm         N/A            N/A        N/A        N/A          CRASH   
+  Running gemv (uf=2) ... CRASH
+gemv         N/A            N/A        N/A        N/A          CRASH   
+  Running histogram (uf=2) ... OK
+histogram    3              3          2          23           OK      
+  Running relu (uf=2) ... CRASH
+relu         N/A            4          2          N/A          CRASH   
+  Running spmv (uf=2) ... OK
+spmv         4              4          3          35           OK      
+
+========== Unroll Factor = 4 ==========
+Architecture: /mnt/public/qjj/dataflow/test/e2e/architecture_all_tiles_mem.yaml
+PPA Spec:     /mnt/public/qjj/dataflow/test/e2e/../../test/egg/ppa_spec.yaml
+Date: Wed Feb 18 15:55:04 CST 2026
+
+kernel       compiled_ii    rec_mii    res_mii    dfg_nodes    status  
+------       -----------    -------    -------    ---------    ------  
+  Running axpy (uf=4) ... OK
+axpy         4              3          2          29           OK      
+  Running bicg (uf=4) ... ERROR
+bicg         N/A            N/A        N/A        N/A          ERROR   
+  Running fft (uf=4) ... ERROR
+fft          N/A            N/A        N/A        N/A          ERROR   
+  Running fir (uf=4) ... OK
+fir          4              3          2          20           OK      
+  Running gemm (uf=4) ... OK
+gemm         13             10         6          117          OK      
+  Running gemv (uf=4) ... ERROR
+gemv         N/A            N/A        N/A        N/A          ERROR   
+  Running histogram (uf=4) ... OK
+histogram    3              3          3          37           OK      
+  Running relu (uf=4) ... CRASH
+relu         N/A            4          4          N/A          CRASH   
+  Running spmv (uf=4) ... OK
+spmv         5              4          4          51           OK      
+
+========== Done ==========

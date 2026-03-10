@@ -1,0 +1,48 @@
+=== Conv egg fallback (max-pattern-ops=2) ===
+date: Sun Mar  8 00:18:24 CST 2026
+
+### CONV 3x3
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 3x3 uf=1   compiled_ii=10  rec_mii=8  res_mii=4  dfg_nodes=50
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 3x3 uf=2   compiled_ii=10  rec_mii=8  res_mii=6  dfg_nodes=74
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 3x3 uf=4   compiled_ii=11  rec_mii=7  res_mii=6  dfg_nodes=68
+
+### CONV 4x4
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x4 uf=1   compiled_ii=9  rec_mii=8  res_mii=3  dfg_nodes=50
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x4 uf=2   compiled_ii=10  rec_mii=8  res_mii=4  dfg_nodes=74
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x4 uf=4   compiled_ii=11  rec_mii=7  res_mii=4  dfg_nodes=68
+
+### CONV 5x5
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 5x5 uf=1   compiled_ii=9  rec_mii=8  res_mii=2  dfg_nodes=50
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 5x5 uf=2   compiled_ii=10  rec_mii=8  res_mii=3  dfg_nodes=74
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 5x5 uf=4: MAP_ERR
+
+### CONV 4x8
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf1.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x8 uf=1   compiled_ii=10  rec_mii=8  res_mii=2  dfg_nodes=50
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf2.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x8 uf=2: MAP_ERR
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: m:e
+/mnt/public/qjj/dataflow/test/egg_e2e_exp/conv/conv_standalone_uf4.c:0:0: warning: unhandled data layout token: n8:16:32:64
+conv 4x8 uf=4   compiled_ii=11  rec_mii=9  res_mii=3  dfg_nodes=81  [max-pattern-ops=1, timeout=300s]
+
+=== done ===

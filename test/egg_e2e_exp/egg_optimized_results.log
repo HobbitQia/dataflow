@@ -1,0 +1,133 @@
+=== Egg optimized mapping (per-kernel best params) ===
+date: Sun Mar  8 01:27:05 CST 2026
+
+Best params found on 3x3:
+  axpy:   ops=20 area=50000 (no improvement possible, ii=rec=5)
+  fir:    ops=20 area=50000 (ii=rec for uf1/2, uf4 same as baseline)
+  hist:   ops=20 area=50000 (uf4: 6->5)
+  gemv:   ops=20 area=10000 (rec 9->7, uf1: 10->9, uf2: 11->10, uf4: 15->11)
+  latnrm: ops=3  area=10000 (uf1: 17->16, uf2: 17->16, uf4: no egg possible)
+  spmv:   uf1:ops=1, uf2:ops=20, uf4:ops=20 area=50000
+  gemm:   ops=2  area=50000 (rec 13->11, 16->14)
+
+========== 3x3 ==========
+### AXPY (3x3) -- ops=20, area=50000
+axpy  3x3 uf=1   ii=5 rec=5 res=2
+axpy  3x3 uf=2   ii=5 rec=5 res=2
+axpy  3x3 uf=4   ii=5 rec=5 res=4
+### FIR (3x3) -- ops=20, area=50000
+fir   3x3 uf=1   ii=5 rec=5 res=2
+fir   3x3 uf=2   ii=5 rec=5 res=3
+fir   3x3 uf=4   ii=7 rec=5 res=4
+### HIST (3x3) -- ops=20, area=50000
+hist  3x3 uf=1   ii=5 rec=5 res=2
+hist  3x3 uf=2   ii=5 rec=5 res=3
+hist  3x3 uf=4   ii=5 rec=5 res=5
+### GEMV (3x3) -- ops=20, area=10000
+gemv  3x3 uf=1   ii=9 rec=7 res=4
+gemv  3x3 uf=2   ii=10 rec=7 res=5
+gemv  3x3 uf=4   ii=11 rec=7 res=6
+### LATNRM (3x3) -- uf1/2: ops=3 area=10000, uf4: ops=1 area=50000 (fallback)
+latnrm 3x3 uf=1   ii=16 rec=13 res=6
+latnrm 3x3 uf=2   ii=16 rec=13 res=7
+latnrm 3x3 uf=4   ii=19 rec=13 res=12
+### SPMV (3x3) -- uf1: ops=1, uf2/4: ops=20, area=50000
+spmv  3x3 uf=1   ii=5 rec=5 res=3
+spmv  3x3 uf=2   ii=5 rec=5 res=3
+spmv  3x3 uf=4   ii=6 rec=5 res=5
+### GEMM (3x3) -- ops=2, area=50000
+gemm  3x3 uf=1   ii=14 rec=11 res=5
+gemm  3x3 uf=2   ii=14 rec=11 res=5
+gemm  3x3 uf=4   ii=14 rec=11 res=5
+
+========== 4x4 ==========
+### AXPY (4x4) -- ops=20, area=50000
+axpy  4x4 uf=1   ii=5 rec=5 res=1
+axpy  4x4 uf=2   ii=5 rec=5 res=2
+axpy  4x4 uf=4   ii=5 rec=5 res=2
+### FIR (4x4) -- ops=20, area=50000
+fir   4x4 uf=1   ii=5 rec=5 res=1
+fir   4x4 uf=2   ii=6 rec=5 res=2
+fir   4x4 uf=4   ii=7 rec=5 res=3
+### HIST (4x4) -- ops=20, area=50000
+hist  4x4 uf=1   ii=5 rec=5 res=1
+hist  4x4 uf=2   ii=5 rec=5 res=2
+hist  4x4 uf=4   ii=5 rec=5 res=3
+### GEMV (4x4) -- ops=20, area=10000
+gemv  4x4 uf=1   ii=8 rec=7 res=3
+gemv  4x4 uf=2   ii=9 rec=7 res=3
+gemv  4x4 uf=4   ii=12 rec=7 res=4
+### LATNRM (4x4) -- uf1/2: ops=3 area=10000, uf4: ops=1 area=50000 (fallback)
+latnrm 4x4 uf=1   ii=16 rec=13 res=4
+latnrm 4x4 uf=2   ii=15 rec=13 res=4
+latnrm 4x4 uf=4   ii=17 rec=13 res=7
+### SPMV (4x4) -- uf1: ops=1, uf2/4: ops=20, area=50000
+spmv  4x4 uf=1   ii=5 rec=5 res=2
+spmv  4x4 uf=2   ii=5 rec=5 res=2
+spmv  4x4 uf=4   ii=5 rec=5 res=3
+### GEMM (4x4) -- ops=2, area=50000
+gemm  4x4 uf=1   ii=12 rec=11 res=3
+gemm  4x4 uf=2   ii=12 rec=11 res=3
+gemm  4x4 uf=4   ii=12 rec=11 res=3
+
+========== 5x5 ==========
+### AXPY (5x5) -- ops=20, area=50000
+axpy  5x5 uf=1   ii=5 rec=5 res=1
+axpy  5x5 uf=2   ii=5 rec=5 res=1
+axpy  5x5 uf=4   ii=5 rec=5 res=2
+### FIR (5x5) -- ops=20, area=50000
+fir   5x5 uf=1   ii=5 rec=5 res=1
+fir   5x5 uf=2   ii=5 rec=5 res=1
+fir   5x5 uf=4   ii=6 rec=5 res=2
+### HIST (5x5) -- ops=20, area=50000
+hist  5x5 uf=1   ii=5 rec=5 res=1
+hist  5x5 uf=2   ii=5 rec=5 res=1
+hist  5x5 uf=4   ii=5 rec=5 res=2
+### GEMV (5x5) -- ops=20, area=10000
+gemv  5x5 uf=1   ii=9 rec=7 res=2
+gemv  5x5 uf=2   ii=9 rec=7 res=2
+gemv  5x5 uf=4   MAP_ERR
+### LATNRM (5x5) -- uf1/2: ops=3 area=10000, uf4: ops=1 area=50000 (fallback)
+latnrm 5x5 uf=1   MAP_ERR
+latnrm 5x5 uf=2   MAP_ERR
+latnrm 5x5 uf=4   MAP_ERR
+### SPMV (5x5) -- uf1: ops=1, uf2/4: ops=20, area=50000
+spmv  5x5 uf=1   ii=5 rec=5 res=1
+spmv  5x5 uf=2   ii=5 rec=5 res=1
+spmv  5x5 uf=4   ii=5 rec=5 res=2
+### GEMM (5x5) -- ops=2, area=50000
+gemm  5x5 uf=1   ii=12 rec=11 res=2
+gemm  5x5 uf=2   ii=12 rec=11 res=2
+gemm  5x5 uf=4   ii=12 rec=11 res=2
+
+========== 4x8 ==========
+### AXPY (4x8) -- ops=20, area=50000
+axpy  4x8 uf=1   ii=5 rec=5 res=1
+axpy  4x8 uf=2   ii=5 rec=5 res=1
+axpy  4x8 uf=4   ii=5 rec=5 res=1
+### FIR (4x8) -- ops=20, area=50000
+fir   4x8 uf=1   ii=5 rec=5 res=1
+fir   4x8 uf=2   ii=7 rec=5 res=1
+fir   4x8 uf=4   ii=7 rec=5 res=2
+### HIST (4x8) -- ops=20, area=50000
+hist  4x8 uf=1   ii=5 rec=5 res=1
+hist  4x8 uf=2   ii=5 rec=5 res=1
+hist  4x8 uf=4   ii=5 rec=5 res=2
+### GEMV (4x8) -- ops=20, area=10000
+gemv  4x8 uf=1   ii=8 rec=7 res=2
+gemv  4x8 uf=2   ii=9 rec=7 res=2
+gemv  4x8 uf=4   MAP_ERR
+### LATNRM (4x8) -- uf1/2: ops=3 area=10000, uf4: ops=1 area=50000 (fallback)
+latnrm 4x8 uf=1   MAP_ERR
+latnrm 4x8 uf=2   MAP_ERR
+latnrm 4x8 uf=4   MAP_ERR
+### SPMV (4x8) -- uf1: ops=1, uf2/4: ops=20, area=50000
+spmv  4x8 uf=1   ii=5 rec=5 res=1
+spmv  4x8 uf=2   ii=5 rec=5 res=1
+spmv  4x8 uf=4   ii=5 rec=5 res=2
+### GEMM (4x8) -- ops=2, area=50000
+gemm  4x8 uf=1   MAP_ERR
+gemm  4x8 uf=2   MAP_ERR
+gemm  4x8 uf=4   MAP_ERR
+
+=== done ===
