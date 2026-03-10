@@ -33,6 +33,32 @@
 // RUN: -o %t.placement.mlir
 // RUN: FileCheck %s --input-file=%t.placement.mlir --check-prefixes=PLACEMENT
 
+// RUN: mlir-neura-opt %s --affine-loop-tree-serialization \
+// RUN: --affine-loop-perfection \
+// RUN: --convert-affine-to-taskflow \
+// RUN: --construct-hyperblock-from-task \
+// RUN: --classify-counters \
+// RUN: --convert-taskflow-to-neura \
+// RUN: --lower-affine \
+// RUN: --convert-scf-to-cf \
+// RUN: --convert-cf-to-llvm \
+// RUN: --assign-accelerator \
+// RUN: --lower-memref-to-neura \
+// RUN: --lower-arith-to-neura \
+// RUN: --lower-builtin-to-neura \
+// RUN: --lower-llvm-to-neura \
+// RUN: --promote-input-arg-to-const \
+// RUN: --fold-constant \
+// RUN: --canonicalize-return \
+// RUN: --canonicalize-live-in \
+// RUN: --leverage-predicated-value \
+// RUN: --transform-ctrl-to-data-flow \
+// RUN: --fold-constant \
+// RUN: '--resource-aware-task-optimization=balance-skip-mapper=false' \
+// RUN: --architecture-spec=%S/../../../arch_spec/architecture_with_counter.yaml \
+// RUN: -o %t.resopt.mlir
+// RUN: FileCheck %s --input-file=%t.resopt.mlir --check-prefixes=RESOPT
+
 #set = affine_set<(d0, d1) : (d0 - 3 == 0, d1 - 7 == 0)>
 module attributes {} {
   func.func @_Z21irregularLoopExample1v() -> i32 attributes {llvm.linkage = #llvm.linkage<external>} {
@@ -164,7 +190,7 @@ module attributes {} {
 // TASKFLOW-NEXT:       }
 // TASKFLOW-NEXT:       taskflow.yield values(%1 : i32)
 // TASKFLOW-NEXT:     }
-// TASKFLOW-NEXT:     %write_outputs = taskflow.task @Task_1 write_memrefs(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
+// TASKFLOW-NEXT:     %dependency_write_out = taskflow.task @Task_1 dependency_write_in(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
 // TASKFLOW-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: i32):
 // TASKFLOW-NEXT:       affine.for %arg2 = 0 to 4 {
 // TASKFLOW-NEXT:         %1 = arith.index_cast %arg2 : index to i32
@@ -177,7 +203,7 @@ module attributes {} {
 // TASKFLOW-NEXT:       }
 // TASKFLOW-NEXT:       taskflow.yield writes(%arg0 : memref<4x8xi32>)
 // TASKFLOW-NEXT:     }
-// TASKFLOW-NEXT:     %write_outputs_1 = taskflow.task @Task_2 read_memrefs(%write_outputs : memref<4x8xi32>) write_memrefs(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<i32>) {
+// TASKFLOW-NEXT:     %dependency_read_out, %dependency_write_out_1 = taskflow.task @Task_2 dependency_read_in(%dependency_write_out : memref<4x8xi32>) dependency_write_in(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<4x8xi32>, memref<i32>) {
 // TASKFLOW-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: memref<i32>, %arg2: i32, %arg3: i32, %arg4: i32):
 // TASKFLOW-NEXT:       affine.for %arg5 = 0 to 4 {
 // TASKFLOW-NEXT:         %1 = arith.index_cast %arg5 : index to i32
@@ -192,9 +218,9 @@ module attributes {} {
 // TASKFLOW-NEXT:           }
 // TASKFLOW-NEXT:         }
 // TASKFLOW-NEXT:       }
-// TASKFLOW-NEXT:       taskflow.yield writes(%arg1 : memref<i32>)
+// TASKFLOW-NEXT:       taskflow.yield reads(%arg0 : memref<4x8xi32>) writes(%arg1 : memref<i32>)
 // TASKFLOW-NEXT:     }
-// TASKFLOW-NEXT:     %0 = affine.load %write_outputs_1[] : memref<i32>
+// TASKFLOW-NEXT:     %0 = affine.load %dependency_write_out_1[] : memref<i32>
 // TASKFLOW-NEXT:     return %0 : i32
 // TASKFLOW-NEXT:   }
 // TASKFLOW-NEXT: }
@@ -222,7 +248,7 @@ module attributes {} {
 // KERNEL-NEXT:       } : i32
 // KERNEL-NEXT:       taskflow.yield values(%1 : i32)
 // KERNEL-NEXT:     }
-// KERNEL-NEXT:     %write_outputs = taskflow.task @Task_1 write_memrefs(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
+// KERNEL-NEXT:     %dependency_write_out = taskflow.task @Task_1 dependency_write_in(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
 // KERNEL-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: i32):
 // KERNEL-NEXT:       affine.for %arg2 = 0 to 4 {
 // KERNEL-NEXT:         %1 = arith.index_cast %arg2 : index to i32
@@ -242,7 +268,7 @@ module attributes {} {
 // KERNEL-NEXT:       }
 // KERNEL-NEXT:       taskflow.yield writes(%arg0 : memref<4x8xi32>)
 // KERNEL-NEXT:     }
-// KERNEL-NEXT:     %write_outputs_1 = taskflow.task @Task_2 read_memrefs(%write_outputs : memref<4x8xi32>) write_memrefs(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<i32>) {
+// KERNEL-NEXT:     %dependency_read_out, %dependency_write_out_1 = taskflow.task @Task_2 dependency_read_in(%dependency_write_out : memref<4x8xi32>) dependency_write_in(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<4x8xi32>, memref<i32>) {
 // KERNEL-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: memref<i32>, %arg2: i32, %arg3: i32, %arg4: i32):
 // KERNEL-NEXT:       affine.for %arg5 = 0 to 4 {
 // KERNEL-NEXT:         neura.kernel inputs(%arg0, %arg5, %arg3, %arg1, %arg4 : memref<4x8xi32>, index, i32, memref<i32>, i32) {
@@ -269,9 +295,9 @@ module attributes {} {
 // KERNEL-NEXT:           neura.yield
 // KERNEL-NEXT:         }
 // KERNEL-NEXT:       }
-// KERNEL-NEXT:       taskflow.yield writes(%arg1 : memref<i32>)
+// KERNEL-NEXT:       taskflow.yield reads(%arg0 : memref<4x8xi32>) writes(%arg1 : memref<i32>)
 // KERNEL-NEXT:     }
-// KERNEL-NEXT:     %0 = affine.load %write_outputs_1[] : memref<i32>
+// KERNEL-NEXT:     %0 = affine.load %dependency_write_out_1[] : memref<i32>
 // KERNEL-NEXT:     return %0 : i32
 // KERNEL-NEXT:   }
 // KERNEL-NEXT: }
@@ -294,7 +320,7 @@ module attributes {} {
 // HYPERBLOCK-NEXT:       }) : (index, i32) -> i32
 // HYPERBLOCK-NEXT:       taskflow.yield values(%2 : i32)
 // HYPERBLOCK-NEXT:     }
-// HYPERBLOCK-NEXT:     %write_outputs = taskflow.task @Task_1 write_memrefs(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
+// HYPERBLOCK-NEXT:     %dependency_write_out = taskflow.task @Task_1 dependency_write_in(%alloca_0 : memref<4x8xi32>) value_inputs(%c8_i32 : i32) [original_write_memrefs(%alloca_0 : memref<4x8xi32>)] : (memref<4x8xi32>, i32) -> (memref<4x8xi32>) {
 // HYPERBLOCK-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: i32):
 // HYPERBLOCK-NEXT:       %1 = taskflow.counter attributes {lower_bound = 0 : index, step = 1 : index, upper_bound = 4 : index} : index
 // HYPERBLOCK-NEXT:       "taskflow.hyperblock"(%1) <{operandSegmentSizes = array<i32: 1, 0>}> ({
@@ -313,7 +339,7 @@ module attributes {} {
 // HYPERBLOCK-NEXT:       }) : (index) -> ()
 // HYPERBLOCK-NEXT:       taskflow.yield writes(%arg0 : memref<4x8xi32>)
 // HYPERBLOCK-NEXT:     }
-// HYPERBLOCK-NEXT:     %write_outputs_1 = taskflow.task @Task_2 read_memrefs(%write_outputs : memref<4x8xi32>) write_memrefs(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<i32>) {
+// HYPERBLOCK-NEXT:     %dependency_read_out, %dependency_write_out_1 = taskflow.task @Task_2 dependency_read_in(%dependency_write_out : memref<4x8xi32>) dependency_write_in(%alloca : memref<i32>) value_inputs(%c8_i32, %value_outputs, %c2_i32 : i32, i32, i32) [original_read_memrefs(%alloca_0 : memref<4x8xi32>), original_write_memrefs(%alloca : memref<i32>)] : (memref<4x8xi32>, memref<i32>, i32, i32, i32) -> (memref<4x8xi32>, memref<i32>) {
 // HYPERBLOCK-NEXT:     ^bb0(%arg0: memref<4x8xi32>, %arg1: memref<i32>, %arg2: i32, %arg3: i32, %arg4: i32):
 // HYPERBLOCK-NEXT:       %1 = taskflow.counter attributes {lower_bound = 0 : index, step = 1 : index, upper_bound = 4 : index} : index
 // HYPERBLOCK-NEXT:       "taskflow.hyperblock"(%1) <{operandSegmentSizes = array<i32: 1, 0>}> ({
@@ -342,9 +368,9 @@ module attributes {} {
 // HYPERBLOCK-NEXT:         }
 // HYPERBLOCK-NEXT:         taskflow.hyperblock.yield
 // HYPERBLOCK-NEXT:       }) : (index) -> ()
-// HYPERBLOCK-NEXT:       taskflow.yield writes(%arg1 : memref<i32>)
+// HYPERBLOCK-NEXT:       taskflow.yield reads(%arg0 : memref<4x8xi32>) writes(%arg1 : memref<i32>)
 // HYPERBLOCK-NEXT:     }
-// HYPERBLOCK-NEXT:     %0 = affine.load %write_outputs_1[] : memref<i32>
+// HYPERBLOCK-NEXT:     %0 = affine.load %dependency_write_out_1[] : memref<i32>
 // HYPERBLOCK-NEXT:     return %0 : i32
 // HYPERBLOCK-NEXT:   }
 // HYPERBLOCK-NEXT: }
@@ -355,3 +381,20 @@ module attributes {} {
 // PLACEMENT-SAME: task_mapping_info = {cgra_positions = [{col = 1 : i32, row = 1 : i32}], read_sram_locations = [], write_sram_locations = [{col = 1 : i32, row = 1 : i32}]}
 // PLACEMENT:      taskflow.task @Task_2
 // PLACEMENT-SAME: task_mapping_info = {cgra_positions = [{col = 0 : i32, row = 1 : i32}], read_sram_locations = [{col = 1 : i32, row = 1 : i32}], write_sram_locations = [{col = 0 : i32, row = 1 : i32}]}
+
+// CGRA Tile Occupation after RESOPT (4x4 grid, col x row):
+// +---+---+---+---+
+// | 0 | 1 | . | . |   Task_0_Task_1_utilfused (1x1, cgra_count=1)
+// +---+---+---+---+   Task_2 (1x1, cgra_count=1)
+// | . | . | . | . |
+// +---+---+---+---+
+// | . | . | . | . |
+// +---+---+---+---+
+// | . | . | . | . |
+// +---+---+---+---+
+// 0=Task_0_Task_1_utilfused, 1=Task_2; 2/16 CGRAs used
+
+// RESOPT:      taskflow.task @Task_0_Task_1_utilfused
+// RESOPT-SAME: {cgra_count = 1 : i32, compiled_ii = 3 : i32, steps = 5 : i32, tile_shape = "1x1", trip_count = 32 : i32}
+// RESOPT:      taskflow.task @Task_2
+// RESOPT-SAME: {cgra_count = 1 : i32, compiled_ii = 2 : i32, steps = 7 : i32, tile_shape = "1x1", trip_count = 32 : i32}
