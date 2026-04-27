@@ -227,6 +227,11 @@ bool MappingState::isAvailableForOccupyStatus(const MappingLoc &loc,
 bool MappingState::isAvailableForOccupyStatusWithTemplate(
     const MappingLoc &loc, int new_occupy_status,
     Operation *new_op) const {
+  // In exclusive mode, any existing entry blocks all new placements.
+  if (tile_sharing_mode == "exclusive") {
+    return false;
+  }
+  
   // Falls back to basic checking when no template info is available.
   if (hw_template_info.empty()) {
     return isAvailableForOccupyStatus(loc, new_occupy_status);
@@ -235,17 +240,10 @@ bool MappingState::isAvailableForOccupyStatusWithTemplate(
   std::string new_op_name = getOpNameForTemplateLookup(new_op);
 
   // Helper lambda to check a single location with template awareness
-  auto checkSingleLocWithTemplate =
-      [this, new_occupy_status,
-       &new_op_name](const MappingLoc &check_loc) -> bool {
+  auto checkSingleLocWithTemplate = [this, new_occupy_status, &new_op_name](const MappingLoc &check_loc) -> bool {
     auto it = occupied_locs.find(check_loc);
     if (it == occupied_locs.end() || it->second.empty()) {
       return true;
-    }
-
-    // In exclusive mode, any existing entry blocks all new placements.
-    if (tile_sharing_mode == "exclusive") {
-      return false;
     }
 
     for (const auto &entry : it->second) {
@@ -253,10 +251,7 @@ bool MappingState::isAvailableForOccupyStatusWithTemplate(
       Operation *existing_op = entry.second;
 
       // SINGLE_OCCUPY blocks everything.
-      if (existing_status == SINGLE_OCCUPY) {
-        return false;
-      }
-      if (new_occupy_status == SINGLE_OCCUPY) {
+      if (existing_status == SINGLE_OCCUPY || new_occupy_status == SINGLE_OCCUPY) {
         return false;
       }
 

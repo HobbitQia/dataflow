@@ -345,7 +345,7 @@
 // RUN:           --insert-data-mov \
 // RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=simple tile-sharing-mode=exclusive" %t-kernel.mlir | FileCheck %s --check-prefix=CHECK-EXCLUSIVE-MAPPING
 
-// CHECK-EXCLUSIVE-MAPPING: mapping_info = {compiled_ii = 12 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 3 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
+// CHECK-EXCLUSIVE-MAPPING: mapping_info = {compiled_ii = 11 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 4 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
 
 // RUN: mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
 // RUN:           --assign-accelerator \
@@ -362,4 +362,34 @@
 // RUN:           --insert-data-mov \
 // RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=simple tile-sharing-mode=inclusive" %t-kernel.mlir | FileCheck %s --check-prefix=CHECK-INCLUSIVE-MAPPING
 
-// CHECK-INCLUSIVE-MAPPING: mapping_info = {compiled_ii = 12 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 3 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
+// CHECK-INCLUSIVE-MAPPING: mapping_info = {compiled_ii = 11 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 4 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
+
+// RUN: mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
+// RUN:           --assign-accelerator \
+// RUN:           --lower-llvm-to-neura \
+// RUN:           --promote-input-arg-to-const \
+// RUN:           --canonicalize-cast \
+// RUN:           --canonicalize-return \
+// RUN:           --canonicalize-live-in \
+// RUN:           --leverage-predicated-value \
+// RUN:           --fold-constant \
+// RUN:           --transform-ctrl-to-data-flow \
+// RUN:           --fold-constant \
+// RUN:           --iter-merge-pattern="min-support=3 max-iter=4" \
+// RUN:           --hardware-merge="output=%t-hw_config.json" %t-kernel.mlir -o %t-kernel-hw.mlir
+
+// RUN: mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
+// RUN:           --init-exec-latency --latency-spec=%S/latency_map.yaml \
+// RUN:           --insert-data-mov \
+// RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=customized hardware-config=%t-hw_config.json tile-sharing-mode=inclusive" %t-kernel-hw.mlir \
+// RUN:           | FileCheck %s --check-prefix=CHECK-INCLUSIVE-MULTICYCLE
+
+// CHECK-INCLUSIVE-MULTICYCLE: mapping_info = {compiled_ii = 18 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 8 : i32, res_mii = 4 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}
+
+// RUN: not mlir-neura-opt --architecture-spec=%S/../../arch_spec/architecture.yaml --verify-each=true --mlir-print-ir-after-failure \
+// RUN:           --init-exec-latency --latency-spec=%S/latency_map.yaml \
+// RUN:           --insert-data-mov \
+// RUN:           --map-to-accelerator="mapping-strategy=heuristic backtrack-config=customized hardware-config=%t-hw_config.json tile-sharing-mode=exclusive" %t-kernel-hw.mlir 2>&1 \
+// RUN:           | FileCheck %s --check-prefix=CHECK-EXCLUSIVE-MULTICYCLE
+
+// CHECK-EXCLUSIVE-MULTICYCLE: Mapping failed for all target II values
