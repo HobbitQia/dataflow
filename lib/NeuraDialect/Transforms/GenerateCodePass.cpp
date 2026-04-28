@@ -14,9 +14,11 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <map>
 #include <optional>
 #include <sstream>
+#include <set>
 #include <string>
 #include <tuple>
 #include <unordered_set>
@@ -25,6 +27,7 @@
 #include "NeuraDialect/Architecture/Architecture.h"
 #include "NeuraDialect/NeuraAttributes.h"
 #include "NeuraDialect/NeuraOps.h"
+#include "NeuraDialect/NeuraTypes.h"
 
 using namespace mlir;
 using namespace neura;
@@ -275,6 +278,53 @@ static std::string getConstantLiteral(Operation *op) {
   return "";
 }
 
+static std::string attributeToText(Attribute attr) {
+  if (!attr)
+    return "";
+
+  if (auto integer_attr = dyn_cast<IntegerAttr>(attr))
+    return std::to_string(integer_attr.getInt());
+  if (auto float_attr = dyn_cast<FloatAttr>(attr)) {
+    std::string text = std::to_string(float_attr.getValueAsDouble());
+    return text;
+  }
+  if (auto string_attr = dyn_cast<StringAttr>(attr))
+    return string_attr.getValue().str();
+
+  std::string text;
+  llvm::raw_string_ostream os(text);
+  os << attr;
+  return os.str();
+}
+
+static std::string valueToText(Value value) {
+  std::string text;
+  llvm::raw_string_ostream os(text);
+  os << value;
+  return os.str();
+}
+
+static std::string escapeYamlString(StringRef text) {
+  std::string escaped;
+  escaped.reserve(text.size());
+  for (char c : text) {
+    if (c == '\\' || c == '"')
+      escaped.push_back('\\');
+    escaped.push_back(c);
+  }
+  return escaped;
+}
+
+static std::string stripLeadingHash(std::string text) {
+  if (!text.empty() && text.front() == '#')
+    text.erase(text.begin());
+  return text;
+}
+
+static std::string getOperationNameText(Operation *op) {
+  return op ? op->getName().getStringRef().str() : "";
+}
+
 namespace mapping_utils {
 // ----- Topology from Architecture -----.
 struct Topology {
@@ -467,9 +517,11 @@ struct GenerateCodePass
   DenseMap<Operation *, SmallVector<Value>> operation_to_operands;
   // Map dfg_id -> op for later adjustments.
   DenseMap<int, Operation *> dfg_id_to_op;
+  DenseMap<Operation *, std::string> induction_symbols;
   // Map (col,row,index_per_ii,local_idx_in_bucket) -> global instruction id.
   std::map<std::tuple<int, int, int, int>, int> instruction_id_map;
   int next_instruction_id = 0;
+  int next_induction_symbol = 0;
   int current_compiled_ii = -1;
   bool timing_field_error = false;
 
@@ -507,8 +559,10 @@ struct GenerateCodePass
     hop_signatures.clear();
     deposit_signatures.clear();
     egress_signatures.clear();
+    induction_symbols.clear();
     instruction_id_map.clear();
     next_instruction_id = 0;
+    next_induction_symbol = 0;
     timing_field_error = false;
   }
 
@@ -2071,6 +2125,388 @@ struct GenerateCodePass
     }
   }
 
+  struct MemoryAccessRecord {
+    std::string type;
+    int dfg_id = -1;
+    int time_step = -1;
+    int index_per_ii = -1;
+    int invalid_iterations = 0;
+    int x = -1;
+    int y = -1;
+    std::string array;
+    std::string base_symbol;
+    int element_size_bytes = 0;
+    std::string index_expr;
+    std::string address_expr;
+  };
+
+  static bool isPassThroughOp(Operation *op) {
+    return op && (isDataMov(op) || isCtrlMov(op) || isa<CastOp>(op));
+  }
+
+  static bool isAddressTransparentOp(Operation *op) {
+    if (!op)
+      return false;
+    if (isPassThroughOp(op))
+      return true;
+    std::string op_name = getOperationNameText(op);
+    return op_name == "neura.grant_predicate" || op_name == "neura.grant_once" ||
+           op_name == "neura.grant_always" || op_name == "neura.sext" ||
+           op_name == "neura.zext" || op_name == "neura.trunc";
+  }
+
+  std::string getOrCreateInductionSymbol(Operation *def) {
+    auto it = induction_symbols.find(def);
+    if (it != induction_symbols.end())
+      return it->second;
+
+    static constexpr const char *kNames[] = {"i", "j", "k", "l", "m", "n"};
+    std::string symbol;
+    if (next_induction_symbol <
+        static_cast<int>(sizeof(kNames) / sizeof(kNames[0]))) {
+      symbol = kNames[next_induction_symbol];
+    } else {
+      symbol = "idx" + std::to_string(next_induction_symbol);
+    }
+    ++next_induction_symbol;
+    induction_symbols[def] = symbol;
+    return symbol;
+  }
+
+  std::string valueToSymbolicExpr(Value value) {
+    if (!value)
+      return "?";
+
+    if (auto block_arg = dyn_cast<BlockArgument>(value))
+      return valueToText(block_arg);
+
+    Operation *def = value.getDefiningOp();
+    if (!def)
+      return valueToText(value);
+
+    if (isa<PhiStartOp>(def) || isa<PhiOp>(def))
+      return getOrCreateInductionSymbol(def);
+
+    if (isAddressTransparentOp(def) && def->getNumOperands() > 0)
+      return valueToSymbolicExpr(def->getOperand(0));
+
+    if (isa<CounterOp>(def))
+      return getOrCreateInductionSymbol(def);
+
+    if (isConstant(def) || def->hasAttr(attr::kConstantValue) ||
+        def->hasAttr(attr::kRhsValue)) {
+      std::string literal = getConstantLiteral(def);
+      if (!literal.empty())
+        return stripLeadingHash(literal);
+    }
+
+    std::string op_name = getOperationNameText(def);
+    if ((op_name == "neura.add" || op_name == "neura.sub" ||
+         op_name == "neura.mul" || op_name == "neura.shl") &&
+        def->getNumOperands() >= 1) {
+      std::string lhs = valueToSymbolicExpr(def->getOperand(0));
+      std::string rhs = attributeToText(def->getAttr(attr::kRhsValue));
+      if (rhs.empty() && def->getNumOperands() >= 2)
+        rhs = valueToSymbolicExpr(def->getOperand(1));
+
+      std::string symbol = "+";
+      if (op_name == "neura.sub")
+        symbol = "-";
+      else if (op_name == "neura.mul")
+        symbol = "*";
+      else if (op_name == "neura.shl")
+        symbol = "<<";
+
+      if (!rhs.empty())
+        return "(" + lhs + " " + symbol + " " + rhs + ")";
+    }
+
+    if (op_name == "neura.not" && def->getNumOperands() == 1)
+      return "!(" + valueToSymbolicExpr(def->getOperand(0)) + ")";
+
+    return valueToText(value);
+  }
+
+  std::string joinIndexExprs(ValueRange indices) {
+    std::string text;
+    bool first = true;
+    for (Value index : indices) {
+      if (!first)
+        text += ", ";
+      first = false;
+      text += valueToSymbolicExpr(index);
+    }
+    return text;
+  }
+
+  static std::string getArrayNameFromAttr(Operation *op, StringRef attr_name) {
+    if (!op)
+      return "";
+    return attributeToText(op->getAttr(attr_name));
+  }
+
+  bool extractBaseAndIndicesFromPtr(Value ptr_value, std::string &array_name,
+                                    std::string &index_expr) {
+    Operation *def = ptr_value.getDefiningOp();
+    if (!def)
+      return false;
+
+    auto isPointerLike = [](Type type) {
+      if (auto predicated = dyn_cast<mlir::neura::PredicatedValue>(type))
+        type = predicated.getValueType();
+      std::string text;
+      llvm::raw_string_ostream os(text);
+      os << type;
+      return text.find("!llvm.ptr") != std::string::npos;
+    };
+
+    if (isPointerLike(ptr_value.getType())) {
+      if (auto phi_start = dyn_cast<PhiStartOp>(def)) {
+        if (phi_start->getNumOperands() > 0)
+          return extractBaseAndIndicesFromPtr(phi_start->getOperand(0),
+                                              array_name, index_expr);
+      }
+      if (auto phi = dyn_cast<PhiOp>(def)) {
+        for (Value operand : phi->getOperands()) {
+          Operation *operand_def = operand.getDefiningOp();
+          if (operand_def && isa<ReserveOp>(operand_def))
+            continue;
+          if (extractBaseAndIndicesFromPtr(operand, array_name, index_expr))
+            return true;
+        }
+      }
+    }
+
+    if (auto gep = dyn_cast<GEP>(def)) {
+      array_name = getArrayNameFromAttr(def, attr::kLhsValue);
+      std::string base_index_expr;
+      if (Value base = gep.getBase())
+        extractBaseAndIndicesFromPtr(base, array_name, base_index_expr);
+
+      index_expr = joinIndexExprs(gep.getIndices());
+      if (index_expr.empty())
+        index_expr = base_index_expr;
+      return !array_name.empty();
+    }
+
+    if (isAddressTransparentOp(def) && def->getNumOperands() > 0)
+      return extractBaseAndIndicesFromPtr(def->getOperand(0), array_name,
+                                          index_expr);
+
+    return false;
+  }
+
+  static int getElementSizeBytesFromType(Type type) {
+    if (!type)
+      return 0;
+
+    if (auto predicated = dyn_cast<mlir::neura::PredicatedValue>(type))
+      type = predicated.getValueType();
+
+    if (auto int_type = dyn_cast<IntegerType>(type))
+      return std::max<int>(1, (int_type.getWidth() + 7) / 8);
+    if (type.isF16())
+      return 2;
+    if (type.isF32())
+      return 4;
+    if (type.isF64())
+      return 8;
+    if (type.isIndex())
+      return 8;
+    return 0;
+  }
+
+  static std::string buildSymbolicAddressExpr(StringRef base_symbol,
+                                              int element_size_bytes,
+                                              StringRef index_expr) {
+    if (base_symbol.empty())
+      return "";
+    if (index_expr.empty())
+      return "base(" + base_symbol.str() + ")";
+    if (index_expr.contains(','))
+      return ("base(" + base_symbol.str() + ") + " +
+              std::to_string(element_size_bytes) + " * linearize(" +
+              index_expr.str() + ")");
+    return ("base(" + base_symbol.str() + ") + " +
+            std::to_string(element_size_bytes) + " * " + index_expr.str());
+  }
+
+  std::optional<MemoryAccessRecord> buildMemoryAccessRecord(Operation *op) {
+    MemoryAccessRecord record;
+    record.dfg_id = getDfgId(op);
+    auto tile_location = getTileLocation(op);
+    record.time_step = tile_location.time_step;
+    record.index_per_ii = tile_location.index_per_ii;
+    record.invalid_iterations = tile_location.invalid_iterations;
+    record.x = tile_location.col_idx;
+    record.y = tile_location.row_idx;
+
+    if (auto load_indexed = dyn_cast<LoadIndexedOp>(op)) {
+      record.type = "load";
+      record.array = getArrayNameFromAttr(op, attr::kLhsValue);
+      record.base_symbol = record.array;
+      record.element_size_bytes =
+          getElementSizeBytesFromType(load_indexed.getResult().getType());
+      record.index_expr = joinIndexExprs(load_indexed.getIndices());
+    } else if (auto store_indexed = dyn_cast<StoreIndexedOp>(op)) {
+      record.type = "store";
+      record.array = getArrayNameFromAttr(op, attr::kRhsValue);
+      record.base_symbol = record.array;
+      record.element_size_bytes =
+          getElementSizeBytesFromType(store_indexed.getValue().getType());
+      record.index_expr = joinIndexExprs(store_indexed.getIndices());
+    } else {
+      std::string op_name = getOperationNameText(op);
+      if (op_name == "neura.load" && op->getNumOperands() >= 1) {
+        record.type = "load";
+        extractBaseAndIndicesFromPtr(op->getOperand(0), record.array,
+                                     record.index_expr);
+        record.base_symbol = record.array;
+        if (op->getNumResults() == 1)
+          record.element_size_bytes =
+              getElementSizeBytesFromType(op->getResult(0).getType());
+      } else if (op_name == "neura.store" && op->getNumOperands() >= 1) {
+        record.type = "store";
+        Value ptr_operand =
+            op->getNumOperands() >= 2 ? op->getOperand(1) : op->getOperand(0);
+        extractBaseAndIndicesFromPtr(ptr_operand, record.array,
+                                     record.index_expr);
+        record.base_symbol = record.array;
+        if (op->getNumOperands() >= 2) {
+          record.element_size_bytes =
+              getElementSizeBytesFromType(op->getOperand(0).getType());
+        } else if (auto lhs_attr = op->getAttr(attr::kLhsValue)) {
+          if (auto float_attr = dyn_cast<FloatAttr>(lhs_attr)) {
+            record.element_size_bytes =
+                getElementSizeBytesFromType(float_attr.getType());
+          } else if (auto int_attr = dyn_cast<IntegerAttr>(lhs_attr)) {
+            record.element_size_bytes =
+                getElementSizeBytesFromType(int_attr.getType());
+          }
+        }
+      } else {
+        return std::nullopt;
+      }
+    }
+
+    if (record.array.empty())
+      record.array = "<unknown>";
+    record.address_expr = buildSymbolicAddressExpr(
+        record.base_symbol, std::max(record.element_size_bytes, 1),
+        record.index_expr);
+    return record;
+  }
+
+  void writeTmpMemoryAccessOutput(func::FuncOp function) {
+    std::vector<MemoryAccessRecord> records;
+    std::set<std::string> arrays_seen;
+    std::vector<std::string> arrays_in_order;
+
+    function.walk([&](Operation *op) {
+      auto record = buildMemoryAccessRecord(op);
+      if (!record)
+        return;
+      records.push_back(*record);
+      if (arrays_seen.insert(record->array).second)
+        arrays_in_order.push_back(record->array);
+    });
+
+    std::stable_sort(records.begin(), records.end(),
+                     [](const MemoryAccessRecord &lhs,
+                        const MemoryAccessRecord &rhs) {
+                       if (lhs.index_per_ii != rhs.index_per_ii)
+                         return lhs.index_per_ii < rhs.index_per_ii;
+                       if (lhs.time_step != rhs.time_step)
+                         return lhs.time_step < rhs.time_step;
+                       return lhs.dfg_id < rhs.dfg_id;
+                     });
+
+    std::error_code ec;
+    llvm::raw_fd_ostream out("tmp-memory-access.yaml", ec);
+    if (ec) {
+      llvm::errs() << "[generate-code] Failed to open tmp-memory-access.yaml: "
+                   << ec.message() << "\n";
+      return;
+    }
+
+    int loads = 0;
+    int stores = 0;
+    for (const auto &record : records) {
+      if (record.type == "load")
+        ++loads;
+      else if (record.type == "store")
+        ++stores;
+    }
+
+    out << "compiled_ii: " << current_compiled_ii << "\n";
+    out << "arrays_accessed:\n";
+    for (const std::string &array_name : arrays_in_order)
+      out << "  - \"" << escapeYamlString(array_name) << "\"\n";
+
+    out << "detailed_accesses:\n";
+    int current_cycle = std::numeric_limits<int>::min();
+    bool emitted_cycle = false;
+    for (const auto &record : records) {
+      if (record.index_per_ii != current_cycle) {
+        current_cycle = record.index_per_ii;
+        out << "  - index_per_ii: " << current_cycle << "\n";
+        out << "    operations:\n";
+        emitted_cycle = true;
+      }
+      (void)emitted_cycle;
+      out << "      - type: \"" << record.type << "\"\n";
+      out << "        dfg_id: " << record.dfg_id << "\n";
+      out << "        time_step: " << record.time_step << "\n";
+      out << "        invalid_iterations: " << record.invalid_iterations
+          << "\n";
+      out << "        tile: [" << record.x << ", " << record.y << "]\n";
+      out << "        array: \"" << escapeYamlString(record.array) << "\"\n";
+      out << "        base_symbol: \""
+          << escapeYamlString(record.base_symbol) << "\"\n";
+      out << "        element_size_bytes: " << record.element_size_bytes
+          << "\n";
+      out << "        index_expr: \"" << escapeYamlString(record.index_expr)
+          << "\"\n";
+      out << "        address_expr: \""
+          << escapeYamlString(record.address_expr) << "\"\n";
+    }
+    if (records.empty())
+      out << "  []\n";
+
+    out << "per_array_access:\n";
+    for (const std::string &array_name : arrays_in_order) {
+      out << "  \"" << escapeYamlString(array_name) << "\":\n";
+      bool found = false;
+      for (const auto &record : records) {
+        if (record.array != array_name)
+          continue;
+        found = true;
+        out << "    - type: \"" << record.type << "\"\n";
+        out << "      cycle: " << record.index_per_ii << "\n";
+        out << "      time_step: " << record.time_step << "\n";
+        out << "      dfg_id: " << record.dfg_id << "\n";
+        out << "      base_symbol: \""
+            << escapeYamlString(record.base_symbol) << "\"\n";
+        out << "      element_size_bytes: " << record.element_size_bytes
+            << "\n";
+        out << "      index: \"" << escapeYamlString(record.index_expr)
+            << "\"\n";
+        out << "      address: \"" << escapeYamlString(record.address_expr)
+            << "\"\n";
+      }
+      if (!found)
+        out << "    []\n";
+    }
+
+    out << "summary:\n";
+    out << "  total_memory_ops_per_ii: " << records.size() << "\n";
+    out << "  loads_per_ii: " << loads << "\n";
+    out << "  stores_per_ii: " << stores << "\n";
+    out.close();
+    llvm::outs() << "[generate-code] tmp-memory-access.yaml emitted with "
+                 << records.size() << " memory op(s)\n";
+  }
+
   void writeYAMLOutput(const ArrayConfig &config) {
     std::error_code ec;
     llvm::raw_fd_ostream yaml_out("tmp-generated-instructions.yaml", ec);
@@ -2277,6 +2713,7 @@ struct GenerateCodePass
       std::unordered_set<int> materialized_ids;
       assignInstructionIds(materialized_ids);
       ArrayConfig config = buildArrayConfig(columns, rows, current_compiled_ii);
+      writeTmpMemoryAccessOutput(func);
       writeYAMLOutput(config);
       writeAsmOutput(config);
       writeDfgOutputSSA(func, topo, materialized_ids);
