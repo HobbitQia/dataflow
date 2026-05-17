@@ -831,7 +831,7 @@ def Neura_CounterOp : Op<NeuraDialect, "counter", [Pure, AttrSizedOperandSegment
                {counter_type = "leaf", counter_id = 0 : i32} : index
   }];
   let arguments = (ins Optional<AnyType>:$lower_bound, Optional<AnyType>:$upper_bound,
-      Optional<AnyType>:$step, StrAttr:$counter_type, I32Attr:$counter_id);
+      Optional<AnyType>:$step, ArrayAttr:$counter_type, I32Attr:$counter_id);
 
   let results = (outs AnyType:$current_index);
   let assemblyFormat = [{

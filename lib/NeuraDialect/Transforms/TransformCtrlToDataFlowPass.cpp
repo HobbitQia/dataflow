@@ -59,8 +59,13 @@ neura::CounterOp findRootCounterInKernel(neura::KernelOp kernel_op) {
   neura::CounterOp leaf_counter = nullptr;
 
   // Walks throught kernel body to find counter.
+  // counter_type is now ArrayAttr [structural_role, bound_kind]; use [0] for
+  // role.
   kernel_op.walk([&](neura::CounterOp counter_op) {
-    StringRef counter_type = counter_op.getCounterType();
+    ArrayAttr arr = counter_op.getCounterType();
+    if (arr.empty())
+      return;
+    StringRef counter_type = cast<StringAttr>(arr[0]).getValue();
 
     if (counter_type == "root") {
       root_counter = counter_op;
@@ -903,10 +908,10 @@ void convertPhiToPhiStart(Region &region, OpBuilder &builder) {
       return;
     }
 
-    bool is_grant_reserve = isa<neura::GrantOnceOp>(op0_def) &&
-                            isa<neura::ReserveOp>(op1_def);
-    bool is_reserve_grant = isa<neura::ReserveOp>(op0_def) &&
-                            isa<neura::GrantOnceOp>(op1_def);
+    bool is_grant_reserve =
+        isa<neura::GrantOnceOp>(op0_def) && isa<neura::ReserveOp>(op1_def);
+    bool is_reserve_grant =
+        isa<neura::ReserveOp>(op0_def) && isa<neura::GrantOnceOp>(op1_def);
 
     if (is_grant_reserve || is_reserve_grant) {
       phi_ops_to_convert.push_back(phi_op);
