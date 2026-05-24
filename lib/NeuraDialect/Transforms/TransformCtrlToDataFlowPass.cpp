@@ -59,17 +59,14 @@ neura::CounterOp findRootCounterInKernel(neura::KernelOp kernel_op) {
   neura::CounterOp leaf_counter = nullptr;
 
   // Walks throught kernel body to find counter.
-  // counter_type is now ArrayAttr [structural_role, bound_kind]; use [0] for
-  // role.
   kernel_op.walk([&](neura::CounterOp counter_op) {
-    ArrayAttr arr = counter_op.getCounterType();
-    if (arr.empty())
+    StringAttr hierarchy = counter_op.getCounterHierarchyAttr();
+    if (!hierarchy) {
       return;
-    StringRef counter_type = cast<StringAttr>(arr[0]).getValue();
-
-    if (counter_type == "root") {
+    }
+    if (hierarchy.getValue() == "root") {
       root_counter = counter_op;
-    } else if (counter_type == "leaf") {
+    } else if (hierarchy.getValue() == "leaf") {
       leaf_counter = counter_op;
     }
   });
