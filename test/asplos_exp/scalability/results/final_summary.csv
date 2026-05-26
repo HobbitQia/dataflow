@@ -1,0 +1,232 @@
+cgra_size,num_tiles,app,method,config,sharing,kernel,ii,trip_count,kernel_latency,app_latency,speedup,area,area_eff,util
+3x3,9,resnet,baseline,"UF=2, ms=2, mi=4",-,add_residual,2,2048,4096,9447424,1.0000,1378422,7.68e-14,0.5556
+3x3,9,resnet,baseline,"UF=2, ms=2, mi=4",-,conv2d_1,4,1179648,4718592,9447424,1.0000,1378422,7.68e-14,0.4167
+3x3,9,resnet,baseline,"UF=2, ms=2, mi=4",-,conv2d_2,4,1179648,4718592,9447424,1.0000,1378422,7.68e-14,0.4167
+3x3,9,resnet,baseline,"UF=2, ms=2, mi=4",-,relu,3,2048,6144,9447424,1.0000,1378422,7.68e-14,0.4074
+3x3,9,resnet,opfusion,"UF=2, ms=2, mi=4",inclusive,add_residual,2,2048,4096,4726784,1.9987,1413504,1.50e-13,0.4444
+3x3,9,resnet,opfusion,"UF=2, ms=2, mi=4",inclusive,conv2d_1,2,1179648,2359296,4726784,1.9987,1413504,1.50e-13,0.3333
+3x3,9,resnet,opfusion,"UF=2, ms=2, mi=4",inclusive,conv2d_2,2,1179648,2359296,4726784,1.9987,1413504,1.50e-13,0.3333
+3x3,9,resnet,opfusion,"UF=2, ms=2, mi=4",inclusive,relu,2,2048,4096,4726784,1.9987,1413504,1.50e-13,0.3333
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,ffn_act,2,8,16,2608,1.0000,1378422,2.78e-10,0.5556
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,ffn_down,4,128,512,2608,1.0000,1378422,2.78e-10,0.4167
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,ffn_gate,4,128,512,2608,1.0000,1378422,2.78e-10,0.4167
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,ffn_up,4,128,512,2608,1.0000,1378422,2.78e-10,0.4167
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,qk_attention,4,128,512,2608,1.0000,1378422,2.78e-10,0.4167
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,softmax_exp,2,8,16,2608,1.0000,1378422,2.78e-10,0.5556
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,softmax_norm,2,8,16,2608,1.0000,1378422,2.78e-10,0.4444
+3x3,9,llama,baseline,"UF=2, ms=2, mi=4",-,sv_attention,4,128,512,2608,1.0000,1378422,2.78e-10,0.4167
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,ffn_act,2,8,16,1328,1.9639,1397754,5.39e-10,0.2778
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,ffn_down,2,128,256,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,ffn_gate,2,128,256,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,ffn_up,2,128,256,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,qk_attention,2,128,256,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,softmax_exp,2,8,16,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,softmax_norm,2,8,16,1328,1.9639,1397754,5.39e-10,0.3333
+3x3,9,llama,opfusion,"UF=2, ms=2, mi=4",inclusive,sv_attention,2,128,256,1328,1.9639,1397754,5.39e-10,0.3889
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_0,2,128,256,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_1,2,8,16,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_2,2,8,16,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_3,4,128,512,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_4,2,8,16,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,llama,taskfusion,"UF=2, ms=2, mi=4",inclusive,llama_attention_ffn_5,2,128,256,1072,2.4328,1397754,6.67e-10,2.5000
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,corner_response,6,1800,10800,151382,1.0000,1378422,4.79e-12,0.4630
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_0,15,1800,27000,151382,1.0000,1378422,4.79e-12,1.6667
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_1,15,1800,27000,151382,1.0000,1378422,4.79e-12,1.6667
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_2,15,1800,27000,151382,1.0000,1378422,4.79e-12,1.6667
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,ixx,4,1922,7688,151382,1.0000,1378422,4.79e-12,0.2500
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,ixy,4,1922,7688,151382,1.0000,1378422,4.79e-12,0.3056
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,iyy,4,1922,7688,151382,1.0000,1378422,4.79e-12,0.2500
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_x,10,1922,19220,151382,1.0000,1378422,4.79e-12,0.5667
+3x3,9,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_y,9,1922,17298,151382,1.0000,1378422,4.79e-12,0.6296
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,corner_response,6,1800,10800,88596,1.7087,1476723,7.64e-12,0.2037
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_0,8,1800,14400,88596,1.7087,1476723,7.64e-12,1.0833
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_1,8,1800,14400,88596,1.7087,1476723,7.64e-12,1.0833
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_2,8,1800,14400,88596,1.7087,1476723,7.64e-12,1.0833
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixx,2,1922,3844,88596,1.7087,1476723,7.64e-12,0.2778
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixy,2,1922,3844,88596,1.7087,1476723,7.64e-12,0.3333
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,iyy,2,1922,3844,88596,1.7087,1476723,7.64e-12,0.2778
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_x,6,1922,11532,88596,1.7087,1476723,7.64e-12,0.3333
+3x3,9,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_y,6,1922,11532,88596,1.7087,1476723,7.64e-12,0.3333
+3x3,9,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_0,8,1922,15376,33376,4.5357,1479986,2.02e-11,1.0000
+3x3,9,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_1,10,1800,18000,33376,4.5357,1479986,2.02e-11,1.0000
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,cell_update,4,8,32,4144,1.0000,1378422,1.75e-10,0.5000
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,f_gate_h,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,f_gate_x,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,g_gate_h,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,g_gate_x,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,i_gate_h,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,i_gate_x,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,o_gate_h,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,o_gate_x,4,128,512,4144,1.0000,1378422,1.75e-10,0.4167
+3x3,9,lstm,baseline,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",-,output_gate,2,8,16,4144,1.0000,1378422,1.75e-10,0.6667
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,cell_update,2,8,16,3104,1.3351,1396232,2.31e-10,0.5556
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,f_gate_h,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,f_gate_x,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,g_gate_h,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,g_gate_x,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,i_gate_h,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,i_gate_x,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,o_gate_h,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,o_gate_x,3,128,384,3104,1.3351,1396232,2.31e-10,0.2963
+3x3,9,lstm,opfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,output_gate,2,8,16,3104,1.3351,1396232,2.31e-10,0.4444
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_0,4,128,512,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_1,4,128,512,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_2,2,128,256,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_3,2,128,256,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_4,2,128,256,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_5,2,128,256,2064,2.0078,1455473,3.33e-10,1.7222
+3x3,9,lstm,taskfusion,"BL:UF=2 | OPF:UF=2,ms=15 | TF:UF=2,ms=2",inclusive,lstm_cell_6,2,8,16,2064,2.0078,1455473,3.33e-10,1.7222
+5x5,25,resnet,baseline,"UF=3, ms=2, mi=4",-,add_residual,4,1365,5460,6301011,1.0000,3828950,4.14e-14,0.1500
+5x5,25,resnet,baseline,"UF=3, ms=2, mi=4",-,conv2d_1,4,786432,3145728,6301011,1.0000,3828950,4.14e-14,0.2200
+5x5,25,resnet,baseline,"UF=3, ms=2, mi=4",-,conv2d_2,4,786432,3145728,6301011,1.0000,3828950,4.14e-14,0.2200
+5x5,25,resnet,baseline,"UF=3, ms=2, mi=4",-,relu,3,1365,4095,6301011,1.0000,3828950,4.14e-14,0.2133
+5x5,25,resnet,opfusion,"UF=3, ms=2, mi=4",inclusive,add_residual,2,1365,2730,4724052,1.3338,3887434,5.45e-14,0.1600
+5x5,25,resnet,opfusion,"UF=3, ms=2, mi=4",inclusive,conv2d_1,3,786432,2359296,4724052,1.3338,3887434,5.45e-14,0.1067
+5x5,25,resnet,opfusion,"UF=3, ms=2, mi=4",inclusive,conv2d_2,3,786432,2359296,4724052,1.3338,3887434,5.45e-14,0.1067
+5x5,25,resnet,opfusion,"UF=3, ms=2, mi=4",inclusive,relu,2,1365,2730,4724052,1.3338,3887434,5.45e-14,0.1800
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,ffn_act,6,2,12,2114,1.0000,3828950,1.24e-10,0.2667
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,ffn_down,13,32,416,2114,1.0000,3828950,1.24e-10,0.1754
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,ffn_gate,13,32,416,2114,1.0000,3828950,1.24e-10,0.1754
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,ffn_up,13,32,416,2114,1.0000,3828950,1.24e-10,0.1754
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,qk_attention,13,32,416,2114,1.0000,3828950,1.24e-10,0.1754
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,softmax_exp,7,2,14,2114,1.0000,3828950,1.24e-10,0.2286
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,softmax_norm,4,2,8,2114,1.0000,3828950,1.24e-10,0.3200
+5x5,25,llama,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,sv_attention,13,32,416,2114,1.0000,3828950,1.24e-10,0.1754
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,ffn_act,2,8,16,1312,1.6113,3848282,1.98e-10,0.1000
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,ffn_down,2,128,256,1312,1.6113,3848282,1.98e-10,0.1400
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,ffn_gate,2,128,256,1312,1.6113,3848282,1.98e-10,0.1400
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,ffn_up,2,128,256,1312,1.6113,3848282,1.98e-10,0.1400
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,qk_attention,2,128,256,1312,1.6113,3848282,1.98e-10,0.1400
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,softmax_exp,1,8,8,1312,1.6113,3848282,1.98e-10,0.2800
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,softmax_norm,1,8,8,1312,1.6113,3848282,1.98e-10,0.2400
+5x5,25,llama,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,sv_attention,2,128,256,1312,1.6113,3848282,1.98e-10,0.1400
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_0,6,32,192,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_1,7,2,14,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_2,4,2,8,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_3,6,32,192,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_4,6,32,192,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_5,6,32,192,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_6,7,2,14,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,llama,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,llama_attention_ffn_7,6,32,192,996,2.1225,3844700,2.61e-10,1.5933
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,corner_response,4,1800,7200,94240,1.0000,3828950,2.77e-12,0.2500
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_0,9,1800,16200,94240,1.0000,3828950,2.77e-12,1.0000
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_1,9,1800,16200,94240,1.0000,3828950,2.77e-12,1.0000
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_2,9,1800,16200,94240,1.0000,3828950,2.77e-12,1.0000
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,ixx,2,1922,3844,94240,1.0000,3828950,2.77e-12,0.1800
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,ixy,4,1922,7688,94240,1.0000,3828950,2.77e-12,0.1100
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,iyy,2,1922,3844,94240,1.0000,3828950,2.77e-12,0.1800
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_x,6,1922,11532,94240,1.0000,3828950,2.77e-12,0.3400
+5x5,25,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_y,6,1922,11532,94240,1.0000,3828950,2.77e-12,0.3400
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,corner_response,4,1800,7200,77308,1.2190,3927251,3.29e-12,0.1100
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_0,8,1800,14400,77308,1.2190,3927251,3.29e-12,0.3900
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_1,8,1800,14400,77308,1.2190,3927251,3.29e-12,0.3900
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_2,8,1800,14400,77308,1.2190,3927251,3.29e-12,0.3900
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixx,2,1922,3844,77308,1.2190,3927251,3.29e-12,0.1000
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixy,2,1922,3844,77308,1.2190,3927251,3.29e-12,0.1200
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,iyy,2,1922,3844,77308,1.2190,3927251,3.29e-12,0.1000
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_x,4,1922,7688,77308,1.2190,3927251,3.29e-12,0.1800
+5x5,25,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_y,4,1922,7688,77308,1.2190,3927251,3.29e-12,0.1800
+5x5,25,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_0,4,1922,7688,18488,5.0974,3930514,1.38e-11,0.7200
+5x5,25,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_1,6,1800,10800,18488,5.0974,3930514,1.38e-11,0.7200
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,cell_update,8,2,16,3360,1.0000,3828950,7.77e-11,0.3600
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,f_gate_h,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,f_gate_x,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,g_gate_h,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,g_gate_x,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,i_gate_h,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,i_gate_x,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,o_gate_h,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,o_gate_x,13,32,416,3360,1.0000,3828950,7.77e-11,0.1754
+5x5,25,lstm,baseline,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",-,output_gate,8,2,16,3360,1.0000,3828950,7.77e-11,0.2400
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,cell_update,2,8,16,2080,1.6154,3852352,1.25e-10,0.1400
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,f_gate_h,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,f_gate_x,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,g_gate_h,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,g_gate_x,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,i_gate_h,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,i_gate_x,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,o_gate_h,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,o_gate_x,2,128,256,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,opfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,output_gate,2,8,16,2080,1.6154,3852352,1.25e-10,0.1200
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_0,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_1,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_2,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_3,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_4,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_5,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_6,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_7,6,32,192,1546,2.1734,3860450,1.68e-10,1.5400
+5x5,25,lstm,taskfusion,"BL:UF=8 | OPF:UF=2,ms=2 | TF:UF=8,ms=10",inclusive,lstm_cell_8,5,2,10,1546,2.1734,3860450,1.68e-10,1.5400
+4x8,32,resnet,baseline,"UF=1, ms=3, mi=4",-,add_residual,3,4096,12288,14176256,1.0000,4901056,1.44e-14,0.0521
+4x8,32,resnet,baseline,"UF=1, ms=3, mi=4",-,conv2d_1,3,2359296,7077888,14176256,1.0000,4901056,1.44e-14,0.0833
+4x8,32,resnet,baseline,"UF=1, ms=3, mi=4",-,conv2d_2,3,2359296,7077888,14176256,1.0000,4901056,1.44e-14,0.0833
+4x8,32,resnet,baseline,"UF=1, ms=3, mi=4",-,relu,2,4096,8192,14176256,1.0000,4901056,1.44e-14,0.0938
+4x8,32,resnet,opfusion,"UF=1, ms=3, mi=4",inclusive,add_residual,1,4096,4096,4726784,2.9991,4901056,4.32e-14,0.1250
+4x8,32,resnet,opfusion,"UF=1, ms=3, mi=4",inclusive,conv2d_1,1,2359296,2359296,4726784,2.9991,4901056,4.32e-14,0.1562
+4x8,32,resnet,opfusion,"UF=1, ms=3, mi=4",inclusive,conv2d_2,1,2359296,2359296,4726784,2.9991,4901056,4.32e-14,0.1562
+4x8,32,resnet,opfusion,"UF=1, ms=3, mi=4",inclusive,relu,1,4096,4096,4726784,2.9991,4901056,4.32e-14,0.1562
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,ffn_act,3,8,24,1976,1.0000,4901056,1.03e-10,0.1042
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,ffn_down,3,128,384,1976,1.0000,4901056,1.03e-10,0.1562
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,ffn_gate,3,128,384,1976,1.0000,4901056,1.03e-10,0.1562
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,ffn_up,3,128,384,1976,1.0000,4901056,1.03e-10,0.1562
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,qk_attention,3,128,384,1976,1.0000,4901056,1.03e-10,0.1562
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,softmax_exp,3,8,24,1976,1.0000,4901056,1.03e-10,0.1042
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,softmax_norm,1,8,8,1976,1.0000,4901056,1.03e-10,0.2500
+4x8,32,llama,baseline,"UF=2, ms=3, mi=4",-,sv_attention,3,128,384,1976,1.0000,4901056,1.03e-10,0.1562
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,ffn_act,2,8,16,1328,1.4880,4920388,1.53e-10,0.0781
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,ffn_down,2,128,256,1328,1.4880,4920388,1.53e-10,0.1094
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,ffn_gate,2,128,256,1328,1.4880,4920388,1.53e-10,0.1094
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,ffn_up,2,128,256,1328,1.4880,4920388,1.53e-10,0.1094
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,qk_attention,2,128,256,1328,1.4880,4920388,1.53e-10,0.1094
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,softmax_exp,3,8,24,1328,1.4880,4920388,1.53e-10,0.0729
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,softmax_norm,1,8,8,1328,1.4880,4920388,1.53e-10,0.1875
+4x8,32,llama,opfusion,"UF=2, ms=3, mi=4",inclusive,sv_attention,2,128,256,1328,1.4880,4920388,1.53e-10,0.1094
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_0,2,128,256,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_1,3,8,24,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_2,1,8,8,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_3,3,128,384,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_4,2,8,16,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,llama,taskfusion,"UF=2, ms=3, mi=4",inclusive,llama_attention_ffn_5,2,128,256,944,2.0932,4920388,2.15e-10,0.7188
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,corner_response,4,1800,7200,93050,1.0000,4901056,2.19e-12,0.1953
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_0,7,1800,12600,93050,1.0000,4901056,2.19e-12,1.0045
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_1,7,1800,12600,93050,1.0000,4901056,2.19e-12,1.0045
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,gaussian_blur_2,7,1800,12600,93050,1.0000,4901056,2.19e-12,1.0045
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,ixx,3,1922,5766,93050,1.0000,4901056,2.19e-12,0.0938
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,ixy,3,1922,5766,93050,1.0000,4901056,2.19e-12,0.1146
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,iyy,3,1922,5766,93050,1.0000,4901056,2.19e-12,0.0938
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_x,8,1922,15376,93050,1.0000,4901056,2.19e-12,0.1992
+4x8,32,harris,baseline,"UF=2, ms=2, mi=4",-,sobel_y,8,1922,15376,93050,1.0000,4901056,2.19e-12,0.1992
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,corner_response,4,1800,7200,77308,1.2036,4999357,2.59e-12,0.0859
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_0,8,1800,14400,77308,1.2036,4999357,2.59e-12,0.3047
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_1,8,1800,14400,77308,1.2036,4999357,2.59e-12,0.3047
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,gaussian_blur_2,8,1800,14400,77308,1.2036,4999357,2.59e-12,0.3047
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixx,2,1922,3844,77308,1.2036,4999357,2.59e-12,0.0781
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,ixy,2,1922,3844,77308,1.2036,4999357,2.59e-12,0.0938
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,iyy,2,1922,3844,77308,1.2036,4999357,2.59e-12,0.0781
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_x,4,1922,7688,77308,1.2036,4999357,2.59e-12,0.1406
+4x8,32,harris,opfusion,"UF=2, ms=2, mi=4",inclusive,sobel_y,4,1922,7688,77308,1.2036,4999357,2.59e-12,0.1406
+4x8,32,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_0,5,1922,9610,18610,5.0000,5002620,1.07e-11,0.4500
+4x8,32,harris,taskfusion,"UF=2, ms=2, mi=4",inclusive,harris_1,5,1800,9000,18610,5.0000,5002620,1.07e-11,0.4500
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,cell_update,3,16,48,6240,1.0000,4901056,3.27e-11,0.0938
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,f_gate_h,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,f_gate_x,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,g_gate_h,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,g_gate_x,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,i_gate_h,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,i_gate_x,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,o_gate_h,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,o_gate_x,3,256,768,6240,1.0000,4901056,3.27e-11,0.0833
+4x8,32,lstm,baseline,"UF=1, ms=2, mi=4",-,output_gate,3,16,48,6240,1.0000,4901056,3.27e-11,0.0625
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,cell_update,3,16,48,4176,1.4943,4934885,4.85e-11,0.0625
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,f_gate_h,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,f_gate_x,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,g_gate_h,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,g_gate_x,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,i_gate_h,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,i_gate_x,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,o_gate_h,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,o_gate_x,2,256,512,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,opfusion,"UF=1, ms=2, mi=4",inclusive,output_gate,2,16,32,4176,1.4943,4934885,4.85e-11,0.0469
+4x8,32,lstm,taskfusion,"UF=1, ms=2, mi=4",inclusive,lstm_cell_0,3,256,768,1568,3.9796,4956765,1.29e-10,0.3125
+4x8,32,lstm,taskfusion,"UF=1, ms=2, mi=4",inclusive,lstm_cell_1,3,256,768,1568,3.9796,4956765,1.29e-10,0.3125
+4x8,32,lstm,taskfusion,"UF=1, ms=2, mi=4",inclusive,lstm_cell_2,2,16,32,1568,3.9796,4956765,1.29e-10,0.3125

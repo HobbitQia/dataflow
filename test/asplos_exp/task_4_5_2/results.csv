@@ -1,0 +1,5 @@
+app,num_baseline_kernels,num_fused_kernels,baseline_latency,inclusive_latency,inclusive_speedup,baseline_area,fusion_area,area_overhead_pct,inclusive_util,exc_kernels_mapped,exc_kernels_failed,exc_failure_rate
+resnet,4,4,9449472,4730880,1.9974,2450528,2450528,0.00,0.3750,0,2,100.00%
+llama,8,8,2640,2640,1.0000,2450528,2759840,12.62,0.4375,0,5,100.00%
+harris,9,2,118616,59308,2.0000,2450528,3263040,33.16,0.5625,0,2,100.00%
+lstm,10,3,4160,2592,1.6049,2450528,2735488,11.63,0.5625,0,3,100.00%

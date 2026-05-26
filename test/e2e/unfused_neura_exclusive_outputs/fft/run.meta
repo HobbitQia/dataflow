@@ -1,0 +1,6 @@
+kernel: fft
+source: /mnt/public/qjj/dataflow/test/benchmark/CGRA-Bench/kernels/fft/fft_int.c
+compiler: /mnt/public/sichuan_a/qjj/llvm-project/build/bin/clang
+opt_flags: -O3 -fno-vectorize -fno-unroll-loops
+map_opts: mapping-strategy=heuristic
+kernels: kernel

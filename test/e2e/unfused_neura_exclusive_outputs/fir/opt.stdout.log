@@ -1,0 +1,280 @@
+[DEBUG] Recurrence cycle (length 3):
+  %5 = neura.reserve : !neura.data<i64, i1>
+  %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %28 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1>
+[DEBUG] Recurrence cycle (length 5):
+  %5 = neura.reserve : !neura.data<i64, i1>
+  %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %24 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %26 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %29 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1>
+[DEBUG] Recurrence cycle (length 3):
+  %2 = neura.reserve : !neura.data<i32, i1>
+  %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1>
+  %20 = "neura.data_mov"(%4) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %31 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  neura.ctrl_mov %33 -> %2 : !neura.data<i32, i1> !neura.data<i32, i1>
+[MapToAcceleratorPass] Longest recurrence cycle (length 5):
+%5 = neura.reserve : !neura.data<i64, i1>
+%7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+%22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%24 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+%25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+%26 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+%27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+%29 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+%30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %2 = neura.reserve : !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %5 = neura.reserve : !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.yield
+[MapToAcceleratorPass] Topologically sorted op: %6 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %3 = "neura.data_mov"(%1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %12 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %8 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %20 = "neura.data_mov"(%4) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %28 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %24 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %14 = "neura.data_mov"(%13) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %10 = "neura.data_mov"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] Topologically sorted op: %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %35 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %26 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %16 = "neura.data_mov"(%15) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %17 = "neura.data_mov"(%11) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %32 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %29 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[MapToAcceleratorPass] Topologically sorted op: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1>
+[MapToAcceleratorPass] Topologically sorted op: %34 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %31 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.ctrl_mov %33 -> %2 : !neura.data<i32, i1> !neura.data<i32, i1>
+[MapToAcceleratorPass] Topologically sorted op: neura.return_value %37 : !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 0: 3 ops
+  %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+  %5 = neura.reserve : !neura.data<i64, i1>
+  %6 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 1: 4 ops
+  %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+  %22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %12 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %8 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 2: 7 ops
+  %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+  %28 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %24 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+  %14 = "neura.data_mov"(%13) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+  %10 = "neura.data_mov"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 3: 9 ops
+  %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1>
+  %2 = neura.reserve : !neura.data<i32, i1>
+  %3 = "neura.data_mov"(%1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+  %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+  %26 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %16 = "neura.data_mov"(%15) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %17 = "neura.data_mov"(%11) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 4: 6 ops
+  %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1>
+  %20 = "neura.data_mov"(%4) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %29 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 5: 6 ops
+  %35 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+  %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+  neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1>
+  %34 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+  %31 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 6: 3 ops
+  %32 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+  %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP Bucket Level 7: 4 ops
+  neura.yield
+  %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+  neura.ctrl_mov %33 -> %2 : !neura.data<i32, i1> !neura.data<i32, i1>
+  neura.return_value %37 : !neura.data<i32, i1>
+[MapToAcceleratorPass] ALAP sorted op: %5 = neura.reserve : !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %6 = "neura.data_mov"(%0) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1> (ALAP level: 0)
+[MapToAcceleratorPass] ALAP sorted op: %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %22 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %12 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %8 = "neura.data_mov"(%7) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 1)
+[MapToAcceleratorPass] ALAP sorted op: %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %28 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %24 = "neura.data_mov"(%23) : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %14 = "neura.data_mov"(%13) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %10 = "neura.data_mov"(%9) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<!llvm.ptr, i1> (ALAP level: 2)
+[MapToAcceleratorPass] ALAP sorted op: %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %2 = neura.reserve : !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %26 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %3 = "neura.data_mov"(%1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %16 = "neura.data_mov"(%15) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %17 = "neura.data_mov"(%11) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1> (ALAP level: 3)
+[MapToAcceleratorPass] ALAP sorted op: %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %20 = "neura.data_mov"(%4) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %29 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 4)
+[MapToAcceleratorPass] ALAP sorted op: %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: neura.ctrl_mov %30 -> %5 : !neura.data<i64, i1> !neura.data<i64, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %31 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %35 = "neura.data_mov"(%25) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %34 = "neura.data_mov"(%21) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 5)
+[MapToAcceleratorPass] ALAP sorted op: %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %32 = "neura.data_mov"(%27) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1> (ALAP level: 6)
+[MapToAcceleratorPass] ALAP sorted op: %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: neura.ctrl_mov %33 -> %2 : !neura.data<i32, i1> !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: neura.return_value %37 : !neura.data<i32, i1> (ALAP level: 7)
+[MapToAcceleratorPass] ALAP sorted op: neura.yield (ALAP level: 7)
+---------------------------------------------------------
+[HeuristicMapping] Starting mapping with 42 operations.
+Configuration: MAX Backtrack Depth = 3, MAX Candidate Locations = 5
+[HeuristicMapping] Filtered 25 non-materialized operations, 17 operations require physical mapping.
+[HeuristicMapping] Materialized operations list:
+0 %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1> (level: 0)
+1 %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1> (level: 1)
+2 %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1> (level: 2)
+3 %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (level: 2)
+4 %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1> (level: 2)
+5 %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1> (level: 3)
+6 %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 3)
+7 %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1> (level: 3)
+8 %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1> (level: 3)
+9 %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1> (level: 4)
+10 %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1> (level: 4)
+11 %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 4)
+12 %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1> (level: 5)
+13 %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1> (level: 5)
+14 %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1> (level: 6)
+15 %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1> (level: 7)
+16 neura.return_value %37 : !neura.data<i32, i1> (level: 7)
+[HeuristicMapping] Found 80 candidate locations for operation: %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#11 @t=0
+[HeuristicMapping] Successfully mapped operation %0 = "neura.grant_once"() <{constant_value = 0 : i64}> : () -> !neura.data<i64, i1>
+[HeuristicMapping] Found 54 candidate locations for operation: %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=1
+[tryRouteDataMove] Routing from Tile#11 @t=0 to Tile#10 @t=1
+[HeuristicMapping] Successfully mapped operation %7 = neura.phi_start %6, %5 : !neura.data<i64, i1>, !neura.data<i64, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Found 61 candidate locations for operation: %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=2
+[tryRouteDataMove] Routing from Tile#10 @t=1 to Tile#10 @t=2
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[HeuristicMapping] Successfully mapped operation %23 = "neura.add"(%22) {rhs_value = 1 : i64} : (!neura.data<i64, i1>) -> !neura.data<i64, i1>
+[HeuristicMapping] Found 60 candidate locations for operation: %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#11 @t=2
+[tryRouteDataMove] Routing from Tile#10 @t=1 to Tile#11 @t=2
+[HeuristicMapping] Successfully mapped operation %13 = "neura.gep"(%12) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg2"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 59 candidate locations for operation: %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#6 @t=2
+[tryRouteDataMove] Routing from Tile#10 @t=1 to Tile#6 @t=2
+[HeuristicMapping] Successfully mapped operation %9 = "neura.gep"(%8) <{operandSegmentSizes = array<i32: 0, 1>}> {lhs_value = "%arg0"} : (!neura.data<i64, i1>) -> !neura.data<!llvm.ptr, i1>
+[HeuristicMapping] Found 58 candidate locations for operation: %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=3
+[tryRouteDataMove] Routing from Tile#10 @t=2 to Tile#10 @t=3
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[HeuristicMapping] Successfully mapped operation %25 = "neura.icmp"(%24) <{cmpType = "eq"}> {rhs_value = 32 : i64} : (!neura.data<i64, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Found 17 candidate locations for operation: %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#3 @t=4
+[tryRouteDataMove] Routing from Tile#11 @t=2 to Tile#3 @t=4
+[HeuristicMapping] Successfully mapped operation %15 = "neura.load"(%14) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 24 candidate locations for operation: %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#2 @t=3
+[tryRouteDataMove] Routing from Tile#6 @t=2 to Tile#2 @t=3
+[HeuristicMapping] Successfully mapped operation %11 = "neura.load"(%10) : (!neura.data<!llvm.ptr, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 72 candidate locations for operation: %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#8 @t=3
+[HeuristicMapping] Successfully mapped operation %1 = "neura.grant_once"() <{constant_value = 0 : i32}> : () -> !neura.data<i32, i1>
+[HeuristicMapping] Found 48 candidate locations for operation: %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#8 @t=4
+[tryRouteDataMove] Routing from Tile#8 @t=3 to Tile#8 @t=4
+[tryRouteDataMove] Successfully routed on same tile using Register #8000
+[HeuristicMapping] Successfully mapped operation %4 = neura.phi_start %3, %2 : !neura.data<i32, i1>, !neura.data<i32, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Found 55 candidate locations for operation: %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#10 @t=4
+[tryRouteDataMove] Routing from Tile#10 @t=3 to Tile#10 @t=4
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[HeuristicMapping] Successfully mapped operation %27 = "neura.not"(%26) : (!neura.data<i1, i1>) -> !neura.data<i1, i1>
+[HeuristicMapping] Found 39 candidate locations for operation: %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#2 @t=5
+[tryRouteDataMove] Routing from Tile#3 @t=4 to Tile#2 @t=5
+[tryRouteDataMove] Routing from Tile#2 @t=3 to Tile#2 @t=5
+[tryRouteDataMove] Successfully routed on same tile using Register #2000
+[HeuristicMapping] Successfully mapped operation %18 = "neura.mul"(%16, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 38 candidate locations for operation: %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#5 @t=7
+[tryRouteDataMove] Routing from Tile#2 @t=5 to Tile#5 @t=7
+[tryRouteDataMove] Routing from Tile#8 @t=4 to Tile#5 @t=7
+[HeuristicMapping] Successfully mapped operation %21 = "neura.add"(%19, %20) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+[HeuristicMapping] Found 4 candidate locations for operation: %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Trying candidate 1/4 at tile#10 @t=5
+[tryRouteDataMove] Routing from Tile#10 @t=2 to Tile#10 @t=5
+[tryRouteDataMove] Successfully routed on same tile using Register #328
+[tryRouteDataMove] Routing from Tile#10 @t=4 to Tile#10 @t=5
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[tryRouteDataMove] Routing from Tile#10 @t=5 to Tile#10 @t=6
+[tryRouteDataMove] Successfully routed on same tile using Register #320
+[HeuristicMapping] Successfully mapped operation %30 = neura.grant_predicate %28, %29 : !neura.data<i64, i1>, !neura.data<i1, i1> -> !neura.data<i64, i1>
+[HeuristicMapping] Found 53 candidate locations for operation: %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#9 @t=8
+[tryRouteDataMove] Routing from Tile#5 @t=7 to Tile#9 @t=8
+[tryRouteDataMove] Routing from Tile#10 @t=3 to Tile#9 @t=8
+[HeuristicMapping] Successfully mapped operation %36 = neura.grant_predicate %34, %35 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Found 1 candidate locations for operation: %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/1 at tile#4 @t=8
+[tryRouteDataMove] Routing from Tile#5 @t=7 to Tile#4 @t=8
+[tryRouteDataMove] Routing from Tile#10 @t=4 to Tile#4 @t=8
+[tryRouteDataMove] Routing from Tile#4 @t=8 to Tile#8 @t=9
+[HeuristicMapping] Successfully mapped operation %33 = neura.grant_predicate %31, %32 : !neura.data<i32, i1>, !neura.data<i1, i1> -> !neura.data<i32, i1>
+[HeuristicMapping] Found 49 candidate locations for operation: neura.return_value %37 : !neura.data<i32, i1>
+[HeuristicMapping] Trying candidate 1/5 at tile#5 @t=9
+[tryRouteDataMove] Routing from Tile#9 @t=8 to Tile#5 @t=9
+[HeuristicMapping] Successfully mapped operation neura.return_value %37 : !neura.data<i32, i1>
+[HeuristicMapping] Successfully mapped all 17 operations.
+[generate-code] tmp-memory-access.yaml emitted with 2 memory op(s)
+[generate-code] DFG (SSA-based) emitted: nodes=25, edges=30 -> tmp-generated-dfg.dot, tmp-generated-dfg.yaml

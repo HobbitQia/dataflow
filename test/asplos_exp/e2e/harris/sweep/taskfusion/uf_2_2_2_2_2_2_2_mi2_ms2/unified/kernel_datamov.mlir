@@ -1,0 +1,849 @@
+module {
+  func.func @harris(%arg0: memref<64x64xi32>, %arg1: memref<64x64xi32>, %arg2: memref<64x64xi32>, %arg3: memref<64x64xi32>, %arg4: memref<64x64xi32>, %arg5: memref<64x64xi32>, %arg6: memref<64x64xi32>, %arg7: memref<64x64xi32>, %arg8: memref<64x64xi32>, %arg9: memref<64x64xi32>) attributes {latency = 1 : i32} {
+    %c2_i32 = arith.constant {latency = 1 : i32} 2 : i32
+    %c4_i32 = arith.constant {latency = 1 : i32} 4 : i32
+    %c16_i32 = arith.constant {latency = 1 : i32} 16 : i32
+    %dependency_read_out, %dependency_write_out = taskflow.task @Task_0 dependency_read_in(%arg0 : memref<64x64xi32>) dependency_write_in(%arg1 : memref<64x64xi32>) value_inputs(%c2_i32 : i32) [original_read_memrefs(%arg0 : memref<64x64xi32>), original_write_memrefs(%arg1 : memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>, i32) -> (memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>, %arg12: i32):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : index
+      neura.kernel inputs(%arg10, %arg12, %arg11 : memref<64x64xi32>, i32, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg13: memref<64x64xi32>, %arg14: i32, %arg15: memref<64x64xi32>):
+        %2:4 = "neura.fused_op"() <{frequency = 2 : i64, pattern_id = 17 : i64, pattern_name = "fused_op:counter->add->fused_op:add->add"}> ({
+          %64 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %65 = "neura.add"(%64) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = "neura.add"(%64) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %67 = "neura.add"(%66) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          neura.yield results(%64, %65, %66, %67 : !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>)
+        }) {latency = 2 : i32} : () -> (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>)
+        %3 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %4 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %5 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %7 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %9 = "neura.data_mov"(%2#1) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %10 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %12 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %13 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %14 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %15 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %16 = "neura.data_mov"(%2#3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %17:2 = "neura.fused_op"(%8) <{frequency = 59 : i64, pattern_id = 2 : i64, pattern_name = "counter->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>):
+          %64 = neura.counter {counter_id = 0 : i32, counter_type = "root", lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %65 = "neura.add"(%64) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %arg16 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%64, %66 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %18 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %19 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %20 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %21 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %22 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %23 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %24 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %25 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %26 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %27 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %28 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %29 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %30 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %31 = "neura.data_mov"(%17#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %32 = "neura.fused_op"(%7, %30) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %33 = "neura.data_mov"(%32) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %34 = "neura.fused_op"(%6, %29) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %36 = "neura.fused_op"(%5, %28) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %38 = "neura.fused_op"(%27, %15) <{frequency = 9 : i64, pattern_id = 13 : i64, pattern_name = "fused_op:add->load_indexed->mul"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %40 = "neura.fused_op"(%14, %26) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %42 = "neura.fused_op"(%13, %25) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %43 = "neura.data_mov"(%42) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %44 = "neura.fused_op"(%12, %24) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %45 = "neura.data_mov"(%44) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %46 = "neura.fused_op"(%23, %9) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%65 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %47 = "neura.data_mov"(%46) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %48 = "neura.mul"(%31) {latency = 1 : i32, rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %49 = "neura.sub"(%37, %47) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %51 = "neura.fused_op"(%22, %4, %50) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>, %arg18: !neura.data<i32, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %67 = "neura.add"(%arg18, %66) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%67 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %53 = "neura.data_mov"(%48) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %54 = "neura.fused_op"(%33, %35, %52, %53) <{frequency = 4 : i64, pattern_id = 28 : i64, pattern_name = "sub->fused_op:sub->add"}> ({
+        ^bb0(%arg16: !neura.data<i32, i1>, %arg17: !neura.data<i32, i1>, %arg18: !neura.data<i32, i1>, %arg19: !neura.data<i32, i1>):
+          %64 = "neura.sub"(%arg16, %arg17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %65 = "neura.sub"(%arg18, %arg19) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %66 = "neura.add"(%65, %64) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %55 = "neura.data_mov"(%54) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        neura.store_indexed %55 to [%21, %3 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        %56 = "neura.fused_op"(%20, %16) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%65 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %58 = "neura.sub"(%45, %57) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %59 = "neura.data_mov"(%58) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %60 = "neura.fused_op"(%19, %11, %59) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>, %arg18: !neura.data<i32, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %67 = "neura.add"(%arg18, %66) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%67 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %61 = "neura.data_mov"(%60) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %62 = "neura.fused_op"(%41, %43, %61, %39) <{frequency = 4 : i64, pattern_id = 28 : i64, pattern_name = "sub->fused_op:sub->add"}> ({
+        ^bb0(%arg16: !neura.data<i32, i1>, %arg17: !neura.data<i32, i1>, %arg18: !neura.data<i32, i1>, %arg19: !neura.data<i32, i1>):
+          %64 = "neura.sub"(%arg16, %arg17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %65 = "neura.sub"(%arg18, %arg19) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %66 = "neura.add"(%65, %64) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %63 = "neura.data_mov"(%62) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        neura.store_indexed %63 to [%18, %10 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10 : memref<64x64xi32>) writes(%arg11 : memref<64x64xi32>)
+    }
+    %dependency_read_out_0, %dependency_write_out_1 = taskflow.task @Task_1 dependency_read_in(%dependency_read_out : memref<64x64xi32>) dependency_write_in(%arg2 : memref<64x64xi32>) value_inputs(%c2_i32 : i32) [original_read_memrefs(%arg0 : memref<64x64xi32>), original_write_memrefs(%arg2 : memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>, i32) -> (memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>, %arg12: i32):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : index
+      neura.kernel inputs(%arg10, %arg12, %arg11 : memref<64x64xi32>, i32, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg13: memref<64x64xi32>, %arg14: i32, %arg15: memref<64x64xi32>):
+        %2:4 = "neura.fused_op"() <{frequency = 2 : i64, pattern_id = 17 : i64, pattern_name = "fused_op:counter->add->fused_op:add->add"}> ({
+          %64 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %65 = "neura.add"(%64) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = "neura.add"(%64) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %67 = "neura.add"(%66) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          neura.yield results(%64, %65, %66, %67 : !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>)
+        }) {latency = 2 : i32} : () -> (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<index, i1>)
+        %3 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %4 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %5 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %7 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%2#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %9 = "neura.data_mov"(%2#1) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %10 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %12 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %13 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %14 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %15 = "neura.data_mov"(%2#2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %16 = "neura.data_mov"(%2#3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %17:2 = "neura.fused_op"(%8) <{frequency = 59 : i64, pattern_id = 2 : i64, pattern_name = "counter->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>):
+          %64 = neura.counter {counter_id = 0 : i32, counter_type = "root", lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %65 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%64, %65 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%64, %66 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %18 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %19 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %20 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %21 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %22 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %23 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %24 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %25 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %26 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %27 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %28 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %29 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %30 = "neura.data_mov"(%17#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %31 = "neura.data_mov"(%17#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %32 = "neura.fused_op"(%7, %30) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %33 = "neura.data_mov"(%32) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %34 = "neura.fused_op"(%6, %29) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %35 = "neura.data_mov"(%34) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %36 = "neura.fused_op"(%5, %28) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %37 = "neura.data_mov"(%36) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %38 = "neura.fused_op"(%15, %27) <{frequency = 9 : i64, pattern_id = 13 : i64, pattern_name = "fused_op:add->load_indexed->mul"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%arg17, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %39 = "neura.data_mov"(%38) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %40 = "neura.fused_op"(%14, %26) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %41 = "neura.data_mov"(%40) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %42 = "neura.fused_op"(%13, %25) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %43 = "neura.data_mov"(%42) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %44 = "neura.fused_op"(%12, %24) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = "neura.add"(%arg17) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %66 = neura.load_indexed [%65, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %45 = "neura.data_mov"(%44) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %46 = "neura.fused_op"(%23, %9) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%65 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %47 = "neura.data_mov"(%46) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %48 = "neura.mul"(%31) {latency = 1 : i32, rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %49 = "neura.sub"(%35, %47) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %50 = "neura.data_mov"(%49) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %51 = "neura.fused_op"(%4, %22, %50) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>, %arg18: !neura.data<i32, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%arg17, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %67 = "neura.add"(%arg18, %66) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%67 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %52 = "neura.data_mov"(%51) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %53 = "neura.data_mov"(%48) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %54 = "neura.fused_op"(%33, %37, %52, %53) <{frequency = 4 : i64, pattern_id = 28 : i64, pattern_name = "sub->fused_op:sub->add"}> ({
+        ^bb0(%arg16: !neura.data<i32, i1>, %arg17: !neura.data<i32, i1>, %arg18: !neura.data<i32, i1>, %arg19: !neura.data<i32, i1>):
+          %64 = "neura.sub"(%arg16, %arg17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %65 = "neura.sub"(%arg18, %arg19) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %66 = "neura.add"(%65, %64) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %55 = "neura.data_mov"(%54) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        neura.store_indexed %55 to [%21, %3 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        %56 = "neura.fused_op"(%20, %16) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%64, %arg17 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%65 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %58 = "neura.sub"(%43, %57) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %59 = "neura.data_mov"(%58) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %60 = "neura.fused_op"(%11, %19, %59) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>, %arg18: !neura.data<i32, i1>):
+          %64 = "neura.add"(%arg16) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %65 = neura.load_indexed [%arg17, %64 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %66 = "neura.mul"(%65) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %67 = "neura.add"(%arg18, %66) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%67 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %61 = "neura.data_mov"(%60) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %62 = "neura.fused_op"(%41, %45, %61, %39) <{frequency = 4 : i64, pattern_id = 28 : i64, pattern_name = "sub->fused_op:sub->add"}> ({
+        ^bb0(%arg16: !neura.data<i32, i1>, %arg17: !neura.data<i32, i1>, %arg18: !neura.data<i32, i1>, %arg19: !neura.data<i32, i1>):
+          %64 = "neura.sub"(%arg16, %arg17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %65 = "neura.sub"(%arg18, %arg19) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %66 = "neura.add"(%65, %64) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%66 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %63 = "neura.data_mov"(%62) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        neura.store_indexed %63 to [%18, %10 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10 : memref<64x64xi32>) writes(%arg11 : memref<64x64xi32>)
+    }
+    %dependency_read_out_2, %dependency_write_out_3 = taskflow.task @Task_2 dependency_read_in(%dependency_write_out : memref<64x64xi32>) dependency_write_in(%arg3 : memref<64x64xi32>) [original_read_memrefs(%arg1 : memref<64x64xi32>), original_write_memrefs(%arg3 : memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>) -> (memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : index
+      neura.kernel inputs(%arg10, %arg11 : memref<64x64xi32>, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg12: memref<64x64xi32>, %arg13: memref<64x64xi32>):
+        %2 = neura.counter {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+        %3 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %4:3 = "neura.fused_op"(%3) <{frequency = 59 : i64, pattern_id = 2 : i64, pattern_name = "counter->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg14: !neura.data<index, i1>):
+          %17 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %18 = "neura.add"(%17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %19 = neura.load_indexed [%arg14, %18 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%17, %18, %19 : !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>)
+        %5 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %7 = "neura.data_mov"(%4#1) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%4#2) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %9 = "neura.data_mov"(%4#2) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %10 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11 = "neura.fused_op"(%10, %6) <{frequency = 35 : i64, pattern_id = 10 : i64, pattern_name = "load_indexed->mul"}> ({
+        ^bb0(%arg14: !neura.data<index, i1>, %arg15: !neura.data<index, i1>):
+          %17 = neura.load_indexed [%arg14, %arg15 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %18 = "neura.mul"(%17, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%18 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %12 = "neura.data_mov"(%11) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %13 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %12 to [%13, %5 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input1"} : !neura.data<i32, i1>
+        %14 = "neura.mul"(%9, %8) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %15 = "neura.data_mov"(%14) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %16 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %15 to [%16, %7 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input1"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10 : memref<64x64xi32>) writes(%arg11 : memref<64x64xi32>)
+    }
+    %dependency_read_out_4, %dependency_write_out_5 = taskflow.task @Task_3 dependency_read_in(%dependency_write_out_1 : memref<64x64xi32>) dependency_write_in(%arg4 : memref<64x64xi32>) [original_read_memrefs(%arg2 : memref<64x64xi32>), original_write_memrefs(%arg4 : memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>) -> (memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : index
+      neura.kernel inputs(%arg10, %arg11 : memref<64x64xi32>, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg12: memref<64x64xi32>, %arg13: memref<64x64xi32>):
+        %2 = neura.counter {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+        %3 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %4:3 = "neura.fused_op"(%3) <{frequency = 59 : i64, pattern_id = 2 : i64, pattern_name = "counter->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg14: !neura.data<index, i1>):
+          %17 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %18 = "neura.add"(%17) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %19 = neura.load_indexed [%arg14, %18 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%17, %18, %19 : !neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>)
+        %5 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %7 = "neura.data_mov"(%4#1) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%4#2) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %9 = "neura.data_mov"(%4#2) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %10 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11 = "neura.fused_op"(%10, %6) <{frequency = 35 : i64, pattern_id = 10 : i64, pattern_name = "load_indexed->mul"}> ({
+        ^bb0(%arg14: !neura.data<index, i1>, %arg15: !neura.data<index, i1>):
+          %17 = neura.load_indexed [%arg14, %arg15 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %18 = "neura.mul"(%17, %17) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%18 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %12 = "neura.data_mov"(%11) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %13 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %12 to [%13, %5 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input1"} : !neura.data<i32, i1>
+        %14 = "neura.mul"(%9, %8) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %15 = "neura.data_mov"(%14) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %16 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %15 to [%16, %7 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input1"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10 : memref<64x64xi32>) writes(%arg11 : memref<64x64xi32>)
+    }
+    %dependency_read_out_6:2, %dependency_write_out_7 = taskflow.task @Task_4 dependency_read_in(%dependency_write_out, %dependency_write_out_1 : memref<64x64xi32>, memref<64x64xi32>) dependency_write_in(%arg5 : memref<64x64xi32>) [original_read_memrefs(%arg1, %arg2 : memref<64x64xi32>, memref<64x64xi32>), original_write_memrefs(%arg5 : memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) -> (memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>, %arg12: memref<64x64xi32>):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : index
+      neura.kernel inputs(%arg10, %arg11, %arg12 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg13: memref<64x64xi32>, %arg14: memref<64x64xi32>, %arg15: memref<64x64xi32>):
+        %2 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 1 : index, step = 2 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+        %3 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %4:2 = "neura.fused_op"(%3) <{frequency = 2 : i64, pattern_id = 19 : i64, pattern_name = "fused_op:counter->load_indexed->fused_op:load_indexed->mul"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>):
+          %20 = neura.counter {counter_id = 0 : i32, counter_type = "root", lower_bound = 1 : index, step = 1 : index, upper_bound = 63 : index} : !neura.data<index, i1>
+          %21 = neura.load_indexed [%20, %arg16 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input1"} : !neura.data<i32, i1>
+          %22 = neura.load_indexed [%20, %arg16 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %23 = "neura.mul"(%22, %21) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%20, %23 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %5 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %7 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%4#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %9 = "neura.data_mov"(%4#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %10 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11:2 = "neura.fused_op"(%10, %8) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg16: !neura.data<index, i1>, %arg17: !neura.data<index, i1>):
+          %20 = "neura.add"(%arg16) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %21 = neura.load_indexed [%arg17, %20 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%20, %21 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %12 = "neura.data_mov"(%11#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %13 = "neura.data_mov"(%11#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %14 = "neura.data_mov"(%11#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %15 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %9 to [%7, %15 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        %16 = neura.load_indexed [%6, %13 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, lhs_value = "%input1"} : !neura.data<i32, i1>
+        %17 = "neura.data_mov"(%16) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %18 = "neura.mul"(%14, %17) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %19 = "neura.data_mov"(%18) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        neura.store_indexed %19 to [%5, %12 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input2"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10, %arg11 : memref<64x64xi32>, memref<64x64xi32>) writes(%arg12 : memref<64x64xi32>)
+    }
+    %dependency_read_out_8:3, %dependency_write_out_9 = taskflow.task @fused_pc dependency_read_in(%dependency_write_out_7, %dependency_write_out_5, %dependency_write_out_3 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) dependency_write_in(%arg8, %arg7, %arg6, %arg9 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) value_inputs(%c4_i32, %c2_i32, %c16_i32, %c4_i32, %c2_i32, %c16_i32, %c4_i32, %c2_i32, %c16_i32, %c4_i32 : i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) [original_read_memrefs(%arg5, %arg4, %arg3, %arg6, %arg7, %arg8 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>), original_write_memrefs(%arg8, %arg7, %arg6, %arg9 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>)] {latency = 1 : i32} : (memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) -> (memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) {
+    ^bb0(%arg10: memref<64x64xi32>, %arg11: memref<64x64xi32>, %arg12: memref<64x64xi32>, %arg13: memref<64x64xi32>, %arg14: memref<64x64xi32>, %arg15: memref<64x64xi32>, %arg16: memref<64x64xi32>, %arg17: i32, %arg18: i32, %arg19: i32, %arg20: i32, %arg21: i32, %arg22: i32, %arg23: i32, %arg24: i32, %arg25: i32, %arg26: i32):
+      %0 = taskflow.counter attributes {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 2 : index, step = 1 : index, upper_bound = 62 : index} : index
+      %1 = taskflow.counter parent(%0 : index) attributes {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 2 : index, step = 2 : index, upper_bound = 62 : index} : index
+      neura.kernel inputs(%arg10, %arg17, %arg18, %arg19, %arg11, %arg20, %arg21, %arg22, %arg12, %arg23, %arg24, %arg25, %arg26, %arg16 : memref<64x64xi32>, i32, i32, i32, memref<64x64xi32>, i32, i32, i32, memref<64x64xi32>, i32, i32, i32, i32, memref<64x64xi32>) attributes {accelerator = "neura", dataflow_mode = "predicate", latency = 1 : i32} {
+      ^bb0(%arg27: memref<64x64xi32>, %arg28: i32, %arg29: i32, %arg30: i32, %arg31: memref<64x64xi32>, %arg32: i32, %arg33: i32, %arg34: i32, %arg35: memref<64x64xi32>, %arg36: i32, %arg37: i32, %arg38: i32, %arg39: i32, %arg40: memref<64x64xi32>):
+        %2 = neura.counter {counter_id = 0 : i32, counter_type = "root", latency = 1 : i32, lower_bound = 2 : index, step = 1 : index, upper_bound = 62 : index} : !neura.data<index, i1>
+        %3 = neura.counter {counter_id = 1 : i32, counter_type = "leaf", latency = 1 : i32, lower_bound = 2 : index, step = 2 : index, upper_bound = 62 : index} : !neura.data<index, i1>
+        %4 = "neura.data_mov"(%3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %5 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %6:2 = "neura.fused_op"(%4, %5) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          neura.yield results(%157, %158 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %7 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %8 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %9 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %10 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %11 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %12 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %13 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %14 = "neura.data_mov"(%6#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %15 = "neura.data_mov"(%6#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %16 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %17 = "neura.fused_op"(%14, %16) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %18 = "neura.data_mov"(%17) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %19 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %20 = "neura.fused_op"(%13, %19) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %21 = "neura.data_mov"(%20) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %22 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %23 = "neura.fused_op"(%12, %22) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %24 = "neura.data_mov"(%23) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %25 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %26 = "neura.fused_op"(%11, %25) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %27 = "neura.data_mov"(%26) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %28 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %29 = "neura.fused_op"(%28, %10, %27) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input10"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %30 = "neura.data_mov"(%29) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %31 = "neura.data_mov"(%3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %32 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %33:2 = "neura.fused_op"(%31, %32) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          neura.yield results(%157, %158 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %34 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %35 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %36 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %37 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %38 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %39 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %40 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %41 = "neura.data_mov"(%33#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %42 = "neura.data_mov"(%33#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %43 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %44 = "neura.fused_op"(%41, %43) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %45 = "neura.data_mov"(%44) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %46 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %47 = "neura.fused_op"(%40, %46) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %48 = "neura.data_mov"(%47) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %49 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %50 = "neura.fused_op"(%39, %49) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %51 = "neura.data_mov"(%50) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %52 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %53 = "neura.fused_op"(%38, %52) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %54 = "neura.data_mov"(%53) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %55 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %56 = "neura.fused_op"(%55, %37, %54) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input6"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %57 = "neura.data_mov"(%56) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %58 = "neura.data_mov"(%3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %59 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %60:2 = "neura.fused_op"(%58, %59) <{frequency = 91 : i64, pattern_id = 2 : i64, pattern_name = "add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%157, %158 : !neura.data<index, i1>, !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> (!neura.data<index, i1>, !neura.data<i32, i1>)
+        %61 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %62 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %63 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %64 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %65 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %66 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %67 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %68 = "neura.data_mov"(%60#0) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %69 = "neura.data_mov"(%60#1) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %70 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %71 = "neura.fused_op"(%68, %70) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %72 = "neura.data_mov"(%71) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %73 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %74 = "neura.fused_op"(%67, %73) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %75 = "neura.data_mov"(%74) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %76 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %77 = "neura.fused_op"(%66, %76) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %78 = "neura.data_mov"(%77) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %79 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %80 = "neura.fused_op"(%65, %79) <{frequency = 24 : i64, pattern_id = 0 : i64, pattern_name = "add->fused_op:add->load_indexed"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = "neura.add"(%arg42) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %159 = neura.load_indexed [%158, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>) -> !neura.data<i32, i1>
+        %81 = "neura.data_mov"(%80) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %82 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %83 = "neura.fused_op"(%82, %64, %81) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input2"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %84 = "neura.data_mov"(%83) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %85 = "neura.add"(%84, %78) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %86 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %87 = "neura.data_mov"(%85) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %88 = "neura.fused_op"(%63, %86, %87) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input2"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %89 = "neura.data_mov"(%88) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %90 = "neura.fused_op"(%69, %89) <{frequency = 19 : i64, pattern_id = 12 : i64, pattern_name = "mul->add"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.mul"(%arg41) {rhs_value = "%input1"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.add"(%arg42, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %91 = "neura.data_mov"(%90) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %92 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %93 = "neura.fused_op"(%62, %92, %91) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input2"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %94 = "neura.data_mov"(%93) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %95 = "neura.add"(%94, %75) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %96 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %97 = "neura.data_mov"(%95) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %98 = "neura.fused_op"(%96, %61, %97) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input0"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input2"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %99 = "neura.data_mov"(%98) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %100 = "neura.fused_op"(%99, %72) <{frequency = 3 : i64, pattern_id = 1 : i64, pattern_name = "add->div"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41, %arg42) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.div"(%157) {rhs_value = "%input3"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %101 = "neura.data_mov"(%100) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %102 = "neura.data_mov"(%100) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %103 = "neura.add"(%57, %51) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %104 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %105 = "neura.data_mov"(%103) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %106 = "neura.fused_op"(%36, %104, %105) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input6"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %107 = "neura.data_mov"(%106) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %108 = "neura.fused_op"(%42, %107) <{frequency = 19 : i64, pattern_id = 12 : i64, pattern_name = "mul->add"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.mul"(%arg41) {rhs_value = "%input5"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.add"(%arg42, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %109 = "neura.data_mov"(%108) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %110 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %111 = "neura.fused_op"(%35, %110, %109) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input6"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %112 = "neura.data_mov"(%111) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %113 = "neura.add"(%112, %48) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %114 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %115 = "neura.data_mov"(%113) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %116 = "neura.fused_op"(%114, %34, %115) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input4"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input6"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %117 = "neura.data_mov"(%116) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %118 = "neura.fused_op"(%117, %45) <{frequency = 3 : i64, pattern_id = 1 : i64, pattern_name = "add->div"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41, %arg42) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.div"(%157) {rhs_value = "%input7"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %119 = "neura.data_mov"(%118) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %120 = "neura.data_mov"(%118) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %121 = "neura.data_mov"(%118) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %122 = "neura.data_mov"(%118) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %123 = "neura.add"(%30, %24) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %124 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %125 = "neura.data_mov"(%123) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %126 = "neura.fused_op"(%9, %124, %125) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = -1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input10"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %127 = "neura.data_mov"(%126) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %128 = "neura.fused_op"(%15, %127) <{frequency = 19 : i64, pattern_id = 12 : i64, pattern_name = "mul->add"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.mul"(%arg41) {rhs_value = "%input9"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.add"(%arg42, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %129 = "neura.data_mov"(%128) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %130 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %131 = "neura.fused_op"(%8, %130, %129) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%arg42, %157 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input10"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %132 = "neura.data_mov"(%131) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %133 = "neura.add"(%132, %21) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %134 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %135 = "neura.data_mov"(%133) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %136 = "neura.fused_op"(%134, %7, %135) <{frequency = 22 : i64, pattern_id = 12 : i64, pattern_name = "fused_op:add->load_indexed->fused_op:mul->add"}> ({
+        ^bb0(%arg41: !neura.data<index, i1>, %arg42: !neura.data<index, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41) {rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+          %158 = neura.load_indexed [%157, %arg42 : !neura.data<index, i1>, !neura.data<index, i1>]  {lhs_value = "%input8"} : !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {rhs_value = "%input10"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.add"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<index, i1>, !neura.data<index, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %137 = "neura.data_mov"(%136) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %138 = "neura.fused_op"(%137, %18) <{frequency = 3 : i64, pattern_id = 1 : i64, pattern_name = "add->div"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41, %arg42) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.div"(%157) {rhs_value = "%input11"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%158 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %139 = "neura.data_mov"(%138) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %140 = "neura.data_mov"(%138) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %141 = "neura.data_mov"(%138) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %142 = "neura.data_mov"(%138) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %143 = "neura.fused_op"(%102, %142, %122) <{frequency = 2 : i64, pattern_id = 25 : i64, pattern_name = "mul->fused_op:mul->sub"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.mul"(%arg41, %arg41) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.mul"(%arg42, %arg43) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %159 = "neura.sub"(%158, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %144 = "neura.data_mov"(%143) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %145 = "neura.fused_op"(%141, %121, %144) <{frequency = 2 : i64, pattern_id = 15 : i64, pattern_name = "fused_op:add->mul->fused_op:mul->sub"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41, %arg42) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.mul"(%157, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {lhs_value = "%input12"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.sub"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %146 = "neura.data_mov"(%145) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %147 = "neura.fused_op"(%101, %140, %120) <{frequency = 2 : i64, pattern_id = 25 : i64, pattern_name = "mul->fused_op:mul->sub"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.mul"(%arg41, %arg41) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.mul"(%arg42, %arg43) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %159 = "neura.sub"(%158, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%159 : !neura.data<i32, i1>)
+        }) {latency = 1 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %148 = "neura.data_mov"(%147) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %149 = "neura.fused_op"(%139, %119, %148) <{frequency = 2 : i64, pattern_id = 15 : i64, pattern_name = "fused_op:add->mul->fused_op:mul->sub"}> ({
+        ^bb0(%arg41: !neura.data<i32, i1>, %arg42: !neura.data<i32, i1>, %arg43: !neura.data<i32, i1>):
+          %157 = "neura.add"(%arg41, %arg42) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %158 = "neura.mul"(%157, %157) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %159 = "neura.mul"(%158) {lhs_value = "%input12"} : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+          %160 = "neura.sub"(%arg43, %159) : (!neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+          neura.yield results(%160 : !neura.data<i32, i1>)
+        }) {latency = 2 : i32} : (!neura.data<i32, i1>, !neura.data<i32, i1>, !neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %150 = "neura.data_mov"(%149) : (!neura.data<i32, i1>) -> !neura.data<i32, i1>
+        %151 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %152 = "neura.data_mov"(%3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %150 to [%151, %152 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input13"} : !neura.data<i32, i1>
+        %153 = "neura.data_mov"(%3) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %154 = "neura.add"(%153) {latency = 1 : i32, rhs_value = 1 : index} : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %155 = "neura.data_mov"(%2) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        %156 = "neura.data_mov"(%154) : (!neura.data<index, i1>) -> !neura.data<index, i1>
+        neura.store_indexed %146 to [%155, %156 : !neura.data<index, i1>, !neura.data<index, i1>]  {latency = 1 : i32, rhs_value = "%input13"} : !neura.data<i32, i1>
+        neura.yield {latency = 1 : i32, yield_type = "void"}
+      }
+      taskflow.yield reads(%arg10, %arg11, %arg12 : memref<64x64xi32>, memref<64x64xi32>, memref<64x64xi32>) writes(%arg16 : memref<64x64xi32>)
+    }
+    return {latency = 1 : i32}
+  }
+}
+

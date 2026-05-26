@@ -1,0 +1,29 @@
+/* fir standalone: integer FIR filter, NTAPS=32, manually unrolled x2 */
+#define NTAPS 32
+
+int coefficients[NTAPS] = {
+    0, 1, 3, -2, 0, 0, -3, 1,
+    0, 1, 3, -2, 0, 0, -3, 1,
+    0, 1, 3, -2, 0, 0, -3, 1,
+    0, 1, 3, -2, 0, 0, -3, 1};
+
+void kernel(int *input, int *output, int *coefficient);
+
+int main(void)
+{
+  static int input[NTAPS];
+  static int output[NTAPS];
+  int i;
+  for (i = 0; i < NTAPS; i++) input[i] = i % 5;
+  kernel(input, output, coefficients);
+  return 0;
+}
+
+void kernel(int *input, int *output, int *coefficient)
+{
+  int i;
+  *output = 0;
+  for (i = 0; i < NTAPS; i += 2) {
+    *output += input[i] * coefficient[i] + input[i + 1] * coefficient[i + 1];
+  }
+}

@@ -1,0 +1,12 @@
+kernel,status,instructions_bytes,compiled_ii
+axpy,ok,13079,5
+bicg,ok,81688,12
+bicg_int,ok,32820,10
+fft,ok,98992,19
+fir,ok,12373,5
+fir_vec,ok,12839,5
+gemm,ok,73758,17
+gemv,ok,28783,11
+histogram,ok,9420,6
+relu,ok,13441,5
+spmv,ok,100986,15

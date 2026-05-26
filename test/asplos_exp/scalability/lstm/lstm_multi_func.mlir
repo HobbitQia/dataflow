@@ -1,0 +1,1 @@
+/mnt/public/sichuan_a/qjj/dataflow/test/asplos_exp/e2e/lstm/lstm_multi_func.mlir

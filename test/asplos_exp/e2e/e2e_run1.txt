@@ -1,0 +1,125 @@
+=================================================================
+E2E Run 1 Results (Conservative UF, UF≤2)
+=================================================================
+
+=== PERFORMANCE ===
+
+App      Strategy     Params                              Latency    Speedup  #K
+harris   baseline     uf=1,1,1,1,1,1,2                    118616     1.00x    9
+         opfusion     uf=2,2,1,1,1,2,1 mi=1 ms=2          79596     1.49x    9
+         taskfusion   uf=1,1,1,1,1,1,2 mi=4 ms=3          52718     2.25x    6
+llama    baseline     uf=2,1,1,2,2,2,1,2                    2000     1.00x    8
+         opfusion     uf=2,1,1,2,2,2,1,2 mi=2 ms=2         1360     1.47x    8
+         taskfusion   uf=2,1,1,2,2,2,1,2 mi=2 ms=2         1072     1.87x    6
+resnet   baseline     uf=2,2,2,2                          7086080     1.00x    4
+         opfusion     uf=2,2,2,2 mi=1 ms=2               4726784     1.50x    4
+         taskfusion   uf=2,2,2,2 mi=1 ms=2               4726784     1.50x    4
+lstm     baseline     uf=1,1,1,1,1,1,1,1,1,1                3136     1.00x   10
+         opfusion     uf=2,2,2,2,2,2,2,2,1,1 mi=3 ms=3     2096     1.50x   10
+         taskfusion   uf=1,1,1,1,1,1,1,1,1,1 mi=3 ms=2     1568     2.00x    3
+
+=== AREA (Baseline = all int FUs; Fusion = baseline + extra template FUs) ===
+
+Baseline (all apps) = 55746  [add×1, counter×1, div×1, icmp×1, load_indexed×1, mul×1, sub×1]
+
+App      Strategy     #T  Templates                                                Extra FUs           Area    Overhead
+harris   baseline      —  —                                                        —                   55746   —
+         opfusion      2  T0[add×2,div×1]=28187; T1[add×1,counter×1,li×1,mul×1,sub×1]=38614   +add×2              69436   +25%
+         taskfusion    2  T0[add×5,counter×2,li×2,mul×2,sub×1]=90918; T1[add×2,div×1,mul×2,sub×1]=64026   +add×6,counter×1,li×1,mul×3,sub×1   157579  +183%
+llama    baseline      —  —                                                        —                   55746   —
+         opfusion      1  T0[add×1,counter×1,li×2,mul×1]=40674                     +li×1               64651   +16%
+         taskfusion    1  T0[add×2,counter×1,li×2,mul×1]=47519                     +add×1,li×1         71496   +28%
+resnet   baseline      —  —                                                        —                   55746   —
+         opfusion      2  T0[add×1,counter×1,li×1,mul×1]=31769; T1[icmp×1,sel×1]=2635   none                55746   +0%
+         taskfusion    2  same as opfusion                                         none                55746   +0%
+lstm     baseline      —  —                                                        —                   55746   —
+         opfusion      1  T0[add×1,counter×1,li×2,mul×1]=40674                     +li×1               64651   +16%
+         taskfusion    1  T0[add×1,counter×1,li×3,mul×2]=64076                     +li×2,mul×1         88053   +58%
+
+(li = load_indexed)
+
+=== UTILIZATION (activated tile-cycles / Σ(II×16)) ===
+
+App      Strategy     #K  Σ(II×16)  Activated  Util%  Overlap
+harris   baseline      9      576       207    35.9%    0
+         opfusion      9      592       221    37.3%    0
+         taskfusion    6      448       102    22.8%    9
+llama    baseline      8      320        89    27.8%    0
+         opfusion      8      240        54    22.5%    0
+         taskfusion    6      224        51    22.8%    1
+resnet   baseline      4      160        51    31.9%    0
+         opfusion      4      128        35    27.3%    0
+         taskfusion    4      128        35    27.3%    0
+lstm     baseline     10      320        79    24.7%    0
+         opfusion     10      304        73    24.0%    1
+         taskfusion    3      128        34    26.6%    2
+
+=== PER-KERNEL II ===
+
+--- Harris ---
+baseline:    sobel_x(4) sobel_y(4) ixx(2) iyy(2) ixy(2) blur(5) blur(5) blur(5) corner(7)
+opfusion:    sobel_x(5) sobel_y(5) ixx(1) iyy(1) ixy(2) blur(7) blur(7) blur(7) corner(2)
+taskfusion:  harris(5) harris(5) harris(2) harris(2) harris(5) harris(9)
+
+--- LLaMA ---
+baseline:    qk(3) softmax_exp(2) softmax_norm(1) sv(3) ffn_gate(3) ffn_up(3) ffn_act(2) ffn_down(3)
+opfusion:    qk(2) softmax_exp(2) softmax_norm(1) sv(2) ffn_gate(2) ffn_up(2) ffn_act(2) ffn_down(2)
+taskfusion:  attn_ffn(2) attn_ffn(2) attn_ffn(2) attn_ffn(4) attn_ffn(2) attn_ffn(2)
+
+--- ResNet ---
+baseline:    conv2d_1(3) relu(2) conv2d_2(3) add_residual(2)
+opfusion:    conv2d_1(2) relu(2) conv2d_2(2) add_residual(2)
+taskfusion:  block(2) block(2) block(2) block(2)
+
+--- LSTM ---
+baseline:    i_gate_x(2) f_gate_x(2) o_gate_x(2) g_gate_x(2) i_gate_h(2) f_gate_h(2) o_gate_h(2) g_gate_h(2) cell_update(2) output_gate(2)
+opfusion:    i_gate_x(2) f_gate_x(2) o_gate_x(2) g_gate_x(2) i_gate_h(2) f_gate_h(2) o_gate_h(2) g_gate_h(2) cell_update(1) output_gate(2)
+taskfusion:  lstm_cell(3) lstm_cell(3) lstm_cell(2)
+
+=== FUSED_OP PATTERNS ===
+
+--- Harris opfusion (2 templates, 10 patterns) ---
+T0: add->div, add->add
+T1: load_indexed->mul, add->load_indexed, counter->load_indexed, mul->add, add->mul, mul->sub, sub->add, counter->add
+
+--- Harris taskfusion (2 templates, 14 patterns) ---
+T0: fused_op:add->fused_op:add->load_indexed->fused_op:sub->..., fused_op:counter->fused_op:add->load_indexed->mul, ... (deeply nested stencil chains)
+T1: fused_op:fused_op:add->div->fused_op:add->mul->fused_op:mul->sub, add->div
+
+--- LLaMA opfusion (1 template, 4 patterns) ---
+T0: fused_op:counter->load_indexed->load_indexed, load_indexed->mul, load_indexed->add, counter->load_indexed
+
+--- LLaMA taskfusion (1 template, 8 patterns) ---
+T0: fused_op:load_indexed->mul->fused_op:load_indexed->add, fused_op:load_indexed->mul->add, load_indexed->fused_op:load_indexed->mul, load_indexed->add, add->load_indexed, counter->load_indexed, fused_op:counter->add->add, counter->add
+
+--- ResNet opfusion/taskfusion (2 templates, 5 patterns) ---
+T0: load_indexed->mul, add->load_indexed, load_indexed->add, counter->load_indexed
+T1: icmp->sel
+
+--- LSTM opfusion (1 template, 5 patterns) ---
+T0: fused_op:counter->add->fused_op:load_indexed->fused_op:load_indexed->mul, fused_op:load_indexed->fused_op:load_indexed->mul->add, load_indexed->fused_op:load_indexed->mul, load_indexed->mul, counter->load_indexed
+
+--- LSTM taskfusion (1 template, 4 patterns) ---
+T0: fused_op:load_indexed->fused_op:load_indexed->mul->fused_op:load_indexed->add, fused_op:load_indexed->fused_op:load_indexed->mul->fused_op:add->mul, counter->fused_op:load_indexed->fused_op:load_indexed->mul, load_indexed->mul
+
+=== FILE PATHS ===
+
+harris:
+  baseline:    test/asplos_exp/e2e/harris/sweep/baseline/uf_1_1_1_1_1_1_2/kernel_mapped.mlir
+  opfusion:    test/asplos_exp/e2e/harris/sweep/opfusion/uf_2_2_1_1_1_2_1_mi1_ms2/inclusive/kernel_mapped.mlir
+  taskfusion:  test/asplos_exp/e2e/harris/sweep/taskfusion/uf_1_1_1_1_1_1_2_mi4_ms3/inclusive/kernel_mapped.mlir
+
+llama:
+  baseline:    test/asplos_exp/e2e/llama/sweep/baseline/uf_2_1_1_2_2_2_1_2/kernel_mapped.mlir
+  opfusion:    test/asplos_exp/e2e/llama/sweep/opfusion/uf_2_1_1_2_2_2_1_2_mi2_ms2/inclusive/kernel_mapped.mlir
+  taskfusion:  test/asplos_exp/e2e/llama/sweep/taskfusion/uf_2_1_1_2_2_2_1_2_mi2_ms2/inclusive/kernel_mapped.mlir
+
+resnet:
+  baseline:    test/asplos_exp/e2e/resnet/sweep/baseline/uf_2_2_2_2/kernel_mapped.mlir
+  opfusion:    test/asplos_exp/e2e/resnet/sweep/opfusion/uf_2_2_2_2_mi1_ms2/inclusive/kernel_mapped.mlir
+  taskfusion:  test/asplos_exp/e2e/resnet/sweep/taskfusion/uf_2_2_2_2_mi1_ms2/inclusive/kernel_mapped.mlir
+
+lstm:
+  baseline:    test/asplos_exp/e2e/lstm/sweep/baseline/uf_1_1_1_1_1_1_1_1_1_1/kernel_mapped.mlir
+  opfusion:    test/asplos_exp/e2e/lstm/sweep/opfusion/uf_2_2_2_2_2_2_2_2_1_1_mi3_ms3/inclusive/kernel_mapped.mlir
+  taskfusion:  test/asplos_exp/e2e/lstm/sweep/taskfusion/uf_1_1_1_1_1_1_1_1_1_1_mi3_ms2/inclusive/kernel_mapped.mlir
