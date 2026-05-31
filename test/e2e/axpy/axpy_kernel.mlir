@@ -21,6 +21,7 @@
 // RUN: FileCheck %s --input-file=%t-mapping.mlir --check-prefix=MAPPING
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.yaml --check-prefix=YAML
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.asm --check-prefix=ASM
+// RUN: FileCheck %s --input-file=tmp-generated-memory-metadata.yaml --check-prefix=MEMORY
 //
 // MAPPING:    func.func @kernel_axpy_int(%arg0: !llvm.ptr {llvm.nocapture, llvm.noundef, llvm.readonly}, %arg1: !llvm.ptr {llvm.nocapture, llvm.noundef}) -> !llvm.void attributes {CConv = #llvm.cconv<ccc>, accelerator = "neura", dataflow_mode = "predicate", linkage = #llvm.linkage<external>, mapping_info = {compiled_ii = 5 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 5 : i32, res_mii = 1 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}, memory_effects = #llvm.memory_effects<other = none, argMem = readwrite, inaccessibleMem = none>, no_unwind, passthrough = ["mustprogress", "nofree", "norecurse", "nosync", ["uwtable", "2"], ["min-legal-vector-width", "0"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"]], target_cpu = "x86-64", target_features = #llvm.target_features<["+cmov", "+cx8", "+fxsr", "+mmx", "+sse", "+sse2", "+x87"]>, tune_cpu = "generic", unnamed_addr = 1 : i64, visibility_ = 0 : i64} {
 // MAPPING-NEXT:     %0 = "neura.grant_once"() <{constant_value = 0 : i64}> {dfg_id = 0 : i32, mapping_locs = [{id = 11 : i32, index_per_ii = 0 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 0 : i32, x = 3 : i32, y = 2 : i32}]} : () -> !neura.data<i64, i1>
@@ -110,4 +111,13 @@
 // ASM-NEXT:   STORE, [$0], [NORTH, RED] (t=9, inv_iters=1)
 // ASM-NEXT: } (idx_per_ii=4)
 
+// MEMORY: format_version: 1
+// MEMORY: arguments:
+// MEMORY:   - name: "%arg0"
+// MEMORY:     index: 0
+// MEMORY:     kind: "pointer"
+// MEMORY: memory_ops:
+// MEMORY: opcode: "LOAD"
+// MEMORY: address:
+// MEMORY: root_arg: "%arg0"
 

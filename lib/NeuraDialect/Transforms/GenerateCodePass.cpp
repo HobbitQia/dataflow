@@ -1,4 +1,5 @@
 #include "Common/AcceleratorAttrs.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BuiltinOps.h"
@@ -25,6 +26,7 @@
 #include "NeuraDialect/Architecture/Architecture.h"
 #include "NeuraDialect/NeuraAttributes.h"
 #include "NeuraDialect/NeuraOps.h"
+#include "NeuraDialect/NeuraTypes.h"
 
 using namespace mlir;
 using namespace neura;
@@ -78,6 +80,12 @@ struct TileLocation {
   int index_per_ii = -1;
   int invalid_iterations = 0;
   bool has_tile = false;
+};
+
+struct FoldedOperandAttr {
+  unsigned index = 0;
+  std::string name;
+  Attribute value;
 };
 
 // ---- Operation kind helpers ----.
@@ -245,6 +253,36 @@ static std::string extractConstantLiteralFromAttr(Attribute attr) {
   }
 
   return "";
+}
+
+static std::optional<unsigned>
+parseFoldedOperandValueIndex(StringRef attr_name) {
+  if (!attr_name.consume_front("operand_") ||
+      !attr_name.consume_back("_value"))
+    return std::nullopt;
+
+  unsigned index = 0;
+  if (attr_name.empty() || attr_name.getAsInteger(10, index))
+    return std::nullopt;
+  return index;
+}
+
+static SmallVector<FoldedOperandAttr, 4>
+collectFoldedOperandValueAttrs(Operation *op) {
+  SmallVector<FoldedOperandAttr, 4> attrs;
+  for (NamedAttribute attr : op->getAttrs()) {
+    StringRef attr_name = attr.getName().getValue();
+    std::optional<unsigned> index = parseFoldedOperandValueIndex(attr_name);
+    if (!index)
+      continue;
+    attrs.push_back(
+        FoldedOperandAttr{*index, attr_name.str(), attr.getValue()});
+  }
+  llvm::sort(attrs, [](const FoldedOperandAttr &a,
+                       const FoldedOperandAttr &b) {
+    return a.index < b.index;
+  });
+  return attrs;
 }
 
 // Literals for CONSTANT operations, e.g. "#10" / "#0" / "#3.0".
@@ -471,7 +509,9 @@ struct GenerateCodePass
   std::map<std::tuple<int, int, int, int>, int> instruction_id_map;
   int next_instruction_id = 0;
   int current_compiled_ii = -1;
+  bool instruction_generation_error = false;
   bool timing_field_error = false;
+  bool memory_metadata_error = false;
 
   // De-dup sets.
   std::unordered_set<uint64_t>
@@ -509,7 +549,51 @@ struct GenerateCodePass
     egress_signatures.clear();
     instruction_id_map.clear();
     next_instruction_id = 0;
+    instruction_generation_error = false;
     timing_field_error = false;
+    memory_metadata_error = false;
+  }
+
+  FailureOr<int64_t> normalizeGepFoldedByteOffset(Operation *op,
+                                                  StringRef attr_name,
+                                                  Attribute attr,
+                                                  bool &error_flag) {
+    auto integer_attr = dyn_cast_or_null<IntegerAttr>(attr);
+    if (!integer_attr) {
+      op->emitError("GEP folded operand ")
+          << attr_name << " must be an integer byte offset; got " << attr;
+      error_flag = true;
+      return failure();
+    }
+
+    int64_t byte_offset = integer_attr.getInt();
+    constexpr int64_t kZeonicaWordBytes = 4;
+    if (byte_offset % kZeonicaWordBytes != 0) {
+      op->emitError("GEP folded byte offset ")
+          << byte_offset
+          << " is not divisible by the 4-byte Zeonica word address unit";
+      error_flag = true;
+      return failure();
+    }
+
+    return byte_offset / kZeonicaWordBytes;
+  }
+
+  FailureOr<std::string> extractInstructionLiteral(Operation *op,
+                                                   StringRef attr_name,
+                                                   Attribute attr) {
+    if (isa<GEP>(op) && parseFoldedOperandValueIndex(attr_name)) {
+      FailureOr<int64_t> word_offset = normalizeGepFoldedByteOffset(
+          op, attr_name, attr, instruction_generation_error);
+      if (failed(word_offset))
+        return failure();
+      return "#" + std::to_string(*word_offset);
+    }
+
+    std::string literal = extractConstantLiteralFromAttr(attr);
+    if (literal.empty())
+      return failure();
+    return literal;
   }
 
   std::pair<int, int> getArrayDimensions(func::FuncOp function) {
@@ -648,24 +732,33 @@ struct GenerateCodePass
         // operations).
         inst.src_operands.emplace_back(getConstantLiteral(op), "RED");
       } else {
-        // Handles normal operands and folded constants (lhs_value/rhs_value).
+        // Handles normal operands and folded constants. GEP operand_N_value
+        // attributes are LLVM byte offsets; generated Zeonica memory
+        // instructions use 4-byte word addresses, so those literals are
+        // normalized in extractInstructionLiteral().
         SmallVector<Value> operands;
-        operands.reserve(op->getNumOperands());
+        SmallVector<FoldedOperandAttr, 4> folded_operand_attrs =
+            collectFoldedOperandValueAttrs(op);
+        operands.reserve(op->getNumOperands() + folded_operand_attrs.size());
 
-        auto appendLiteralSlot = [&](Attribute attr) -> bool {
+        auto appendLiteralSlot = [&](StringRef attr_name,
+                                     Attribute attr) -> bool {
           // If there is no attribute, there is no folded constant.
           if (!attr)
             return false;
-          std::string literal = extractConstantLiteralFromAttr(attr);
-          if (literal.empty()) {
+          FailureOr<std::string> literal =
+              extractInstructionLiteral(op, attr_name, attr);
+          if (failed(literal)) {
             // Attribute exists but cannot be serialized to current literal
             // form. Keep slot alignment and surface a clear diagnostic.
             op->emitError(
-                "unsupported constant attribute in lhs_value/rhs_value")
-                << ": " << attr;
-            literal = "UNSUPPORTED_CONSTANT";
+                "unsupported folded constant attribute in generated YAML")
+                << " " << attr_name << ": " << attr;
+            instruction_generation_error = true;
+            inst.src_operands.emplace_back("UNSUPPORTED_CONSTANT", "RED");
+          } else {
+            inst.src_operands.emplace_back(*literal, "RED");
           }
-          inst.src_operands.emplace_back(literal, "RED");
           // Keeps index alignment with operation_to_operands for rewiring.
           operands.push_back(Value());
           return true;
@@ -674,15 +767,22 @@ struct GenerateCodePass
           operands.push_back(v);
           inst.src_operands.emplace_back("UNRESOLVED", "RED");
         };
+        auto appendFoldedOperandAttrsAt = [&](unsigned source_index) {
+          for (const FoldedOperandAttr &folded : folded_operand_attrs)
+            if (folded.index == source_index)
+              appendLiteralSlot(folded.name, folded.value);
+        };
 
         // StoreIndexed has operand order: value(lhs) -> base(rhs) -> indices.
         // rhs_value must be inserted before indices (not appended at tail).
         if (auto store_indexed_op = dyn_cast<StoreIndexedOp>(op)) {
-          bool lhs_folded = appendLiteralSlot(op->getAttr(attr::kLhsValue));
+          bool lhs_folded =
+              appendLiteralSlot(attr::kLhsValue, op->getAttr(attr::kLhsValue));
           if (!lhs_folded)
             appendValueSlot(store_indexed_op.getValue());
 
-          bool rhs_folded = appendLiteralSlot(op->getAttr(attr::kRhsValue));
+          bool rhs_folded =
+              appendLiteralSlot(attr::kRhsValue, op->getAttr(attr::kRhsValue));
           if (!rhs_folded) {
             Value base = store_indexed_op.getBase();
             if (base)
@@ -695,12 +795,18 @@ struct GenerateCodePass
         } else {
           // Generic handling:
           // - lhs_value is the leading source slot.
-          // - remaining Value operands keep original order.
+          // - remaining Value operands keep original order, with folded
+          //   operand_N_value slots reinserted at their original source index.
           // - rhs_value is the trailing source slot.
-          appendLiteralSlot(op->getAttr(attr::kLhsValue));
-          for (Value v : op->getOperands())
+          appendLiteralSlot(attr::kLhsValue, op->getAttr(attr::kLhsValue));
+          appendFoldedOperandAttrsAt(0);
+          unsigned source_index = 0;
+          for (Value v : op->getOperands()) {
             appendValueSlot(v);
-          appendLiteralSlot(op->getAttr(attr::kRhsValue));
+            ++source_index;
+            appendFoldedOperandAttrsAt(source_index);
+          }
+          appendLiteralSlot(attr::kRhsValue, op->getAttr(attr::kRhsValue));
         }
 
         operation_to_operands[op] = std::move(operands);
@@ -1274,6 +1380,589 @@ struct GenerateCodePass
     }
 
     rewriteMovConsumers<IsCtrl>(forwarder, basics, consumers, topo);
+  }
+
+  // ---------- memory metadata sidecar ----------.
+  struct ArgumentMetadata {
+    std::string name;
+    unsigned index = 0;
+    std::string kind;
+    Type type;
+    std::string type_text;
+    std::vector<std::string> attrs;
+  };
+
+  struct FoldedOffsetMetadata {
+    unsigned operand_index = 0;
+    int64_t byte_value = 0;
+    int64_t word_value = 0;
+  };
+
+  struct AddressChainStep {
+    int op_id = -1;
+    std::string opcode;
+    std::optional<std::string> lhs_value;
+    std::optional<std::string> rhs_value;
+    std::vector<FoldedOffsetMetadata> folded_offsets;
+  };
+
+  struct AddressTrace {
+    const ArgumentMetadata *root_arg = nullptr;
+    std::vector<AddressChainStep> chain;
+  };
+
+  struct MemoryOpMetadata {
+    int op_id = -1;
+    std::string opcode;
+    std::string access;
+    TileLocation tile;
+    std::string value_type;
+    unsigned access_bytes = 0;
+    AddressTrace address;
+  };
+
+  static std::string stringifyType(Type type) {
+    std::string out;
+    llvm::raw_string_ostream os(out);
+    type.print(os);
+    return os.str();
+  }
+
+  static Type unwrapPredicatedType(Type type) {
+    if (auto predicated = dyn_cast<neura::PredicatedValue>(type))
+      return predicated.getValueType();
+    return type;
+  }
+
+  static bool isPointerType(Type type) {
+    return isa<LLVM::LLVMPointerType>(unwrapPredicatedType(type));
+  }
+
+  static std::optional<unsigned> parseArgIndex(StringRef name) {
+    if (!name.starts_with("%arg"))
+      return std::nullopt;
+    StringRef suffix = name.drop_front(4);
+    unsigned index = 0;
+    if (suffix.empty() || suffix.getAsInteger(10, index))
+      return std::nullopt;
+    return index;
+  }
+
+  static std::string normalizeArgAttrName(StringRef name) {
+    if (name.starts_with("llvm."))
+      return name.drop_front(5).str();
+    return name.str();
+  }
+
+  static std::string yamlQuote(const std::string &text) {
+    return "\"" + escape(text) + "\"";
+  }
+
+  std::vector<ArgumentMetadata> collectArgumentMetadata(func::FuncOp function) {
+    std::vector<ArgumentMetadata> args;
+    args.reserve(function.getNumArguments());
+
+    ArrayAttr arg_attrs = function->getAttrOfType<ArrayAttr>("arg_attrs");
+    for (unsigned i = 0; i < function.getNumArguments(); ++i) {
+      Type type = function.getArgument(i).getType();
+      ArgumentMetadata arg;
+      arg.name = "%arg" + std::to_string(i);
+      arg.index = i;
+      arg.kind = isPointerType(type) ? "pointer" : "scalar";
+      arg.type = type;
+      arg.type_text = stringifyType(type);
+
+      if (arg_attrs && i < arg_attrs.size()) {
+        if (auto dict = dyn_cast<DictionaryAttr>(arg_attrs[i])) {
+          for (NamedAttribute attr : dict) {
+            arg.attrs.push_back(normalizeArgAttrName(
+                attr.getName().getValue()));
+          }
+        }
+      }
+
+      args.push_back(std::move(arg));
+    }
+    return args;
+  }
+
+  const ArgumentMetadata *
+  findArgumentByName(StringRef name,
+                     const std::vector<ArgumentMetadata> &arguments) {
+    std::optional<unsigned> index = parseArgIndex(name);
+    if (!index || *index >= arguments.size())
+      return nullptr;
+    return &arguments[*index];
+  }
+
+  FailureOr<AddressTrace>
+  traceAddressAttribute(Attribute attr, Operation *context_op,
+                        const std::vector<ArgumentMetadata> &arguments) {
+    auto string_attr = dyn_cast_or_null<StringAttr>(attr);
+    if (!string_attr) {
+      context_op->emitError("address root folded into unsupported attribute: ")
+          << attr;
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    const ArgumentMetadata *arg =
+        findArgumentByName(string_attr.getValue(), arguments);
+    if (!arg) {
+      context_op->emitError("folded address root does not reference a function "
+                            "argument: ")
+          << string_attr.getValue();
+      memory_metadata_error = true;
+      return failure();
+    }
+    if (arg->kind != "pointer") {
+      context_op->emitError("folded address root references non-pointer ")
+          << arg->name;
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    AddressTrace trace;
+    trace.root_arg = arg;
+    return trace;
+  }
+
+  LogicalResult mergeAddressTrace(AddressTrace &into, AddressTrace from,
+                                  Operation *context_op) {
+    if (!from.root_arg)
+      return failure();
+    if (!into.root_arg) {
+      into = std::move(from);
+      return success();
+    }
+    if (into.root_arg->index != from.root_arg->index) {
+      context_op->emitError(
+          "address trace found inconsistent pointer roots: ")
+          << into.root_arg->name << " and " << from.root_arg->name;
+      memory_metadata_error = true;
+      return failure();
+    }
+    return success();
+  }
+
+  FailureOr<AddressTrace>
+  traceAddressValue(Value value, func::FuncOp function,
+                    const std::vector<ArgumentMetadata> &arguments,
+                    std::unordered_set<Operation *> &visited) {
+    if (!value) {
+      function.emitError("empty value while tracing memory address root");
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    if (auto block_arg = dyn_cast<BlockArgument>(value)) {
+      if (function.getBody().empty() ||
+          block_arg.getOwner() != &function.getBody().front()) {
+        function.emitError("memory address trace reached non-entry block "
+                           "argument");
+        memory_metadata_error = true;
+        return failure();
+      }
+      unsigned index = block_arg.getArgNumber();
+      if (index >= arguments.size()) {
+        function.emitError("memory address trace reached out-of-range "
+                           "function argument");
+        memory_metadata_error = true;
+        return failure();
+      }
+      const ArgumentMetadata *arg = &arguments[index];
+      if (arg->kind != "pointer") {
+        function.emitError("memory address trace reached non-pointer ")
+            << arg->name;
+        memory_metadata_error = true;
+        return failure();
+      }
+      AddressTrace trace;
+      trace.root_arg = arg;
+      return trace;
+    }
+
+    Operation *def_op = value.getDefiningOp();
+    if (!def_op) {
+      function.emitError("memory address trace reached value without defining "
+                         "operation");
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    if (!visited.insert(def_op).second) {
+      def_op->emitError("cycle while tracing memory address root");
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    auto trace_forward_operand = [&](Value operand) -> FailureOr<AddressTrace> {
+      return traceAddressValue(operand, function, arguments, visited);
+    };
+
+    if (auto gep = dyn_cast<GEP>(def_op)) {
+      FailureOr<AddressTrace> trace = failure();
+      if (Attribute lhs = def_op->getAttr(attr::kLhsValue)) {
+        trace = traceAddressAttribute(lhs, def_op, arguments);
+      } else if (Value base = gep.getBase()) {
+        trace = trace_forward_operand(base);
+      } else {
+        def_op->emitError("GEP address root has neither base operand nor "
+                          "lhs_value");
+        memory_metadata_error = true;
+        return failure();
+      }
+
+      if (failed(trace))
+        return failure();
+
+      AddressChainStep step;
+      step.op_id = getDfgId(def_op);
+      step.opcode = getOpcode(def_op);
+      if (Attribute lhs = def_op->getAttr(attr::kLhsValue)) {
+        if (auto str = dyn_cast<StringAttr>(lhs))
+          step.lhs_value = str.getValue().str();
+      }
+      if (Attribute rhs = def_op->getAttr(attr::kRhsValue)) {
+        if (auto str = dyn_cast<StringAttr>(rhs))
+          step.rhs_value = str.getValue().str();
+      }
+      for (const FoldedOperandAttr &folded :
+           collectFoldedOperandValueAttrs(def_op)) {
+        auto integer_attr = dyn_cast<IntegerAttr>(folded.value);
+        FailureOr<int64_t> word_offset = normalizeGepFoldedByteOffset(
+            def_op, folded.name, folded.value, memory_metadata_error);
+        if (failed(word_offset))
+          return failure();
+        step.folded_offsets.push_back(FoldedOffsetMetadata{
+            folded.index, integer_attr.getInt(), *word_offset});
+      }
+      trace->chain.push_back(std::move(step));
+      return trace;
+    }
+
+    if (auto data_mov = dyn_cast<DataMovOp>(def_op))
+      return trace_forward_operand(data_mov.getInput());
+
+    if (auto grant = dyn_cast<GrantPredicateOp>(def_op))
+      return trace_forward_operand(grant.getValue());
+
+    if (auto grant_once = dyn_cast<GrantOnceOp>(def_op)) {
+      if (Value input = grant_once.getValue())
+        return trace_forward_operand(input);
+      if (Attribute constant = def_op->getAttr(attr::kConstantValue))
+        return traceAddressAttribute(constant, def_op, arguments);
+    }
+
+    if (auto grant_always = dyn_cast<GrantAlwaysOp>(def_op)) {
+      if (Value input = grant_always.getValue())
+        return trace_forward_operand(input);
+      if (Attribute constant = def_op->getAttr(attr::kConstantValue))
+        return traceAddressAttribute(constant, def_op, arguments);
+    }
+
+    if (auto constant = dyn_cast<ConstantOp>(def_op)) {
+      if (Attribute value_attr = def_op->getAttr(attr::kValue))
+        return traceAddressAttribute(value_attr, def_op, arguments);
+    }
+
+    if (isPhiStart(def_op) || isPhi(def_op)) {
+      AddressTrace merged;
+      bool traced_any = false;
+      for (Value operand : def_op->getOperands()) {
+        if (Operation *producer = operand.getDefiningOp()) {
+          if (isa<ReserveOp>(producer))
+            continue;
+        }
+        FailureOr<AddressTrace> operand_trace =
+            traceAddressValue(operand, function, arguments, visited);
+        if (failed(operand_trace))
+          return failure();
+        traced_any = true;
+        if (failed(mergeAddressTrace(merged, std::move(*operand_trace),
+                                     def_op)))
+          return failure();
+      }
+      if (traced_any)
+        return merged;
+    }
+
+    def_op->emitError("cannot trace memory address root through operation ")
+        << def_op->getName();
+    memory_metadata_error = true;
+    return failure();
+  }
+
+  FailureOr<AddressTrace>
+  traceAddressOperand(Value value, func::FuncOp function,
+                      const std::vector<ArgumentMetadata> &arguments) {
+    std::unordered_set<Operation *> visited;
+    return traceAddressValue(value, function, arguments, visited);
+  }
+
+  FailureOr<AddressTrace>
+  traceMemoryOpAddress(Operation *op, func::FuncOp function,
+                       const std::vector<ArgumentMetadata> &arguments) {
+    if (auto load = dyn_cast<LoadOp>(op))
+      return traceAddressOperand(load.getAddr(), function, arguments);
+
+    if (auto memset = dyn_cast<MemsetOp>(op))
+      return traceAddressOperand(memset.getDest(), function, arguments);
+
+    if (auto store = dyn_cast<StoreOp>(op)) {
+      if (Attribute rhs = op->getAttr(attr::kRhsValue))
+        return traceAddressAttribute(rhs, op, arguments);
+
+      Value addr;
+      if (op->getAttr(attr::kLhsValue)) {
+        // Store value was folded away. The remaining operand is the address.
+        if (op->getNumOperands() >= 1)
+          addr = op->getOperand(0);
+      } else if (op->getNumOperands() >= 2) {
+        addr = op->getOperand(1);
+      } else if (store.getAddr()) {
+        addr = store.getAddr();
+      }
+
+      if (!addr) {
+        op->emitError("STORE metadata requires a traceable address operand");
+        memory_metadata_error = true;
+        return failure();
+      }
+      return traceAddressOperand(addr, function, arguments);
+    }
+
+    if (auto load_indexed = dyn_cast<LoadIndexedOp>(op)) {
+      if (Attribute lhs = op->getAttr(attr::kLhsValue))
+        return traceAddressAttribute(lhs, op, arguments);
+      if (Value base = load_indexed.getBase())
+        return traceAddressOperand(base, function, arguments);
+      op->emitError("LOAD_INDEXED metadata requires base or lhs_value");
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    if (auto store_indexed = dyn_cast<StoreIndexedOp>(op)) {
+      if (Attribute rhs = op->getAttr(attr::kRhsValue))
+        return traceAddressAttribute(rhs, op, arguments);
+      if (Value base = store_indexed.getBase())
+        return traceAddressOperand(base, function, arguments);
+      op->emitError("STORE_INDEXED metadata requires base or rhs_value");
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    op->emitError("unsupported memory metadata operation");
+    memory_metadata_error = true;
+    return failure();
+  }
+
+  Type typeFromValueAttribute(Attribute attr, func::FuncOp function) {
+    if (auto integer = dyn_cast_or_null<IntegerAttr>(attr))
+      return integer.getType();
+    if (auto floating = dyn_cast_or_null<FloatAttr>(attr))
+      return floating.getType();
+    if (auto string_attr = dyn_cast_or_null<StringAttr>(attr)) {
+      if (std::optional<unsigned> index = parseArgIndex(string_attr.getValue()))
+        if (*index < function.getNumArguments())
+          return function.getArgument(*index).getType();
+    }
+    return Type();
+  }
+
+  Type getMemoryValueType(Operation *op, func::FuncOp function) {
+    if (isa<LoadOp, LoadIndexedOp>(op))
+      return op->getResult(0).getType();
+
+    if (auto memset = dyn_cast<MemsetOp>(op))
+      return memset.getValue().getType();
+
+    if (isa<StoreOp, StoreIndexedOp>(op)) {
+      if (Attribute lhs = op->getAttr(attr::kLhsValue))
+        return typeFromValueAttribute(lhs, function);
+      if (op->getNumOperands() >= 1)
+        return op->getOperand(0).getType();
+    }
+    return Type();
+  }
+
+  std::optional<unsigned> getAccessBytes(Type type, Operation *op) {
+    if (!type) {
+      op->emitError("cannot determine memory access value type");
+      memory_metadata_error = true;
+      return std::nullopt;
+    }
+
+    Type value_type = unwrapPredicatedType(type);
+    if (auto integer = dyn_cast<IntegerType>(value_type)) {
+      unsigned width = integer.getWidth();
+      if (width == 0 || width % 8 != 0) {
+        op->emitError("unsupported integer memory access width: ") << width;
+        memory_metadata_error = true;
+        return std::nullopt;
+      }
+      return width / 8;
+    }
+
+    if (auto floating = dyn_cast<FloatType>(value_type)) {
+      unsigned width = floating.getWidth();
+      if (width == 0 || width % 8 != 0) {
+        op->emitError("unsupported floating memory access width: ") << width;
+        memory_metadata_error = true;
+        return std::nullopt;
+      }
+      return width / 8;
+    }
+
+    op->emitError("unsupported memory access type for metadata: ")
+        << value_type;
+    memory_metadata_error = true;
+    return std::nullopt;
+  }
+
+  LogicalResult collectMemoryMetadata(
+      func::FuncOp function, const std::vector<ArgumentMetadata> &arguments,
+      std::vector<MemoryOpMetadata> &memory_ops) {
+    function.walk([&](Operation *op) {
+      if (memory_metadata_error)
+        return;
+      if (op->getParentOp() && isFusedOp(op->getParentOp()))
+        return;
+      if (!isa<LoadOp, StoreOp, LoadIndexedOp, StoreIndexedOp, MemsetOp>(op))
+        return;
+
+      MemoryOpMetadata metadata;
+      metadata.op_id = getDfgId(op);
+      if (metadata.op_id < 0) {
+        op->emitError("memory metadata requires dfg_id");
+        memory_metadata_error = true;
+        return;
+      }
+      metadata.opcode = getOpcode(op);
+      metadata.access =
+          isa<LoadOp, LoadIndexedOp>(op) ? std::string("read")
+                                         : std::string("write");
+      metadata.tile = getTileLocation(op);
+      if (!metadata.tile.has_tile) {
+        op->emitError("memory metadata requires tile mapping");
+        memory_metadata_error = true;
+        return;
+      }
+      if (!getIndexAndInvalid(op, metadata.tile.index_per_ii,
+                              metadata.tile.invalid_iterations)) {
+        memory_metadata_error = true;
+        return;
+      }
+
+      Type value_type = getMemoryValueType(op, function);
+      metadata.value_type = stringifyType(unwrapPredicatedType(value_type));
+      std::optional<unsigned> bytes = getAccessBytes(value_type, op);
+      if (!bytes)
+        return;
+      metadata.access_bytes = *bytes;
+
+      FailureOr<AddressTrace> address =
+          traceMemoryOpAddress(op, function, arguments);
+      if (failed(address))
+        return;
+      metadata.address = std::move(*address);
+      memory_ops.push_back(std::move(metadata));
+    });
+
+    return success(!memory_metadata_error);
+  }
+
+  void emitYamlStringList(llvm::raw_fd_ostream &out,
+                          ArrayRef<std::string> values) const {
+    out << "[";
+    for (size_t i = 0; i < values.size(); ++i) {
+      if (i)
+        out << ", ";
+      out << yamlQuote(values[i]);
+    }
+    out << "]";
+  }
+
+  LogicalResult writeMemoryMetadataOutput(
+      func::FuncOp function, int columns, int rows, int compiled_ii,
+      const std::vector<ArgumentMetadata> &arguments,
+      const std::vector<MemoryOpMetadata> &memory_ops) {
+    std::error_code ec;
+    llvm::raw_fd_ostream out("tmp-generated-memory-metadata.yaml", ec);
+    if (ec) {
+      function.emitError("failed to open tmp-generated-memory-metadata.yaml: ")
+          << ec.message();
+      memory_metadata_error = true;
+      return failure();
+    }
+
+    out << "format_version: 1\n";
+    out << "function:\n";
+    out << "  name: " << yamlQuote(function.getName().str()) << "\n";
+    out << "  columns: " << columns << "\n";
+    out << "  rows: " << rows << "\n";
+    out << "  compiled_ii: " << compiled_ii << "\n";
+
+    out << "arguments:\n";
+    for (const ArgumentMetadata &arg : arguments) {
+      out << "  - name: " << yamlQuote(arg.name) << "\n";
+      out << "    index: " << arg.index << "\n";
+      out << "    kind: " << yamlQuote(arg.kind) << "\n";
+      out << "    type: " << yamlQuote(arg.type_text) << "\n";
+      out << "    attrs: ";
+      emitYamlStringList(out, arg.attrs);
+      out << "\n";
+    }
+
+    out << "memory_ops:\n";
+    for (const MemoryOpMetadata &op : memory_ops) {
+      out << "  - op_id: " << op.op_id << "\n";
+      out << "    opcode: " << yamlQuote(op.opcode) << "\n";
+      out << "    access: " << yamlQuote(op.access) << "\n";
+      out << "    tile:\n";
+      out << "      x: " << op.tile.col_idx << "\n";
+      out << "      y: " << op.tile.row_idx << "\n";
+      out << "    time_step: " << op.tile.time_step << "\n";
+      out << "    index_per_ii: " << op.tile.index_per_ii << "\n";
+      out << "    invalid_iterations: " << op.tile.invalid_iterations << "\n";
+      out << "    value_type: " << yamlQuote(op.value_type) << "\n";
+      out << "    access_bytes: " << op.access_bytes << "\n";
+      out << "    address:\n";
+      out << "      root_arg: " << yamlQuote(op.address.root_arg->name) << "\n";
+      out << "      root_arg_index: " << op.address.root_arg->index << "\n";
+      out << "      root_arg_kind: "
+          << yamlQuote(op.address.root_arg->kind) << "\n";
+      out << "      address_unit: " << yamlQuote("word") << "\n";
+      if (op.address.chain.empty()) {
+        out << "      chain: []\n";
+      } else {
+        out << "      chain:\n";
+        for (const AddressChainStep &step : op.address.chain) {
+          out << "        - op_id: " << step.op_id << "\n";
+          out << "          opcode: " << yamlQuote(step.opcode) << "\n";
+          if (step.lhs_value)
+            out << "          lhs_value: " << yamlQuote(*step.lhs_value)
+                << "\n";
+          if (step.rhs_value)
+            out << "          rhs_value: " << yamlQuote(*step.rhs_value)
+                << "\n";
+          if (!step.folded_offsets.empty()) {
+            out << "          folded_offsets:\n";
+            for (const FoldedOffsetMetadata &offset :
+                 step.folded_offsets) {
+              out << "            - operand_index: "
+                  << offset.operand_index << "\n";
+              out << "              byte_value: " << offset.byte_value
+                  << "\n";
+              out << "              word_value: " << offset.word_value
+                  << "\n";
+            }
+          }
+        }
+      }
+    }
+    out.close();
+    return success();
   }
 
   // ---------- output generation ----------.
@@ -2280,7 +2969,23 @@ struct GenerateCodePass
       writeYAMLOutput(config);
       writeAsmOutput(config);
       writeDfgOutputSSA(func, topo, materialized_ids);
-      if (timing_field_error)
+
+      std::vector<ArgumentMetadata> arguments =
+          collectArgumentMetadata(func);
+      std::vector<MemoryOpMetadata> memory_ops;
+      if (failed(collectMemoryMetadata(func, arguments, memory_ops))) {
+        signalPassFailure();
+        return;
+      }
+      if (failed(writeMemoryMetadataOutput(func, columns, rows,
+                                           current_compiled_ii, arguments,
+                                           memory_ops))) {
+        signalPassFailure();
+        return;
+      }
+
+      if (instruction_generation_error || timing_field_error ||
+          memory_metadata_error)
         signalPassFailure();
     }
   }

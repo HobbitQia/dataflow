@@ -26,6 +26,7 @@
 // RUN: FileCheck %s --input-file=%t-mapping.mlir --check-prefix=MAPPING
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.yaml --check-prefix=YAML
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.asm --check-prefix=ASM
+// RUN: FileCheck %s --input-file=tmp-generated-memory-metadata.yaml --check-prefix=MEMORY
 
 // MAPPING:       func.func @kernel_bicg_int(%arg0: !llvm.ptr {llvm.nocapture, llvm.noundef, llvm.readonly}, %arg1: !llvm.ptr {llvm.nocapture, llvm.noundef, llvm.readonly}, %arg2: !llvm.ptr {llvm.nocapture, llvm.noundef, llvm.readonly}, %arg3: !llvm.ptr {llvm.nocapture, llvm.noundef}, %arg4: !llvm.ptr {llvm.nocapture, llvm.noundef}) -> !llvm.void attributes {CConv = #llvm.cconv<ccc>, accelerator = "neura", dataflow_mode = "predicate", linkage = #llvm.linkage<external>, mapping_info = {compiled_ii = 10 : i32, mapping_mode = "spatial-temporal", mapping_strategy = "heuristic", rec_mii = 9 : i32, res_mii = 4 : i32, x_tiles = 4 : i32, y_tiles = 4 : i32}, memory_effects = #llvm.memory_effects<other = none, argMem = readwrite, inaccessibleMem = none>, no_unwind, passthrough = ["nofree", "norecurse", "nosync", ["uwtable", "2"], ["min-legal-vector-width", "0"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"]], target_cpu = "x86-64", target_features = #llvm.target_features<["+cmov", "+cx8", "+fxsr", "+mmx", "+sse", "+sse2", "+x87"]>, tune_cpu = "generic", unnamed_addr = 1 : i64, visibility_ = 0 : i64} {
 // MAPPING-NEXT:     %0 = "neura.constant"() <{value = "%arg3"}> {dfg_id = 0 : i32, mapping_locs = [{id = 6 : i32, index_per_ii = 8 : i32, invalid_iterations = 0 : i32, resource = "tile", time_step = 8 : i32, x = 2 : i32, y = 1 : i32}]} : () -> !neura.data<!llvm.ptr, i1>
@@ -235,3 +236,13 @@
 // ASM-NEXT: {
 // ASM-NEXT:   DATA_MOV, [EAST, RED] -> [NORTH, RED] (t=8, inv_iters=0)
 // ASM-NEXT: } (idx_per_ii=8)
+
+// MEMORY: format_version: 1
+// MEMORY: arguments:
+// MEMORY:   - name: "%arg0"
+// MEMORY:     index: 0
+// MEMORY:     kind: "pointer"
+// MEMORY: memory_ops:
+// MEMORY: opcode: "{{LOAD|STORE}}"
+// MEMORY: address:
+// MEMORY: root_arg: "{{%arg[0-9]+}}"

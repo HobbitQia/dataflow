@@ -22,6 +22,7 @@
 // RUN: FileCheck %s --input-file=%t-mapping.mlir -check-prefix=MAPPING
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.yaml --check-prefix=YAML
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.asm --check-prefix=ASM
+// RUN: FileCheck %s --input-file=tmp-generated-memory-metadata.yaml --check-prefix=MEMORY
 
 
 
@@ -235,3 +236,13 @@
 // ASM-NEXT: {
 // ASM-NEXT:   RETURN_VOID, [$8] (t=11, inv_iters=1)
 // ASM-NEXT: } (idx_per_ii=5)
+
+// MEMORY: format_version: 1
+// MEMORY: arguments:
+// MEMORY:   - name: "%arg0"
+// MEMORY:     index: 0
+// MEMORY:     kind: "pointer"
+// MEMORY: memory_ops:
+// MEMORY: opcode: "{{LOAD|STORE}}"
+// MEMORY: address:
+// MEMORY: root_arg: "{{%arg[0-1]}}"

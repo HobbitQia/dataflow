@@ -29,6 +29,7 @@
 // RUN: FileCheck %s --input-file=%t-mapping.mlir -check-prefix=MAPPING
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.yaml --check-prefix=YAML
 // RUN: FileCheck %s --input-file=tmp-generated-instructions.asm --check-prefix=ASM
+// RUN: FileCheck %s --input-file=tmp-generated-memory-metadata.yaml --check-prefix=MEMORY
 //
 // Check the mapped MLIR contains key operations with full statements.
 // RUN: FileCheck %s --input-file=%t-mapping.mlir -check-prefix=MAPPING
@@ -223,3 +224,13 @@
 // ASM-NEXT:   LOAD, [NORTH, RED] -> [$0], [WEST, RED] (t=4, inv_iters=0)
 // ASM-NEXT: } (idx_per_ii=4)
 // ASM-EMPTY:
+
+// MEMORY: format_version: 1
+// MEMORY: arguments:
+// MEMORY:   - name: "%arg0"
+// MEMORY:     index: 0
+// MEMORY:     kind: "pointer"
+// MEMORY: memory_ops:
+// MEMORY: opcode: "{{LOAD|STORE}}"
+// MEMORY: address:
+// MEMORY: root_arg: "{{%arg[0-1]}}"
