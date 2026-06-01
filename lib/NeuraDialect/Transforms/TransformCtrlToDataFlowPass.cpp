@@ -881,8 +881,8 @@ void transformControlFlowToDataFlow(Region &region, ControlFlowInfo &ctrl_info,
 // Converts phi operations with reserve operands to phi_start operations.
 // Converts only canonical loop-init phi operations to phi_start.
 // Required pattern:
-//   one operand is produced by neura.grant_once
-//   the other operand is produced by neura.reserve
+//   exactly one operand is produced by neura.reserve
+//   the other operand is the first-iteration value
 // Operand order is not fixed. Phi ops that do not match this pattern are
 // left unchanged (they carry purely predicated values and must stay as phi).
 void convertPhiToPhiStart(Region &region, OpBuilder &builder) {
@@ -891,7 +891,7 @@ void convertPhiToPhiStart(Region &region, OpBuilder &builder) {
   Block *entry_block = &region.front();
   SmallVector<neura::PhiOp> phi_ops_to_convert;
 
-  // Step 1: Collects only phi ops matching (grant_once, reserve), order-free.
+  // Step 1: Collects only phi ops matching (init, reserve), order-free.
   entry_block->walk([&](neura::PhiOp phi_op) {
     ValueRange inputs = phi_op.getInputs();
     if (inputs.size() != 2) {
@@ -901,16 +901,10 @@ void convertPhiToPhiStart(Region &region, OpBuilder &builder) {
     Operation *op0_def = inputs[0].getDefiningOp();
     Operation *op1_def = inputs[1].getDefiningOp();
 
-    if (!op0_def || !op1_def) {
-      return;
-    }
+    bool op0_is_reserve = op0_def && isa<neura::ReserveOp>(op0_def);
+    bool op1_is_reserve = op1_def && isa<neura::ReserveOp>(op1_def);
 
-    bool is_grant_reserve =
-        isa<neura::GrantOnceOp>(op0_def) && isa<neura::ReserveOp>(op1_def);
-    bool is_reserve_grant =
-        isa<neura::ReserveOp>(op0_def) && isa<neura::GrantOnceOp>(op1_def);
-
-    if (is_grant_reserve || is_reserve_grant) {
+    if (op0_is_reserve != op1_is_reserve) {
       phi_ops_to_convert.push_back(phi_op);
     }
   });
@@ -924,14 +918,14 @@ void convertPhiToPhiStart(Region &region, OpBuilder &builder) {
 
     Value init_operand;
     Value reserve_operand;
-    if (op0_def && op1_def && isa<neura::GrantOnceOp>(op0_def) &&
-        isa<neura::ReserveOp>(op1_def)) {
-      init_operand = op0;
-      reserve_operand = op1;
-    } else if (op0_def && op1_def && isa<neura::ReserveOp>(op0_def) &&
-               isa<neura::GrantOnceOp>(op1_def)) {
+    bool op0_is_reserve = op0_def && isa<neura::ReserveOp>(op0_def);
+    bool op1_is_reserve = op1_def && isa<neura::ReserveOp>(op1_def);
+    if (op0_is_reserve && !op1_is_reserve) {
       init_operand = op1;
       reserve_operand = op0;
+    } else if (op1_is_reserve && !op0_is_reserve) {
+      init_operand = op0;
+      reserve_operand = op1;
     } else {
       continue;
     }

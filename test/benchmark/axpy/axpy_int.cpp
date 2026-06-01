@@ -1,5 +1,9 @@
 namespace {
+#ifndef N
 constexpr int kN = 16;
+#else
+constexpr int kN = N;
+#endif
 constexpr int kA = 3;
 }  // namespace
 
@@ -17,5 +21,4 @@ int main() {
   kernel_axpy_int(x, y);
   return 0;
 }
-
 
