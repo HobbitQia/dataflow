@@ -3,6 +3,7 @@
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/Operation.h"
 #include "mlir/IR/Value.h"
 #include "mlir/Pass/Pass.h"
@@ -1438,6 +1439,22 @@ struct GenerateCodePass
     return isa<LLVM::LLVMPointerType>(unwrapPredicatedType(type));
   }
 
+  static bool isMemRefType(Type type) {
+    return isa<MemRefType>(unwrapPredicatedType(type));
+  }
+
+  static std::string getArgumentKind(Type type) {
+    if (isPointerType(type))
+      return "pointer";
+    if (isMemRefType(type))
+      return "memref";
+    return "scalar";
+  }
+
+  static bool isMemoryRootKind(StringRef kind) {
+    return kind == "pointer" || kind == "memref";
+  }
+
   static std::optional<unsigned> parseArgIndex(StringRef name) {
     if (!name.starts_with("%arg"))
       return std::nullopt;
@@ -1468,7 +1485,7 @@ struct GenerateCodePass
       ArgumentMetadata arg;
       arg.name = "%arg" + std::to_string(i);
       arg.index = i;
-      arg.kind = isPointerType(type) ? "pointer" : "scalar";
+      arg.kind = getArgumentKind(type);
       arg.type = type;
       arg.type_text = stringifyType(type);
 
@@ -1515,8 +1532,9 @@ struct GenerateCodePass
       memory_metadata_error = true;
       return failure();
     }
-    if (arg->kind != "pointer") {
-      context_op->emitError("folded address root references non-pointer ")
+    if (!isMemoryRootKind(arg->kind)) {
+      context_op->emitError(
+          "folded address root references non-memory-root ")
           << arg->name;
       memory_metadata_error = true;
       return failure();
@@ -1537,7 +1555,7 @@ struct GenerateCodePass
     }
     if (into.root_arg->index != from.root_arg->index) {
       context_op->emitError(
-          "address trace found inconsistent pointer roots: ")
+          "address trace found inconsistent memory roots: ")
           << into.root_arg->name << " and " << from.root_arg->name;
       memory_metadata_error = true;
       return failure();
@@ -1571,8 +1589,8 @@ struct GenerateCodePass
         return failure();
       }
       const ArgumentMetadata *arg = &arguments[index];
-      if (arg->kind != "pointer") {
-        function.emitError("memory address trace reached non-pointer ")
+      if (!isMemoryRootKind(arg->kind)) {
+        function.emitError("memory address trace reached non-memory-root ")
             << arg->name;
         memory_metadata_error = true;
         return failure();
@@ -1932,6 +1950,9 @@ struct GenerateCodePass
       out << "      root_arg_index: " << op.address.root_arg->index << "\n";
       out << "      root_arg_kind: "
           << yamlQuote(op.address.root_arg->kind) << "\n";
+      if (op.address.root_arg->kind == "memref")
+        out << "      root_arg_type: "
+            << yamlQuote(op.address.root_arg->type_text) << "\n";
       out << "      address_unit: " << yamlQuote("word") << "\n";
       if (op.address.chain.empty()) {
         out << "      chain: []\n";

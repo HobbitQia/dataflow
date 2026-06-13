@@ -250,6 +250,31 @@ static void processEmptyReturnVoidBlock(Block *ret_block,
   void_ret_op.erase();
 }
 
+static void processNonEmptyReturnVoidBlock(neura::ReturnOp void_ret_op,
+                                           OpBuilder &builder) {
+  Value trigger_value = nullptr;
+  Block *ret_block = void_ret_op->getBlock();
+  for (Operation &op : llvm::reverse(*ret_block)) {
+    if (&op == void_ret_op) {
+      continue;
+    }
+    if (op.getNumResults() > 0) {
+      trigger_value = op.getResult(0);
+      break;
+    }
+  }
+
+  if (!trigger_value) {
+    assert(false && "No suitable value found in non-empty return block.");
+  }
+
+  builder.setInsertionPoint(void_ret_op);
+  auto new_ret =
+      builder.create<neura::ReturnOp>(void_ret_op.getLoc(), trigger_value);
+  new_ret->setAttr(kReturnTypeAttr, builder.getStringAttr(kReturnTypeVoid));
+  void_ret_op.erase();
+}
+
 // Processes void returns in kernel (same logic as function).
 static void processVoidReturnsInKernel(neura::KernelOp kernel_op,
                                        OpBuilder &builder) {
@@ -277,7 +302,7 @@ static void processVoidReturnsInKernel(neura::KernelOp kernel_op,
     if (is_empty_block) {
       processEmptyReturnVoidBlock(ret_block, ret_void_op, builder);
     } else {
-      assert(false && "Unsupported case: return block is not empty.");
+      processNonEmptyReturnVoidBlock(ret_void_op, builder);
     }
   }
 }
@@ -343,11 +368,7 @@ struct CanonicalizeReturnPass
         if (is_empty_block) {
           processEmptyReturnVoidBlock(ret_block, ret_void_op, builder);
         } else {
-          // TODO: Handle non-empty return blocks.
-          // The basic idea is to create a new block that only contains the
-          // return_void operation, and redirect the original return block to
-          // this new block.
-          assert(false && "Unsupported case: return block is not empty.");
+          processNonEmptyReturnVoidBlock(ret_void_op, builder);
         }
       }
     });
